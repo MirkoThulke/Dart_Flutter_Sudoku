@@ -106,7 +106,7 @@ class BadgeExample extends StatelessWidget {
         children: <Widget>[
           IconButton(
             icon: const Badge(
-              label: Text('Your label'),
+              label: Text('Test'),
               backgroundColor: Colors.blueAccent,
               child: Icon(Icons.receipt),
             ),
