@@ -81,17 +81,93 @@ class SudokuGrid extends StatelessWidget {
 class SudokuElement extends StatefulWidget {
   const SudokuElement({super.key});
 
+  /*
+  subelementlist_states[0]: Chosen Number (1...9), No number chosen (0)
+  subelementlist_states[1, ..., 9]: Chosen Candidate Numbers (boolean)
+  */
+  var subelementlist_states = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
   @override
   State<SudokuElement> createState() => _SudokuElementState();
 }
 
 class _SudokuElementState extends State<SudokuElement> {
-  final bool _isFavorited = true;
-  final int _favoriteCount = 41;
+/*
+  if(subelementlist_states[0]==1)
+  {
 
+  }
+  else if (subelementlist_states[0]==0)
+  {
+
+  }
+  else
+  {
+  assert(true, "state out of range. range : [0,1]");
+  }
+*/
+
+  /* @override
+    Widget build(BuildContext context) {
+    return Container(color: const Color.fromARGB(255, 204, 250, 210)); */
   @override
   Widget build(BuildContext context) {
-    return Container(color: const Color.fromARGB(255, 204, 250, 210));
+    return Scaffold(
+      body: GridView.count(
+        primary: false,
+        padding: const EdgeInsets.all(20),
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        crossAxisCount: 3,
+        children: <Widget>[
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("1"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("2"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("3"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("4"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("5"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("6"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("7"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("8"),
+          ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            color: Colors.teal[100],
+            child: const Text("9"),
+          ),
+        ],
+      ),
+    );
   }
 }
 
