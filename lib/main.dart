@@ -1,6 +1,113 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-void main() => runApp(const MyApp());
+// constants
+/////////////////////////////////////
+const List<Widget> numberlist = <Widget>[
+  Text('1'),
+  Text('2'),
+  Text('3'),
+  Text('4'),
+  Text('5'),
+  Text('6'),
+  Text('7'),
+  Text('8'),
+  Text('9')
+];
+
+const List<Widget> setresetlist = <Widget>[
+  Text('SetCand'),
+  Text('ResetCand'),
+  Text('SetNum'),
+  Text('ResetNum')
+];
+
+const List<Widget> patternlist = <Widget>[
+  Text('Pairs'),
+  Text('Triplets'),
+  Text('...')
+];
+
+const List<Widget> undoiconlist = <Widget>[
+  Icon(Icons.undo),
+  Icon(Icons.redo),
+];
+/////////////////////////////////////
+
+// typedefs
+/////////////////////////////////////
+typedef selectednumberlist = List<bool>;
+typedef selectedsetresetlist = List<bool>;
+typedef selectedpatternlist = List<bool>;
+typedef selectedundoiconlist = List<bool>;
+typedef highLightingOnBool = bool;
+/////////////////////////////////////
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => DataProvider(),
+      child: MyApp(),
+    ),
+  );
+}
+
+// Use Provider Class is used to exchange data between widgets
+class DataProvider with ChangeNotifier {
+  selectednumberlist _selectednumberlist = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
+
+  selectedsetresetlist _selectedsetresetlist = <bool>[
+    true,
+    false,
+    false,
+    false
+  ];
+
+  selectedpatternlist _selectedpatternlist = <bool>[false, true, false];
+
+  selectedundoiconlist _selectedundoiconlist = <bool>[true, false];
+
+  highLightingOnBool _highLightingOnBool = false;
+
+  void updateDataNumberlist(selectednumberlist _selectednumberlistNewData) {
+    _selectednumberlist = _selectednumberlistNewData;
+    notifyListeners();
+  }
+
+  void updateDataSelectedsetresetlist(
+      selectedsetresetlist _selectedsetresetlistNewData) {
+    _selectedsetresetlist = _selectedsetresetlistNewData;
+    notifyListeners();
+  }
+
+  void updateDataSelectedpatternlist(
+      selectedpatternlist _selectedpatternlistNewData) {
+    _selectedpatternlist = _selectedpatternlistNewData;
+    notifyListeners();
+  }
+
+  void updateDataSelectedundoiconlist(
+      selectedundoiconlist _selectedundoiconlistNewData) {
+    _selectedundoiconlist = _selectedundoiconlistNewData;
+    notifyListeners();
+  }
+
+  void updateDataHighLightingOnBool(
+      highLightingOnBool _highLightingOnBoolNewData) {
+    _highLightingOnBool = _highLightingOnBoolNewData;
+    notifyListeners();
+  }
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -8,7 +115,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sudoku',
+      title: 'TulliSudoku',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(),
     );
@@ -25,177 +132,524 @@ class MyHomePage extends StatelessWidget {
       body: const Column(
         children: [
           Expanded(child: SudokuGrid()),
-          Expanded(child: BadgeExample()),
+          Expanded(child: ToggleButtonsSample()),
         ],
       ),
     );
   }
 }
 
+//////////////////////////////////////////////////////////////////////////
+/// Sudoku grid
+//////////////////////////////////////////////////////////////////////////
+
 class SudokuGrid extends StatelessWidget {
   const SudokuGrid({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GridView.count(
-        primary: false,
-        padding: const EdgeInsets.all(20),
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        primary: true,
+        padding: const EdgeInsets.all(2),
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 1,
         crossAxisCount: 3,
+        physics: NeverScrollableScrollPhysics(), // no scrolling
         children: <Widget>[
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
-          Container(
-            child: const SudokuElement(),
-          ),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
+          SudokuBlock(),
         ],
       ),
     );
   }
 }
 
-class SudokuElement extends StatefulWidget {
-  const SudokuElement({super.key});
+class SudokuBlock extends StatelessWidget {
+  const SudokuBlock({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GridView.count(
+        primary: true,
+        padding: const EdgeInsets.all(2),
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 1,
+        crossAxisCount: 3,
+        physics: NeverScrollableScrollPhysics(), // no scrolling
+        children: <Widget>[
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+          SudokuElement(),
+        ],
+      ),
+    );
+  }
+}
+//////////////////////////////////////////////////////////////////////////
+/// Sudoku grid element
+//////////////////////////////////////////////////////////////////////////
 
-  /*
-  subelementlist_states[0]: Chosen Number (1...9), No number chosen (0)
-  subelementlist_states[1, ..., 9]: Chosen Candidate Numbers (boolean)
-  */
-  var subelementlist_states = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+class SudokuElement extends StatefulWidget {
+  SudokuElement({super.key});
 
   @override
   State<SudokuElement> createState() => _SudokuElementState();
 }
 
 class _SudokuElementState extends State<SudokuElement> {
-/*
-  if(subelementlist_states[0]==1)
-  {
+  // _SudokuElementState({super.key});
 
-  }
-  else if (subelementlist_states[0]==0)
-  {
+  // HMI input variables
+  selectednumberlist _selectednumberlistNewData = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
 
-  }
-  else
-  {
-  assert(true, "state out of range. range : [0,1]");
-  }
-*/
+  selectedsetresetlist _selectedsetresetlistNewData = <bool>[
+    true,
+    false,
+    false,
+    false
+  ];
 
-  /* @override
-    Widget build(BuildContext context) {
-    return Container(color: const Color.fromARGB(255, 204, 250, 210)); */
+  selectedpatternlist _selectedpatternlistNewData = <bool>[false, true, false];
+
+  selectedundoiconlist _selectedundoiconlistNewData = <bool>[true, false];
+
+  highLightingOnBool _highLightingOnBoolNewData = false;
+
+  //  End HMI input variables////////////////////////////////////////////////////////////////////////
+
+  /////////////////////////////////////////////////////////////////////
+  /* state variables :
+  subelement_ChoiceState: bool, Number chosen = TRUE, only candidates = FALSE
+  subelement_NumberChoice: Chosen Number (1...9)
+  subelementlist_CandidateChoice[0, ..., 8]: Chosen Candidate Numbers -1 (boolean)
+  */
+  bool _subelementChoiceState = false; // No choice made
+  var _subelementNumberChoice = 0; // Init value 0
+
+  List<bool> _subelementlistCandidateChoice = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ];
+
+  String _debugText = 'No information available';
+  /////////////////////////////////////////////////////////////////////
+
+  int _readNumberFromList(selectednumberlist _selectednumberlist) {
+    int number = 0;
+
+    // Check which number is selected (corresponding bit is TRUE)
+    for (int i = 0; i < _selectednumberlist.length; i++) {
+      if (_selectednumberlist[i] == true) {
+        number = i + 1;
+      } else {
+        // Add error handling here ...
+      }
+    }
+
+    return number;
+  }
+
+  void _setNumber(int number) {
+    setState(() {
+      _subelementChoiceState = true;
+      _subelementNumberChoice = number;
+    });
+  }
+
+  void _resetNumber(int number) {
+    setState(() {
+      _subelementChoiceState = false;
+      _subelementNumberChoice = 0;
+    });
+  }
+
+  void _setCandidate(int number) {
+    setState(() {
+      _subelementlistCandidateChoice[number - 1] = true;
+    });
+  }
+
+  void _resetCandidate(int number) {
+    setState(() {
+      _subelementlistCandidateChoice[number - 1] = false;
+    });
+  }
+
+  void _updateElementState(
+      selectednumberlist _selectednumberlist,
+      selectedsetresetlist _actionlist,
+      selectedpatternlist _selectedpatternlist,
+      selectedundoiconlist _selectedundoiconlist,
+      highLightingOnBool _highLightingOnBoola) {
+    setState(() {
+      int _candNumber = 0;
+
+      _candNumber = _readNumberFromList(_selectednumberlist);
+
+      // Case 1 : User wants to add a candidate number
+      if (_actionlist[0] == true) {
+        _setCandidate(_candNumber);
+      } else if (_actionlist[1] == true) {
+        _resetCandidate(_candNumber);
+      } else if (_actionlist[2] == true) {
+        _setNumber(_candNumber);
+      } else if (_actionlist[3] == true) {
+        _resetNumber(_candNumber);
+      } else {
+        print(' if _actionlist[] entered unintended ELSE statement');
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: GridView.count(
-        primary: false,
-        padding: const EdgeInsets.all(20),
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        crossAxisCount: 3,
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("1"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("2"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("3"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("4"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("5"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("6"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("7"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("8"),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.teal[100],
-            child: const Text("9"),
-          ),
-        ],
-      ),
-    );
+    // receive data from data provider triggered by HMI
+    _selectednumberlistNewData =
+        Provider.of<DataProvider>(context)._selectednumberlist;
+    _selectedsetresetlistNewData =
+        Provider.of<DataProvider>(context)._selectedsetresetlist;
+    _selectedpatternlistNewData =
+        Provider.of<DataProvider>(context)._selectedpatternlist;
+    _selectedundoiconlistNewData =
+        Provider.of<DataProvider>(context)._selectedundoiconlist;
+    _highLightingOnBoolNewData =
+        Provider.of<DataProvider>(context)._highLightingOnBool;
+
+    return InkWell(
+        onTap: () {
+          setState(() {
+            _updateElementState(
+              _selectednumberlistNewData,
+              _selectedsetresetlistNewData,
+              _selectedpatternlistNewData,
+              _selectedundoiconlistNewData,
+              _highLightingOnBoolNewData,
+            );
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.all(8.0),
+          color: Colors.blue[600],
+          alignment: Alignment.center,
+          child: !_subelementChoiceState // Result Number chosen ?
+              ? GridView.count(
+                  primary: true, // no scrolling
+                  padding: const EdgeInsets.all(2),
+                  crossAxisSpacing: 1,
+                  mainAxisSpacing: 1,
+                  crossAxisCount: 3,
+                  physics: NeverScrollableScrollPhysics(), // no scrolling
+                  children: <Widget>[
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[0] == true)
+                          ? Text("1",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("1",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[1] == true)
+                          ? Text("2",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("2",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[2] == true)
+                          ? Text("3",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("3",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[3] == true)
+                          ? Text("4",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("4",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[4] == true)
+                          ? Text("5",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("5",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[5] == true)
+                          ? Text("6",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("6",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[6] == true)
+                          ? Text("7",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("7",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[7] == true)
+                          ? Text("8",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("8",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      color: Colors.teal[100],
+                      child: (_subelementlistCandidateChoice[8] == true)
+                          ? Text("9",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.9)))
+                          : Text("9",
+                              style: TextStyle(
+                                  color: Colors.black.withOpacity(0.2))),
+                    ),
+                  ],
+                )
+              : Container(
+                  padding: const EdgeInsets.all(8),
+                  color: Colors.teal[100],
+                  child: Text('$_subelementNumberChoice'),
+                ),
+        ));
   }
 }
 
-class BadgeExample extends StatelessWidget {
-  const BadgeExample({super.key});
+//////////////////////////////////////////////////////////////////////////
+/// HMI / buttons
+//////////////////////////////////////////////////////////////////////////
+
+class ToggleButtonsSample extends StatefulWidget {
+  const ToggleButtonsSample({super.key});
+
+  @override
+  State<ToggleButtonsSample> createState() => _ToggleButtonsSampleState();
+}
+
+class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
+///////////////////////////////////////////////////
+  /// State HMI variables :
+  selectednumberlist _selectednumberlist = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
+
+  selectedsetresetlist _selectedsetresetlist = <bool>[
+    true,
+    false,
+    false,
+    false
+  ];
+
+  selectedpatternlist _selectedpatternlist = <bool>[false, true, false];
+  selectedundoiconlist _selectedundoiconlist = <bool>[true, false];
+
+  final bool _vertical = false; // constant setting
+  bool _highLightingOn = true; // runtime setting
+
+  String _debugText = 'No information available.';
+
+// State HMI variables END
+///////////////////////////////////////////////////
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          IconButton(
-            icon: const Badge(
-              label: Text('Test'),
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.receipt),
-            ),
-            onPressed: () {},
+    return Scaffold(
+      appBar: AppBar(title: Text('HMI')),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // ToggleButtons with a single selection.
+              const SizedBox(height: 5),
+              ToggleButtons(
+                direction: _vertical ? Axis.vertical : Axis.horizontal,
+                onPressed: (int index) {
+                  setState(() {
+                    // The button that is tapped is set to true, and the others to false.
+                    for (int i = 0; i < _selectedsetresetlist.length; i++) {
+                      _selectedsetresetlist[i] = i == index;
+                    }
+                    Provider.of<DataProvider>(context, listen: false)
+                        .updateDataSelectedsetresetlist(_selectedsetresetlist);
+                  });
+                },
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                selectedBorderColor: Colors.blue[700],
+                selectedColor: Colors.white,
+                fillColor: Colors.blue[200],
+                color: Colors.blue[400],
+                constraints: const BoxConstraints(
+                  minHeight: 40.0,
+                  minWidth: 80.0,
+                ),
+                isSelected: _selectedsetresetlist,
+                children: setresetlist,
+              ),
+              const SizedBox(height: 20),
+              // ToggleButtons with a multiple selection.
+              const SizedBox(height: 5),
+              ToggleButtons(
+                direction: _vertical ? Axis.vertical : Axis.horizontal,
+                onPressed: (int index) {
+                  // All buttons are selectable.
+                  setState(() {
+                    _selectedpatternlist[index] = !_selectedpatternlist[index];
+                    Provider.of<DataProvider>(context, listen: false)
+                        .updateDataSelectedpatternlist(_selectedpatternlist);
+                  });
+                },
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                selectedBorderColor: Colors.green[700],
+                selectedColor: Colors.white,
+                fillColor: Colors.green[200],
+                color: Colors.green[400],
+                constraints: const BoxConstraints(
+                  minHeight: 40.0,
+                  minWidth: 80.0,
+                ),
+                isSelected: _selectedpatternlist,
+                children: patternlist,
+              ),
+              const SizedBox(height: 20),
+              // ToggleButtons with icons only.
+              const SizedBox(height: 5),
+              ToggleButtons(
+                direction: _vertical ? Axis.vertical : Axis.horizontal,
+                onPressed: (int index) {
+                  setState(() {
+                    // The button that is tapped is set to true, and the others to false.
+                    for (int i = 0; i < _selectedundoiconlist.length; i++) {
+                      _selectedundoiconlist[i] = i == index;
+                    }
+                    Provider.of<DataProvider>(context, listen: false)
+                        .updateDataSelectedundoiconlist(_selectedundoiconlist);
+                  });
+                },
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                selectedBorderColor: Colors.blue[700],
+                selectedColor: Colors.white,
+                fillColor: Colors.blue[200],
+                color: Colors.blue[400],
+                isSelected: _selectedundoiconlist,
+                children: undoiconlist,
+              ),
+              const SizedBox(height: 20),
+              // Click button list
+              const SizedBox(height: 5),
+              ToggleButtons(
+                direction: _vertical ? Axis.vertical : Axis.horizontal,
+                onPressed: (int index) {
+                  setState(() {
+                    // The button that is tapped is set to true, and the others to false.
+                    for (int i = 0; i < _selectednumberlist.length; i++) {
+                      _selectednumberlist[i] = i == index;
+                      // Update data in the provider
+                    }
+                    Provider.of<DataProvider>(context, listen: false)
+                        .updateDataNumberlist(_selectednumberlist);
+                  });
+                },
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
+                selectedBorderColor: Colors.green[700],
+                selectedColor: Colors.white,
+                fillColor: Colors.green[200],
+                color: Colors.green[400],
+                constraints: const BoxConstraints(
+                  minHeight: 40.0,
+                  minWidth: 80.0,
+                ),
+                isSelected: _selectednumberlist,
+                children: numberlist,
+              ),
+            ],
           ),
-          IconButton(
-            icon: Badge.count(
-              count: 9999,
-              child: const Icon(Icons.notifications),
-            ),
-            onPressed: () {},
-          ),
-        ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _highLightingOn = !_highLightingOn;
+            Provider.of<DataProvider>(context, listen: false)
+                .updateDataHighLightingOnBool(_highLightingOn);
+          });
+        },
+        icon: const Icon(Icons.screen_rotation_outlined),
+        label: Text(_highLightingOn ? 'highlight on' : 'highlight off'),
       ),
     );
   }
