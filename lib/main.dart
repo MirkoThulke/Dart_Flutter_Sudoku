@@ -133,7 +133,12 @@ class SizeConfig {
   static double? safeBlockSudokuGridVertical;
   static double? safeBlockHMIGridVertical;
 
+  static double? safeBlockAppBarGridHorizontal;
+  static double? safeBlockSudokuGridHorizontal;
+  static double? safeBlockHMIGridHorizontal;
+
   static double? safeBlockSudokuGridVerticalMax;
+  static double? safeBlockSudokuGridHorizontalMax;
 
   void init(BuildContext context) {
     _mediaQueryData = MediaQuery.of(context);
@@ -157,11 +162,16 @@ class SizeConfig {
 // Sudokugrid shall extend to screen width, but not greate than 0.6 of the overal height.
 
     safeBlockSudokuGridVerticalMax = safeBlockVertical! * 0.6;
+    safeBlockSudokuGridHorizontalMax = safeBlockHorizontal! * 0.6;
 
-    if (safeBlockHorizontal! < safeBlockSudokuGridVerticalMax!) {
-      safeBlockSudokuGridVertical = safeBlockHorizontal!;
-    } else {
+    if (safeBlockHorizontal! > safeBlockSudokuGridVerticalMax!) {
       safeBlockSudokuGridVertical = safeBlockSudokuGridVerticalMax;
+      safeBlockSudokuGridHorizontal = safeBlockSudokuGridVerticalMax;
+    } else if (safeBlockVertical! > safeBlockSudokuGridHorizontalMax!) {
+      safeBlockSudokuGridVertical = safeBlockSudokuGridVerticalMax;
+      safeBlockSudokuGridHorizontal = safeBlockSudokuGridVerticalMax;
+    } else {
+      safeBlockSudokuGridVertical = safeBlockHorizontal!;
     }
 
 // HMI height shall take the remaining space
@@ -217,8 +227,7 @@ class MyHomePage extends StatelessWidget {
             CrossAxisAlignment.center, // Align children horizontall
         children: [
           Container(
-            height: SizeConfig
-                .safeBlockSudokuGridVertical!, // Square with height equal to width equal to screen widths in percent
+            height: SizeConfig.safeBlockSudokuGridVertical!,
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.orange,
             child: SudokuGrid(),
@@ -233,6 +242,7 @@ class MyHomePage extends StatelessWidget {
             color: Colors.orange,
           ),
 */
+
           Expanded(
               child: Container(
             height: SizeConfig
@@ -241,7 +251,6 @@ class MyHomePage extends StatelessWidget {
             color: Colors.blue,
             child: ToggleButtonsSample(),
           ))
-
 /*
           Expanded(
               child: Container(
@@ -251,8 +260,8 @@ class MyHomePage extends StatelessWidget {
                 .safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.blue,
-          ))
- */
+          )),
+*/
         ],
       ),
     );
@@ -287,7 +296,7 @@ class SudokuGrid extends StatelessWidget {
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
-        physics: const NeverScrollableScrollPhysics(), // no scrolling
+        // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: <Widget>[
           SudokuBlock(),
@@ -316,7 +325,7 @@ class SudokuBlock extends StatelessWidget {
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
-        physics: const NeverScrollableScrollPhysics(), // no scrolling
+        // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: <Widget>[
           SudokuElement(),
@@ -666,12 +675,14 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          // physics: const NeverScrollableScrollPhysics(), // no scrolling
+          physics: const NeverScrollableScrollPhysics(), // no scrolling
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               // ToggleButtons with a single selection.
+              const SizedBox(height: 20),
+              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -692,13 +703,16 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 color: Colors.blue[400],
                 constraints: BoxConstraints(
                   minHeight: 20.0,
-                  maxHeight: 60.0,
-                  maxWidth: SizeConfig.safeBlockHorizontal!,
+                  minWidth: 80.0,
+                  // maxHeight: 60.0,
+                  // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
                 isSelected: _selectedsetresetlist,
                 children: setresetlist,
               ),
               // ToggleButtons with a multiple selection.
+              const SizedBox(height: 20),
+              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -717,13 +731,16 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 color: Colors.green[400],
                 constraints: BoxConstraints(
                   minHeight: 20.0,
-                  maxHeight: 60.0,
-                  maxWidth: SizeConfig.safeBlockHorizontal!,
+                  minWidth: 80.0,
+                  // maxHeight: 60.0,
+                  // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
                 isSelected: _selectedpatternlist,
                 children: patternlist,
               ),
               // ToggleButtons with icons only.
+              const SizedBox(height: 20),
+              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -744,12 +761,15 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 color: Colors.blue[400],
                 constraints: BoxConstraints(
                   minHeight: 20.0,
-                  maxHeight: 60.0,
-                  maxWidth: SizeConfig.safeBlockHorizontal!,
+                  minWidth: 80.0,
+                  // maxHeight: 60.0,
+                  // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
                 isSelected: _selectedundoiconlist,
                 children: undoiconlist,
               ),
+              // Click button list
+              const SizedBox(height: 20),
               // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
@@ -772,8 +792,9 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 color: Colors.green[400],
                 constraints: BoxConstraints(
                   minHeight: 20.0,
-                  maxHeight: 60.0,
-                  maxWidth: SizeConfig.safeBlockHorizontal!,
+                  minWidth: 80.0,
+                  // maxHeight: 60.0,
+                  // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
                 isSelected: _selectednumberlist,
                 children: numberlist,
@@ -782,7 +803,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
           ),
         ),
       ),
-      /*floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           setState(() {
             _highLightingOn = !_highLightingOn;
@@ -792,7 +813,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
         },
         icon: const Icon(Icons.screen_rotation_outlined),
         label: Text(_highLightingOn ? 'highlight on' : 'highlight off'),
-      ),*/
+      ),
     );
   }
 }
