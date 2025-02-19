@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -173,11 +175,12 @@ class SizeConfig {
     } else {
       safeBlockSudokuGridVertical = safeBlockHorizontal!;
     }
-
 // HMI height shall take the remaining space
     safeBlockHMIGridVertical = (safeBlockVertical! -
         safeBlockSudokuGridVertical! -
         safeBlockAppBarGridVertical!);
+
+// Button min / max sizes :
 
     print('Horizontal size of screen in pixel:   ');
     print(SizeConfig.blockSizeHorizontal.toString());
@@ -226,13 +229,14 @@ class MyHomePage extends StatelessWidget {
         crossAxisAlignment:
             CrossAxisAlignment.center, // Align children horizontall
         children: [
+          /*
           Container(
             height: SizeConfig.safeBlockSudokuGridVertical!,
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.orange,
             child: SudokuGrid(),
           ),
-/*
+*/
           // Test Code for definition of app segment sizes via simple containers with different color
           Container(
             // test container for app screen size definition
@@ -241,7 +245,6 @@ class MyHomePage extends StatelessWidget {
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.orange,
           ),
-*/
 
           Expanded(
               child: Container(
@@ -662,6 +665,9 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   selectedpatternlist _selectedpatternlist = <bool>[false, true, false];
   selectedundoiconlist _selectedundoiconlist = <bool>[true, false];
 
+  // variable to calculate max. size of button list
+  double selectednumberlistWidthMax = 0.0;
+
   final bool _vertical = false; // constant setting
   bool _highLightingOn = true; // runtime setting
 
@@ -672,6 +678,13 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
   @override
   Widget build(BuildContext context) {
+    // Dimension apply to individual buttons, thus must be divided by number of buttons in the array
+    selectednumberlistWidthMax = SizeConfig.safeBlockHorizontal! *
+        0.9 /
+        max(1, _selectednumberlist.length!);
+    print('selectednumberlistWidthMax:    ');
+    print(selectednumberlistWidthMax.toString());
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -791,10 +804,10 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 fillColor: Colors.green[200],
                 color: Colors.green[400],
                 constraints: BoxConstraints(
-                  minHeight: 20.0,
-                  minWidth: 80.0,
-                  // maxHeight: 60.0,
-                  // maxWidth: SizeConfig.safeBlockHorizontal!,
+                  minHeight: selectednumberlistWidthMax,
+                  maxHeight: selectednumberlistWidthMax,
+                  minWidth: selectednumberlistWidthMax,
+                  maxWidth: selectednumberlistWidthMax,
                 ),
                 isSelected: _selectednumberlist,
                 children: numberlist,
@@ -803,7 +816,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      /*floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           setState(() {
             _highLightingOn = !_highLightingOn;
@@ -813,7 +826,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
         },
         icon: const Icon(Icons.screen_rotation_outlined),
         label: Text(_highLightingOn ? 'highlight on' : 'highlight off'),
-      ),
+      ),*/
     );
   }
 }
