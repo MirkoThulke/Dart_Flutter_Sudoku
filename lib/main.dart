@@ -675,7 +675,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(), // no scrolling
+          //physics: const NeverScrollableScrollPhysics(), // no scrolling
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
