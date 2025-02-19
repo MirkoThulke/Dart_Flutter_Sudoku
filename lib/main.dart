@@ -43,15 +43,6 @@ typedef selectedundoiconlist = List<bool>;
 typedef highLightingOnBool = bool;
 /////////////////////////////////////
 
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => DataProvider(),
-      child: MyApp(),
-    ),
-  );
-}
-
 // Use Provider Class is used to exchange data between widgets
 class DataProvider with ChangeNotifier {
   selectednumberlist _selectednumberlist = <bool>[
@@ -109,6 +100,151 @@ class DataProvider with ChangeNotifier {
   }
 }
 
+// Use this calss to handle the overall dimension of the app content depending on the actual screen size
+
+/*
+example :
+@override
+Widget build(BuildContext context) {
+ return Center(
+  child: Container(
+   height: SizeConfig.blockSizeVertical * 20,
+   width: SizeConfig.blockSizeHorizontal * 50,
+   color: Colors.orange,
+  ),
+ );
+}
+// or use the safeSizeConfig.safeBlock... parameters
+*/
+
+class SizeConfig {
+  static MediaQueryData? _mediaQueryData;
+  static double? screenWidth;
+  static double? screenHeight;
+  static double? blockSizeHorizontal;
+  static double? blockSizeVertical;
+
+  static double? _safeAreaHorizontal;
+  static double? _safeAreaVertical;
+  static double? safeBlockHorizontal;
+  static double? safeBlockVertical;
+
+  static double? safeBlockAppBarGridVertical;
+  static double? safeBlockSudokuGridVertical;
+  static double? safeBlockHMIGridVertical;
+
+  void init(BuildContext context) {
+    _mediaQueryData = MediaQuery.of(context);
+    screenWidth = _mediaQueryData!.size.width;
+    screenHeight = _mediaQueryData!.size.height;
+    blockSizeHorizontal = screenWidth!;
+    blockSizeVertical = screenHeight!;
+
+    _safeAreaHorizontal =
+        _mediaQueryData!.padding.left + _mediaQueryData!.padding.right;
+    _safeAreaVertical =
+        _mediaQueryData!.padding.top + _mediaQueryData!.padding.bottom;
+    safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
+    safeBlockVertical = (screenHeight! - _safeAreaVertical!);
+
+// App screen space repartition :
+// 5 percent height for AppBar
+// Sudokugrid shall extend to screen width
+// HMI height shall take the remaining space
+// in [percent !]
+
+    safeBlockAppBarGridVertical = safeBlockVertical! * 0.05;
+
+    safeBlockSudokuGridVertical = safeBlockVertical!;
+
+    safeBlockHMIGridVertical = (safeBlockVertical! -
+        safeBlockSudokuGridVertical! -
+        safeBlockAppBarGridVertical!);
+
+    print('Horizontal size of screen in pixel:   ');
+    print(SizeConfig.blockSizeHorizontal.toString());
+    print('Vertical size of screen in pixel:   ');
+    print(SizeConfig.blockSizeVertical.toString());
+    print('Horizontal safe size of screen in pixel:   ');
+    print(SizeConfig.safeBlockHorizontal.toString());
+    print('Vertical safe size of screen in pixel:   ');
+    print(SizeConfig.safeBlockVertical.toString());
+    print('AppBar height in pixel:   ');
+    print(safeBlockAppBarGridVertical.toString());
+    print('Sudoku height in pixel:   ');
+    print(safeBlockSudokuGridVertical.toString());
+    print('HMI height in pixel:   ');
+    print(safeBlockHMIGridVertical.toString());
+  }
+}
+
+////////////////////////////////////////////////////////////
+// Main classe  -> root
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => DataProvider(),
+      child: const MyApp(),
+    ),
+  );
+}
+
+////////////////////////////////////////////////////////////
+// Homepage screen . This is the overall root screen
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    SizeConfig().init(context); // obtain current size of App on screen
+
+    return Scaffold(
+      appBar: AppBar(
+          toolbarHeight: SizeConfig.safeBlockAppBarGridVertical!, // 5 percent
+          title: const Text('Sudoku')),
+      body: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Align children vertically
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Align children horizontall
+        children: [
+          Container(
+            height: SizeConfig
+                .safeBlockSudokuGridVertical!, // Square with height equal to width equal to screen widths in percent
+            width: SizeConfig.safeBlockHorizontal!,
+            color: Colors.orange,
+            child: SudokuGrid(),
+          ),
+          Expanded(
+              child: Container(
+            height: SizeConfig
+                .safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
+            width: SizeConfig.safeBlockHorizontal!,
+            color: Colors.blue,
+            child: ToggleButtonsSample(),
+          ))
+          /*
+          // Test Code for definition of app segment sizes via simple containers with different color
+          Container(
+            // test container for app screen size definition
+            height: SizeConfig.safeBlockSudokuGridVertical!, // Square with height equal to width equal to screen widths in percent
+            width: SizeConfig.safeBlockHorizontal!,
+            color: Colors.orange,
+          ),
+          Expanded(
+              child: Container(
+            // user lower segement for potential filling in case of small gaps in size calcualtions
+            // test container for app screen size definition
+            height: SizeConfig.safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
+            width: SizeConfig.safeBlockHorizontal!,
+            color: Colors.blue,
+          )) */
+        ],
+      ),
+    );
+  }
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -118,23 +254,6 @@ class MyApp extends StatelessWidget {
       title: 'TulliSudoku',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sudoku')),
-      body: const Column(
-        children: [
-          Expanded(child: SudokuGrid()),
-          Expanded(child: ToggleButtonsSample()),
-        ],
-      ),
     );
   }
 }
@@ -154,7 +273,8 @@ class SudokuGrid extends StatelessWidget {
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
-        physics: NeverScrollableScrollPhysics(), // no scrolling
+        physics: const NeverScrollableScrollPhysics(), // no scrolling
+        childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: <Widget>[
           SudokuBlock(),
           SudokuBlock(),
@@ -182,7 +302,8 @@ class SudokuBlock extends StatelessWidget {
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
-        physics: NeverScrollableScrollPhysics(), // no scrolling
+        physics: const NeverScrollableScrollPhysics(), // no scrolling
+        childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: <Widget>[
           SudokuElement(),
           SudokuElement(),
@@ -203,7 +324,7 @@ class SudokuBlock extends StatelessWidget {
 //////////////////////////////////////////////////////////////////////////
 
 class SudokuElement extends StatefulWidget {
-  SudokuElement({super.key});
+  const SudokuElement({super.key});
 
   @override
   State<SudokuElement> createState() => _SudokuElementState();
@@ -261,7 +382,7 @@ class _SudokuElementState extends State<SudokuElement> {
     false,
   ];
 
-  String _debugText = 'No information available';
+  final String _debugText = 'No information available';
   /////////////////////////////////////////////////////////////////////
 
   int _readNumberFromList(selectednumberlist _selectednumberlist) {
@@ -368,7 +489,9 @@ class _SudokuElementState extends State<SudokuElement> {
                   crossAxisSpacing: 1,
                   mainAxisSpacing: 1,
                   crossAxisCount: 3,
-                  physics: NeverScrollableScrollPhysics(), // no scrolling
+                  physics: const NeverScrollableScrollPhysics(), // no scrolling
+                  childAspectRatio:
+                      1.0, // horozontal verus vertical aspect ratio
                   children: <Widget>[
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -519,7 +642,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   final bool _vertical = false; // constant setting
   bool _highLightingOn = true; // runtime setting
 
-  String _debugText = 'No information available.';
+  final String _debugText = 'No information available.';
 
 // State HMI variables END
 ///////////////////////////////////////////////////
@@ -527,9 +650,9 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('HMI')),
       body: Center(
         child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(), // no scrolling
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -640,7 +763,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      /* floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           setState(() {
             _highLightingOn = !_highLightingOn;
@@ -650,7 +773,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
         },
         icon: const Icon(Icons.screen_rotation_outlined),
         label: Text(_highLightingOn ? 'highlight on' : 'highlight off'),
-      ),
+      ), */
     );
   }
 }
