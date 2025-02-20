@@ -1,7 +1,7 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:logging/logging.dart';
 
 // constants
 /////////////////////////////////////
@@ -44,6 +44,9 @@ typedef selectedpatternlist = List<bool>;
 typedef selectedundoiconlist = List<bool>;
 typedef highLightingOnBool = bool;
 /////////////////////////////////////
+
+// Debug Logging class
+final log = Logger('SudokuLogger');
 
 // Use Provider Class is used to exchange data between widgets
 class DataProvider with ChangeNotifier {
@@ -177,20 +180,19 @@ class SizeConfig {
         safeBlockSudokuGridVertical!; // Grid shall be a square.
 
 // Button min / max sizes :
-    print('Horizontal size of screen in pixel:   ');
-    print(SizeConfig.blockSizeHorizontal.toString());
-    print('Vertical size of screen in pixel:   ');
-    print(SizeConfig.blockSizeVertical.toString());
-    print('Horizontal safe size of screen in pixel:   ');
-    print(SizeConfig.safeBlockHorizontal.toString());
-    print('Vertical safe size of screen in pixel:   ');
-    print(SizeConfig.safeBlockVertical.toString());
-    print('AppBar height in pixel:   ');
-    print(safeBlockAppBarGridVertical.toString());
-    print('Sudoku height in pixel:   ');
-    print(safeBlockSudokuGridVertical.toString());
-    print('HMI height in pixel:   ');
-    print(safeBlockHMIGridVertical.toString());
+    Logger.root.level = Level.ALL;
+
+    log.info(
+        'Horizontal size of screen in pixel: $SizeConfig.blockSizeHorizontal.toString()');
+    log.info(
+        'Vertical size of screen in pixel: $SizeConfig.blockSizeVertical.toString()');
+    log.info(
+        'Horizontal safe size of screen in pixel: $SizeConfig.safeBlockHorizontal.toString()');
+    log.info(
+        'Vertical safe size of screen in pixel: $SizeConfig.safeBlockVertical.toString()');
+    log.info('AppBar height in pixel: $safeBlockAppBarGridVertical.toString()');
+    log.info('Sudoku height in pixel: $safeBlockSudokuGridVertical.toString()');
+    log.info('HMI height in pixel: $safeBlockHMIGridVertical.toString()');
   }
 }
 
@@ -402,9 +404,6 @@ class _SudokuElementState extends State<SudokuElement> {
     false,
   ];
 
-  final String _debugText = 'No information available';
-  /////////////////////////////////////////////////////////////////////
-
   int _readNumberFromList(selectednumberlist _selectednumberlist) {
     int number = 0;
 
@@ -467,7 +466,8 @@ class _SudokuElementState extends State<SudokuElement> {
       } else if (_actionlist[3] == true) {
         _resetNumber(_candNumber);
       } else {
-        print(' if _actionlist[] entered unintended ELSE statement');
+        Logger.root.level = Level.ALL;
+        log.shout('if _actionlist[] entered unintended ELSE statement');
       }
     });
   }
@@ -668,8 +668,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   final bool _vertical = false; // constant setting
   bool _highLightingOn = true; // runtime setting
 
-  final String _debugText = 'No information available.';
-
 // State HMI variables END
 ///////////////////////////////////////////////////
 
@@ -692,14 +690,15 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
         0.9 /
         max(1, _selectedundoiconlist.length); // for futur use if required.
 
-    print('selectednumberlistWidthMax:    ');
-    print(selectednumberlistWidthMax.toString());
-    print('selectedsetresetlistWidthMax:    ');
-    print(selectedsetresetlistWidthMax.toString());
-    print('selectedpatternlistWidthMax:    ');
-    print(selectedpatternlistWidthMax.toString());
-    print('selectedundoiconlistWidthMa:    ');
-    print(selectedundoiconlistWidthMax.toString());
+    Logger.root.level = Level.ALL;
+    log.info(
+        'selectednumberlistWidthMax: $selectednumberlistWidthMax.toString()');
+    log.info(
+        'selectedsetresetlistWidthMax: $selectedsetresetlistWidthMax.toString()');
+    log.info(
+        'selectedpatternlistWidthMax: $selectedpatternlistWidthMax.toString()');
+    log.info(
+        'selectedundoiconlistWidthMax: $selectedundoiconlistWidthMax.toString()');
 
     return Scaffold(
       body: Center(
