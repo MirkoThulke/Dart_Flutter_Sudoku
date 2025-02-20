@@ -139,9 +139,6 @@ class SizeConfig {
   static double? safeBlockSudokuGridHorizontal;
   static double? safeBlockHMIGridHorizontal;
 
-  static double? safeBlockSudokuGridVerticalMax;
-  static double? safeBlockSudokuGridHorizontalMax;
-
   void init(BuildContext context) {
     _mediaQueryData = MediaQuery.of(context);
     screenWidth = _mediaQueryData!.size.width;
@@ -158,30 +155,28 @@ class SizeConfig {
 
 // App screen space repartition in pixel :
 
-// 5 percent height for AppBar
-    safeBlockAppBarGridVertical = safeBlockVertical! * 0.05;
+// 5 percent height for AppBar, but not smaller than 20 logical pixel but smaller than aprox. 1 cm .
+    safeBlockAppBarGridVertical = max(min(safeBlockVertical! * 0.05, 20.0), 40);
 
-// Sudokugrid shall extend to screen width, but not greate than 0.6 of the overal height.
+// Sudokugrid shall extend to the minimum of screen width / height,
+// but not greater than 0.66 of this dimension; to leave enough âve for the HMI segment.
+// Height not smaller than aprox. 2cm
+    safeBlockSudokuGridVertical =
+        max(min(safeBlockVertical!, safeBlockHorizontal!) * 0.66, 80.0);
 
-    safeBlockSudokuGridVerticalMax = safeBlockVertical! * 0.6;
-    safeBlockSudokuGridHorizontalMax = safeBlockHorizontal! * 0.6;
-
-    if (safeBlockHorizontal! > safeBlockSudokuGridVerticalMax!) {
-      safeBlockSudokuGridVertical = safeBlockSudokuGridVerticalMax;
-      safeBlockSudokuGridHorizontal = safeBlockSudokuGridVerticalMax;
-    } else if (safeBlockVertical! > safeBlockSudokuGridHorizontalMax!) {
-      safeBlockSudokuGridVertical = safeBlockSudokuGridVerticalMax;
-      safeBlockSudokuGridHorizontal = safeBlockSudokuGridVerticalMax;
-    } else {
-      safeBlockSudokuGridVertical = safeBlockHorizontal!;
-    }
 // HMI height shall take the remaining space
-    safeBlockHMIGridVertical = (safeBlockVertical! -
-        safeBlockSudokuGridVertical! -
-        safeBlockAppBarGridVertical!);
+    safeBlockHMIGridVertical = min(
+        (safeBlockVertical! -
+            safeBlockSudokuGridVertical! -
+            safeBlockAppBarGridVertical!),
+        80.0); // Not smaller than aprox. 2cm
+
+    safeBlockAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockHMIGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockSudokuGridHorizontal =
+        safeBlockSudokuGridVertical!; // Grid shall be a square.
 
 // Button min / max sizes :
-
     print('Horizontal size of screen in pixel:   ');
     print(SizeConfig.blockSizeHorizontal.toString());
     print('Vertical size of screen in pixel:   ');
@@ -229,14 +224,13 @@ class MyHomePage extends StatelessWidget {
         crossAxisAlignment:
             CrossAxisAlignment.center, // Align children horizontall
         children: [
-          /*
           Container(
             height: SizeConfig.safeBlockSudokuGridVertical!,
-            width: SizeConfig.safeBlockHorizontal!,
+            width: SizeConfig.safeBlockSudokuGridHorizontal!,
             color: Colors.orange,
             child: SudokuGrid(),
           ),
-*/
+/*
           // Test Code for definition of app segment sizes via simple containers with different color
           Container(
             // test container for app screen size definition
@@ -245,7 +239,7 @@ class MyHomePage extends StatelessWidget {
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.orange,
           ),
-
+*/
           Expanded(
               child: Container(
             height: SizeConfig
@@ -667,6 +661,9 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
   // variable to calculate max. size of button list
   double selectednumberlistWidthMax = 0.0;
+  double selectedsetresetlistWidthMax = 0.0;
+  double selectedpatternlistWidthMax = 0.0;
+  double selectedundoiconlistWidthMax = 0.0;
 
   final bool _vertical = false; // constant setting
   bool _highLightingOn = true; // runtime setting
@@ -681,9 +678,28 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     // Dimension apply to individual buttons, thus must be divided by number of buttons in the array
     selectednumberlistWidthMax = SizeConfig.safeBlockHorizontal! *
         0.9 /
-        max(1, _selectednumberlist.length!);
+        max(1, _selectednumberlist.length);
+
+    selectedsetresetlistWidthMax = SizeConfig.safeBlockHorizontal! *
+        0.9 /
+        max(1, _selectedsetresetlist.length); // for futur use if required.
+
+    selectedpatternlistWidthMax = SizeConfig.safeBlockHorizontal! *
+        0.9 /
+        max(1, _selectedpatternlist.length); // for futur use if required.
+
+    selectedundoiconlistWidthMax = SizeConfig.safeBlockHorizontal! *
+        0.9 /
+        max(1, _selectedundoiconlist.length); // for futur use if required.
+
     print('selectednumberlistWidthMax:    ');
     print(selectednumberlistWidthMax.toString());
+    print('selectedsetresetlistWidthMax:    ');
+    print(selectedsetresetlistWidthMax.toString());
+    print('selectedpatternlistWidthMax:    ');
+    print(selectedpatternlistWidthMax.toString());
+    print('selectedundoiconlistWidthMa:    ');
+    print(selectedundoiconlistWidthMax.toString());
 
     return Scaffold(
       body: Center(
@@ -804,8 +820,10 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 fillColor: Colors.green[200],
                 color: Colors.green[400],
                 constraints: BoxConstraints(
-                  minHeight: selectednumberlistWidthMax,
-                  maxHeight: selectednumberlistWidthMax,
+                  minHeight: selectednumberlistWidthMax *
+                      0.5, // change optic of button
+                  maxHeight: selectednumberlistWidthMax *
+                      0.5, // change optic of button
                   minWidth: selectednumberlistWidthMax,
                   maxWidth: selectednumberlistWidthMax,
                 ),
