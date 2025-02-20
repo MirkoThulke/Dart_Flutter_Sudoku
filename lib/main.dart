@@ -38,11 +38,11 @@ const List<Widget> undoiconlist = <Widget>[
 
 // typedefs
 /////////////////////////////////////
-typedef selectednumberlist = List<bool>;
-typedef selectedsetresetlist = List<bool>;
-typedef selectedpatternlist = List<bool>;
-typedef selectedundoiconlist = List<bool>;
-typedef highLightingOnBool = bool;
+typedef SelectedNumberList = List<bool>;
+typedef SelectedSetResetList = List<bool>;
+typedef SelectedPatternList = List<bool>;
+typedef SelectedUndoIconList = List<bool>;
+typedef HighLightingOnBool = bool;
 /////////////////////////////////////
 
 // Debug Logging class
@@ -50,7 +50,7 @@ final log = Logger('SudokuLogger');
 
 // Use Provider Class is used to exchange data between widgets
 class DataProvider with ChangeNotifier {
-  selectednumberlist _selectednumberlist = <bool>[
+  SelectedNumberList _selectedNumberList = <bool>[
     false,
     false,
     false,
@@ -62,45 +62,45 @@ class DataProvider with ChangeNotifier {
     false
   ];
 
-  selectedsetresetlist _selectedsetresetlist = <bool>[
+  SelectedSetResetList _selectedSetResetList = <bool>[
     true,
     false,
     false,
     false
   ];
 
-  selectedpatternlist _selectedpatternlist = <bool>[false, true, false];
+  SelectedPatternList _selectedPatternList = <bool>[false, true, false];
 
-  selectedundoiconlist _selectedundoiconlist = <bool>[true, false];
+  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
-  highLightingOnBool _highLightingOnBool = false;
+  HighLightingOnBool _highLightingOnBool = false;
 
-  void updateDataNumberlist(selectednumberlist _selectednumberlistNewData) {
-    _selectednumberlist = _selectednumberlistNewData;
+  void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
+    _selectedNumberList = selectedNumberListNewData;
     notifyListeners();
   }
 
-  void updateDataSelectedsetresetlist(
-      selectedsetresetlist _selectedsetresetlistNewData) {
-    _selectedsetresetlist = _selectedsetresetlistNewData;
+  void updateDataselectedSetResetList(
+      SelectedSetResetList selectedSetResetListNewData) {
+    _selectedSetResetList = selectedSetResetListNewData;
     notifyListeners();
   }
 
-  void updateDataSelectedpatternlist(
-      selectedpatternlist _selectedpatternlistNewData) {
-    _selectedpatternlist = _selectedpatternlistNewData;
+  void updateDataselectedPatternList(
+      SelectedPatternList selectedPatternListNewData) {
+    _selectedPatternList = selectedPatternListNewData;
     notifyListeners();
   }
 
-  void updateDataSelectedundoiconlist(
-      selectedundoiconlist _selectedundoiconlistNewData) {
-    _selectedundoiconlist = _selectedundoiconlistNewData;
+  void updateDataselectedUndoIconList(
+      SelectedUndoIconList selectedUndoIconListNewData) {
+    _selectedUndoIconList = selectedUndoIconListNewData;
     notifyListeners();
   }
 
   void updateDataHighLightingOnBool(
-      highLightingOnBool _highLightingOnBoolNewData) {
-    _highLightingOnBool = _highLightingOnBoolNewData;
+      HighLightingOnBool highLightingOnBoolNewData) {
+    _highLightingOnBool = highLightingOnBoolNewData;
     notifyListeners();
   }
 }
@@ -297,7 +297,7 @@ class SudokuGrid extends StatelessWidget {
         crossAxisCount: 3,
         // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
-        children: <Widget>[
+        children: const <Widget>[
           SudokuBlock(),
           SudokuBlock(),
           SudokuBlock(),
@@ -326,7 +326,7 @@ class SudokuBlock extends StatelessWidget {
         crossAxisCount: 3,
         // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
-        children: <Widget>[
+        children: const <Widget>[
           SudokuElement(),
           SudokuElement(),
           SudokuElement(),
@@ -356,7 +356,7 @@ class _SudokuElementState extends State<SudokuElement> {
   // _SudokuElementState({super.key});
 
   // HMI input variables
-  selectednumberlist _selectednumberlistNewData = <bool>[
+  SelectedNumberList _selectedNumberListNewData = <bool>[
     false,
     false,
     false,
@@ -368,18 +368,18 @@ class _SudokuElementState extends State<SudokuElement> {
     false
   ];
 
-  selectedsetresetlist _selectedsetresetlistNewData = <bool>[
+  SelectedSetResetList _selectedSetResetListNewData = <bool>[
     true,
     false,
     false,
     false
   ];
 
-  selectedpatternlist _selectedpatternlistNewData = <bool>[false, true, false];
+  SelectedPatternList _selectedPatternListNewData = <bool>[false, true, false];
 
-  selectedundoiconlist _selectedundoiconlistNewData = <bool>[true, false];
+  SelectedUndoIconList _selectedUndoIconListNewData = <bool>[true, false];
 
-  highLightingOnBool _highLightingOnBoolNewData = false;
+  HighLightingOnBool _highLightingOnBoolNewData = false;
 
   //  End HMI input variables////////////////////////////////////////////////////////////////////////
 
@@ -404,12 +404,12 @@ class _SudokuElementState extends State<SudokuElement> {
     false,
   ];
 
-  int _readNumberFromList(selectednumberlist _selectednumberlist) {
+  int _readNumberFromList(SelectedNumberList selectedNumberList) {
     int number = 0;
 
     // Check which number is selected (corresponding bit is TRUE)
-    for (int i = 0; i < _selectednumberlist.length; i++) {
-      if (_selectednumberlist[i] == true) {
+    for (int i = 0; i < selectedNumberList.length; i++) {
+      if (selectedNumberList[i] == true) {
         number = i + 1;
       } else {
         // Add error handling here ...
@@ -446,28 +446,28 @@ class _SudokuElementState extends State<SudokuElement> {
   }
 
   void _updateElementState(
-      selectednumberlist _selectednumberlist,
-      selectedsetresetlist _actionlist,
-      selectedpatternlist _selectedpatternlist,
-      selectedundoiconlist _selectedundoiconlist,
-      highLightingOnBool _highLightingOnBoola) {
+      SelectedNumberList selectedNumberList,
+      SelectedSetResetList actionlist,
+      SelectedPatternList selectedPatternList,
+      SelectedUndoIconList selectedUndoIconList,
+      HighLightingOnBool highLightingOnBoola) {
     setState(() {
-      int _candNumber = 0;
+      int candNumber = 0;
 
-      _candNumber = _readNumberFromList(_selectednumberlist);
+      candNumber = _readNumberFromList(selectedNumberList);
 
       // Case 1 : User wants to add a candidate number
-      if (_actionlist[0] == true) {
-        _setCandidate(_candNumber);
-      } else if (_actionlist[1] == true) {
-        _resetCandidate(_candNumber);
-      } else if (_actionlist[2] == true) {
-        _setNumber(_candNumber);
-      } else if (_actionlist[3] == true) {
-        _resetNumber(_candNumber);
+      if (actionlist[0] == true) {
+        _setCandidate(candNumber);
+      } else if (actionlist[1] == true) {
+        _resetCandidate(candNumber);
+      } else if (actionlist[2] == true) {
+        _setNumber(candNumber);
+      } else if (actionlist[3] == true) {
+        _resetNumber(candNumber);
       } else {
         Logger.root.level = Level.ALL;
-        log.shout('if _actionlist[] entered unintended ELSE statement');
+        log.shout('if actionlist[] entered unintended ELSE statement');
       }
     });
   }
@@ -475,14 +475,14 @@ class _SudokuElementState extends State<SudokuElement> {
   @override
   Widget build(BuildContext context) {
     // receive data from data provider triggered by HMI
-    _selectednumberlistNewData =
-        Provider.of<DataProvider>(context)._selectednumberlist;
-    _selectedsetresetlistNewData =
-        Provider.of<DataProvider>(context)._selectedsetresetlist;
-    _selectedpatternlistNewData =
-        Provider.of<DataProvider>(context)._selectedpatternlist;
-    _selectedundoiconlistNewData =
-        Provider.of<DataProvider>(context)._selectedundoiconlist;
+    _selectedNumberListNewData =
+        Provider.of<DataProvider>(context)._selectedNumberList;
+    _selectedSetResetListNewData =
+        Provider.of<DataProvider>(context)._selectedSetResetList;
+    _selectedPatternListNewData =
+        Provider.of<DataProvider>(context)._selectedPatternList;
+    _selectedUndoIconListNewData =
+        Provider.of<DataProvider>(context)._selectedUndoIconList;
     _highLightingOnBoolNewData =
         Provider.of<DataProvider>(context)._highLightingOnBool;
 
@@ -490,10 +490,10 @@ class _SudokuElementState extends State<SudokuElement> {
         onTap: () {
           setState(() {
             _updateElementState(
-              _selectednumberlistNewData,
-              _selectedsetresetlistNewData,
-              _selectedpatternlistNewData,
-              _selectedundoiconlistNewData,
+              _selectedNumberListNewData,
+              _selectedSetResetListNewData,
+              _selectedPatternListNewData,
+              _selectedUndoIconListNewData,
               _highLightingOnBoolNewData,
             );
           });
@@ -637,7 +637,7 @@ class ToggleButtonsSample extends StatefulWidget {
 class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 ///////////////////////////////////////////////////
   /// State HMI variables :
-  selectednumberlist _selectednumberlist = <bool>[
+  SelectedNumberList _selectedNumberList = <bool>[
     false,
     false,
     false,
@@ -649,21 +649,21 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     false
   ];
 
-  selectedsetresetlist _selectedsetresetlist = <bool>[
+  SelectedSetResetList _selectedSetResetList = <bool>[
     true,
     false,
     false,
     false
   ];
 
-  selectedpatternlist _selectedpatternlist = <bool>[false, true, false];
-  selectedundoiconlist _selectedundoiconlist = <bool>[true, false];
+  SelectedPatternList _selectedPatternList = <bool>[false, true, false];
+  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
   // variable to calculate max. size of button list
-  double selectednumberlistWidthMax = 0.0;
-  double selectedsetresetlistWidthMax = 0.0;
-  double selectedpatternlistWidthMax = 0.0;
-  double selectedundoiconlistWidthMax = 0.0;
+  double selectedNumberListWidthMax = 0.0;
+  double selectedSetResetListWidthMax = 0.0;
+  double selectedPatternListWidthMax = 0.0;
+  double selectedUndoIconListWidthMax = 0.0;
 
   final bool _vertical = false; // constant setting
   bool _highLightingOn = true; // runtime setting
@@ -674,31 +674,31 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   @override
   Widget build(BuildContext context) {
     // Dimension apply to individual buttons, thus must be divided by number of buttons in the array
-    selectednumberlistWidthMax = SizeConfig.safeBlockHorizontal! *
+    selectedNumberListWidthMax = SizeConfig.safeBlockHorizontal! *
         0.9 /
-        max(1, _selectednumberlist.length);
+        max(1, _selectedNumberList.length);
 
-    selectedsetresetlistWidthMax = SizeConfig.safeBlockHorizontal! *
+    selectedSetResetListWidthMax = SizeConfig.safeBlockHorizontal! *
         0.9 /
-        max(1, _selectedsetresetlist.length); // for futur use if required.
+        max(1, _selectedSetResetList.length); // for futur use if required.
 
-    selectedpatternlistWidthMax = SizeConfig.safeBlockHorizontal! *
+    selectedPatternListWidthMax = SizeConfig.safeBlockHorizontal! *
         0.9 /
-        max(1, _selectedpatternlist.length); // for futur use if required.
+        max(1, _selectedPatternList.length); // for futur use if required.
 
-    selectedundoiconlistWidthMax = SizeConfig.safeBlockHorizontal! *
+    selectedUndoIconListWidthMax = SizeConfig.safeBlockHorizontal! *
         0.9 /
-        max(1, _selectedundoiconlist.length); // for futur use if required.
+        max(1, _selectedUndoIconList.length); // for futur use if required.
 
     Logger.root.level = Level.ALL;
     log.info(
-        'selectednumberlistWidthMax: $selectednumberlistWidthMax.toString()');
+        'selectedNumberListWidthMax: $selectedNumberListWidthMax.toString()');
     log.info(
-        'selectedsetresetlistWidthMax: $selectedsetresetlistWidthMax.toString()');
+        'selectedSetResetListWidthMax: $selectedSetResetListWidthMax.toString()');
     log.info(
-        'selectedpatternlistWidthMax: $selectedpatternlistWidthMax.toString()');
+        'selectedPatternListWidthMax: $selectedPatternListWidthMax.toString()');
     log.info(
-        'selectedundoiconlistWidthMax: $selectedundoiconlistWidthMax.toString()');
+        'selectedUndoIconListWidthMax: $selectedUndoIconListWidthMax.toString()');
 
     return Scaffold(
       body: Center(
@@ -717,11 +717,11 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   setState(() {
                     // The button that is tapped is set to true, and the others to false.
-                    for (int i = 0; i < _selectedsetresetlist.length; i++) {
-                      _selectedsetresetlist[i] = i == index;
+                    for (int i = 0; i < _selectedSetResetList.length; i++) {
+                      _selectedSetResetList[i] = i == index;
                     }
                     Provider.of<DataProvider>(context, listen: false)
-                        .updateDataSelectedsetresetlist(_selectedsetresetlist);
+                        .updateDataselectedSetResetList(_selectedSetResetList);
                   });
                 },
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -729,13 +729,13 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 selectedColor: Colors.white,
                 fillColor: Colors.blue[200],
                 color: Colors.blue[400],
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minHeight: 20.0,
                   minWidth: 80.0,
                   // maxHeight: 60.0,
                   // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
-                isSelected: _selectedsetresetlist,
+                isSelected: _selectedSetResetList,
                 children: setresetlist,
               ),
               // ToggleButtons with a multiple selection.
@@ -747,9 +747,9 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   // All buttons are selectable.
                   setState(() {
-                    _selectedpatternlist[index] = !_selectedpatternlist[index];
+                    _selectedPatternList[index] = !_selectedPatternList[index];
                     Provider.of<DataProvider>(context, listen: false)
-                        .updateDataSelectedpatternlist(_selectedpatternlist);
+                        .updateDataselectedPatternList(_selectedPatternList);
                   });
                 },
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -757,13 +757,13 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 selectedColor: Colors.white,
                 fillColor: Colors.green[200],
                 color: Colors.green[400],
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minHeight: 20.0,
                   minWidth: 80.0,
                   // maxHeight: 60.0,
                   // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
-                isSelected: _selectedpatternlist,
+                isSelected: _selectedPatternList,
                 children: patternlist,
               ),
               // ToggleButtons with icons only.
@@ -775,11 +775,11 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   setState(() {
                     // The button that is tapped is set to true, and the others to false.
-                    for (int i = 0; i < _selectedundoiconlist.length; i++) {
-                      _selectedundoiconlist[i] = i == index;
+                    for (int i = 0; i < _selectedUndoIconList.length; i++) {
+                      _selectedUndoIconList[i] = i == index;
                     }
                     Provider.of<DataProvider>(context, listen: false)
-                        .updateDataSelectedundoiconlist(_selectedundoiconlist);
+                        .updateDataselectedUndoIconList(_selectedUndoIconList);
                   });
                 },
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -787,13 +787,13 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 selectedColor: Colors.white,
                 fillColor: Colors.blue[200],
                 color: Colors.blue[400],
-                constraints: BoxConstraints(
+                constraints: const BoxConstraints(
                   minHeight: 20.0,
                   minWidth: 80.0,
                   // maxHeight: 60.0,
                   // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
-                isSelected: _selectedundoiconlist,
+                isSelected: _selectedUndoIconList,
                 children: undoiconlist,
               ),
               // Click button list
@@ -805,12 +805,12 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   setState(() {
                     // The button that is tapped is set to true, and the others to false.
-                    for (int i = 0; i < _selectednumberlist.length; i++) {
-                      _selectednumberlist[i] = i == index;
+                    for (int i = 0; i < _selectedNumberList.length; i++) {
+                      _selectedNumberList[i] = i == index;
                       // Update data in the provider
                     }
                     Provider.of<DataProvider>(context, listen: false)
-                        .updateDataNumberlist(_selectednumberlist);
+                        .updateDataNumberlist(_selectedNumberList);
                   });
                 },
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -819,14 +819,14 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 fillColor: Colors.green[200],
                 color: Colors.green[400],
                 constraints: BoxConstraints(
-                  minHeight: selectednumberlistWidthMax *
+                  minHeight: selectedNumberListWidthMax *
                       0.5, // change optic of button
-                  maxHeight: selectednumberlistWidthMax *
+                  maxHeight: selectedNumberListWidthMax *
                       0.5, // change optic of button
-                  minWidth: selectednumberlistWidthMax,
-                  maxWidth: selectednumberlistWidthMax,
+                  minWidth: selectedNumberListWidthMax,
+                  maxWidth: selectedNumberListWidthMax,
                 ),
-                isSelected: _selectednumberlist,
+                isSelected: _selectedNumberList,
                 children: numberlist,
               ),
             ],
