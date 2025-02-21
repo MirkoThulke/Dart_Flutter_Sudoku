@@ -162,10 +162,18 @@ class SizeConfig {
     safeBlockAppBarGridVertical = max(min(safeBlockVertical! * 0.05, 20.0), 40);
 
 // Sudokugrid shall extend to the minimum of screen width / height,
-// but not greater than 0.66 of this dimension; to leave enough âve for the HMI segment.
+// but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
 // Height not smaller than aprox. 2cm
+
+    if (safeBlockVertical! > safeBlockHorizontal!) {
+      safeBlockSudokuGridVertical =
+          min(safeBlockHorizontal!, safeBlockVertical! * 0.75);
+    } else {
+      safeBlockSudokuGridVertical = safeBlockVertical! * 0.75;
+    }
+
     safeBlockSudokuGridVertical =
-        max(min(safeBlockVertical!, safeBlockHorizontal!) * 0.66, 80.0);
+        min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
 
 // HMI height shall take the remaining space
     safeBlockHMIGridVertical = min(
@@ -291,7 +299,7 @@ class SudokuGrid extends StatelessWidget {
     return Scaffold(
       body: GridView.count(
         primary: true,
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.all(1),
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
@@ -320,7 +328,7 @@ class SudokuBlock extends StatelessWidget {
     return Scaffold(
       body: GridView.count(
         primary: true,
-        padding: const EdgeInsets.all(2),
+        padding: const EdgeInsets.all(1),
         crossAxisSpacing: 1,
         mainAxisSpacing: 1,
         crossAxisCount: 3,
@@ -499,13 +507,13 @@ class _SudokuElementState extends State<SudokuElement> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(1.0),
           color: Colors.blue[600],
           alignment: Alignment.center,
           child: !_subelementChoiceState // Result Number chosen ?
               ? GridView.count(
                   primary: true, // no scrolling
-                  padding: const EdgeInsets.all(2),
+                  padding: const EdgeInsets.all(0.5),
                   crossAxisSpacing: 1,
                   mainAxisSpacing: 1,
                   crossAxisCount: 3,
@@ -514,110 +522,171 @@ class _SudokuElementState extends State<SudokuElement> {
                       1.0, // horozontal verus vertical aspect ratio
                   children: <Widget>[
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[0] == true)
-                          ? Text("1",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("1",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[0] == true)
+                              ? Text("1",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("1",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[1] == true)
-                          ? Text("2",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("2",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[1] == true)
+                              ? Text("2",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("2",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[2] == true)
-                          ? Text("3",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("3",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[2] == true)
+                              ? Text("3",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("3",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[3] == true)
-                          ? Text("4",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("4",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[3] == true)
+                              ? Text("4",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("4",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[4] == true)
-                          ? Text("5",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("5",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[4] == true)
+                              ? Text("5",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("5",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[5] == true)
-                          ? Text("6",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("6",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[5] == true)
+                              ? Text("6",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("6",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[6] == true)
-                          ? Text("7",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("7",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[6] == true)
+                              ? Text("7",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("7",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[7] == true)
-                          ? Text("8",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("8",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[7] == true)
+                              ? Text("8",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold))
+                              : Text("8",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.teal[100],
-                      child: (_subelementlistCandidateChoice[8] == true)
-                          ? Text("9",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.9)))
-                          : Text("9",
-                              style: TextStyle(
-                                  color: Colors.black.withOpacity(0.2))),
+                      // padding: const EdgeInsets.all(1),
+                      alignment: Alignment.center,
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: (_subelementlistCandidateChoice[8] == true)
+                              ? Text("9",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w900))
+                              : Text("9",
+                                  style: TextStyle(
+                                      color: Colors.black.withOpacity(0.2),
+                                      fontWeight: FontWeight.bold))),
                     ),
                   ],
                 )
               : Container(
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.teal[100],
-                  child: Text('$_subelementNumberChoice'),
+                  padding: const EdgeInsets.all(1),
+                  alignment: Alignment.center,
+                  color: const Color.fromARGB(255, 235, 252, 250),
+                  child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Text('$_subelementNumberChoice',
+                          style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w900))),
                 ),
         ));
   }
@@ -709,8 +778,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               // ToggleButtons with a single selection.
-              const SizedBox(height: 20),
-              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -739,8 +806,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 children: setresetlist,
               ),
               // ToggleButtons with a multiple selection.
-              const SizedBox(height: 20),
-              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -767,8 +832,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 children: patternlist,
               ),
               // ToggleButtons with icons only.
-              const SizedBox(height: 20),
-              // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
                 direction: _vertical ? Axis.vertical : Axis.horizontal,
@@ -796,8 +859,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 isSelected: _selectedUndoIconList,
                 children: undoiconlist,
               ),
-              // Click button list
-              const SizedBox(height: 20),
               // Click button list
               const SizedBox(height: 5),
               ToggleButtons(
