@@ -25,9 +25,11 @@ const List<Widget> setresetlist = <Widget>[
 ];
 
 const List<Widget> patternlist = <Widget>[
+  Text('HlNumSelOn'),
+  Text('HlAllNumOn'),
   Text('Pairs'),
-  Text('Triplets'),
-  Text('...')
+  Text('MatchPairs'),
+  Text('Twins'),
 ];
 
 const List<Widget> undoiconlist = <Widget>[
@@ -69,7 +71,13 @@ class DataProvider with ChangeNotifier {
     false
   ];
 
-  SelectedPatternList _selectedPatternList = <bool>[false, true, false];
+  SelectedPatternList _selectedPatternList = <bool>[
+    true,
+    false,
+    false,
+    false,
+    false
+  ];
 
   SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
@@ -383,7 +391,13 @@ class _SudokuElementState extends State<SudokuElement> {
     false
   ];
 
-  SelectedPatternList _selectedPatternListNewData = <bool>[false, true, false];
+  SelectedPatternList _selectedPatternListNewData = <bool>[
+    true,
+    false,
+    false,
+    false,
+    false
+  ];
 
   SelectedUndoIconList _selectedUndoIconListNewData = <bool>[true, false];
 
@@ -458,7 +472,7 @@ class _SudokuElementState extends State<SudokuElement> {
       SelectedSetResetList actionlist,
       SelectedPatternList selectedPatternList,
       SelectedUndoIconList selectedUndoIconList,
-      HighLightingOnBool highLightingOnBoola) {
+      HighLightingOnBool highLightingOnBool) {
     setState(() {
       int candNumber = 0;
 
@@ -725,7 +739,13 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     false
   ];
 
-  SelectedPatternList _selectedPatternList = <bool>[false, true, false];
+  SelectedPatternList _selectedPatternList = <bool>[
+    true,
+    false,
+    false,
+    false,
+    false
+  ];
   SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
   // variable to calculate max. size of button list
