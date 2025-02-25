@@ -246,7 +246,7 @@ class MyHomePage extends StatelessWidget {
             height: SizeConfig.safeBlockSudokuGridVertical!,
             width: SizeConfig.safeBlockSudokuGridHorizontal!,
             color: Colors.orange,
-            child: SudokuGrid(),
+            child: const SudokuGrid(),
           ),
 /*
           // Test Code for definition of app segment sizes via simple containers with different color
@@ -467,12 +467,22 @@ class _SudokuElementState extends State<SudokuElement> {
     });
   }
 
+  Color _getNumberBackgroundColor() {
+    Color _color = Color(0xFFFFFFFF); // opac white
+
+    if (_selectedPatternListNewData[0] ==
+        true) // HighLighting Button Switched ON
+    {
+      _color = const Color.fromARGB(255, 252, 252, 235); // yellow highlighting
+    } else {
+      _color = const Color(0xFFFFFFFF); // keep white
+    }
+
+    return _color;
+  }
+
   void _updateElementState(
-      SelectedNumberList selectedNumberList,
-      SelectedSetResetList actionlist,
-      SelectedPatternList selectedPatternList,
-      SelectedUndoIconList selectedUndoIconList,
-      HighLightingOnBool highLightingOnBool) {
+      SelectedNumberList selectedNumberList, SelectedSetResetList actionlist) {
     setState(() {
       int candNumber = 0;
 
@@ -512,12 +522,7 @@ class _SudokuElementState extends State<SudokuElement> {
         onTap: () {
           setState(() {
             _updateElementState(
-              _selectedNumberListNewData,
-              _selectedSetResetListNewData,
-              _selectedPatternListNewData,
-              _selectedUndoIconListNewData,
-              _highLightingOnBoolNewData,
-            );
+                _selectedNumberListNewData, _selectedSetResetListNewData);
           });
         },
         child: Container(
@@ -543,7 +548,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[0] == true)
-                              ? Text("1",
+                              ? const Text("1",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -560,7 +565,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[1] == true)
-                              ? Text("2",
+                              ? const Text("2",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -577,7 +582,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[2] == true)
-                              ? Text("3",
+                              ? const Text("3",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -594,7 +599,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[3] == true)
-                              ? Text("4",
+                              ? const Text("4",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -611,7 +616,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[4] == true)
-                              ? Text("5",
+                              ? const Text("5",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -628,7 +633,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[5] == true)
-                              ? Text("6",
+                              ? const Text("6",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -645,7 +650,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[6] == true)
-                              ? Text("7",
+                              ? const Text("7",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -662,7 +667,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[7] == true)
-                              ? Text("8",
+                              ? const Text("8",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold))
@@ -679,7 +684,7 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[8] == true)
-                              ? Text("9",
+                              ? const Text("9",
                                   style: TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.w900))
@@ -691,7 +696,7 @@ class _SudokuElementState extends State<SudokuElement> {
                   ],
                 )
               : Container(
-                  padding: const EdgeInsets.all(1),
+                  //  padding: const EdgeInsets.all(1),
                   alignment: Alignment.center,
                   color: const Color.fromARGB(255, 235, 252, 250),
                   child: FittedBox(
@@ -700,6 +705,7 @@ class _SudokuElementState extends State<SudokuElement> {
                       child: Text('$_subelementNumberChoice',
                           style: TextStyle(
                               color: Colors.black,
+                              backgroundColor: _getNumberBackgroundColor(),
                               fontWeight: FontWeight.w900))),
                 ),
         ));
