@@ -413,6 +413,7 @@ class _SudokuElementState extends State<SudokuElement> {
   */
   bool _subelementChoiceState = false; // No choice made
   var _subelementNumberChoice = 0; // Init value 0
+  Color _numberBackGroundColor = Color(0xFFFFFFFF); // white
 
   List<bool> _subelementlistCandidateChoice = [
     false,
@@ -469,15 +470,15 @@ class _SudokuElementState extends State<SudokuElement> {
 
   Color _getNumberBackgroundColor() {
     Color _color = Color(0xFFFFFFFF); // opac white
-
-    if (_selectedPatternListNewData[0] ==
-        true) // HighLighting Button Switched ON
-    {
-      _color = const Color.fromARGB(255, 252, 252, 235); // yellow highlighting
-    } else {
-      _color = const Color(0xFFFFFFFF); // keep white
-    }
-
+    setState(() {
+      if (_selectedPatternListNewData[0] ==
+          true) // HighLighting Button Switched ON
+      {
+        _color = const Color.fromARGB(255, 248, 248, 35); // yellow highlighting
+      } else {
+        _color = const Color(0xFFFFFFFF); // keep white
+      }
+    });
     return _color;
   }
 
@@ -517,6 +518,9 @@ class _SudokuElementState extends State<SudokuElement> {
         Provider.of<DataProvider>(context)._selectedUndoIconList;
     _highLightingOnBoolNewData =
         Provider.of<DataProvider>(context)._highLightingOnBool;
+
+    // obtain Color Change if Highlighting is On
+    _numberBackGroundColor = _getNumberBackgroundColor();
 
     return InkWell(
         onTap: () {
@@ -705,7 +709,7 @@ class _SudokuElementState extends State<SudokuElement> {
                       child: Text('$_subelementNumberChoice',
                           style: TextStyle(
                               color: Colors.black,
-                              backgroundColor: _getNumberBackgroundColor(),
+                              backgroundColor: _numberBackGroundColor,
                               fontWeight: FontWeight.w900))),
                 ),
         ));
