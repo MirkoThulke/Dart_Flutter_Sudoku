@@ -26,7 +26,7 @@ const List<Widget> setresetlist = <Widget>[
 
 const List<Widget> patternlist = <Widget>[
   Text('HiLightOn'),
-  Text('ABC'),
+  Text('AI'),
   Text('Pairs'),
   Text('MatchPairs'),
   Text('Twins'),
@@ -36,6 +36,15 @@ const List<Widget> undoiconlist = <Widget>[
   Icon(Icons.undo),
   Icon(Icons.redo),
 ];
+
+const List<Widget> saveCreateList = <Widget>[
+  Icon(Icons.list_alt_rounded),
+  Icon(Icons.add_box_outlined),
+  Icon(Icons.remove_circle),
+  Icon(Icons.settings_applications_outlined),
+  Icon(Icons.exit_to_app_sharp),
+];
+
 /////////////////////////////////////
 
 // typedefs
@@ -44,7 +53,7 @@ typedef SelectedNumberList = List<bool>;
 typedef SelectedSetResetList = List<bool>;
 typedef SelectedPatternList = List<bool>;
 typedef SelectedUndoIconList = List<bool>;
-typedef HighLightingOnBool = bool;
+typedef SelectSaveCreateList = List<bool>;
 /////////////////////////////////////
 
 // Debug Logging class
@@ -81,7 +90,13 @@ class DataProvider with ChangeNotifier {
 
   SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
-  HighLightingOnBool _highLightingOnBool = false;
+  SelectSaveCreateList _selectSaveCreateList = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
@@ -106,9 +121,9 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateDataHighLightingOnBool(
-      HighLightingOnBool highLightingOnBoolNewData) {
-    _highLightingOnBool = highLightingOnBoolNewData;
+  void updateDataselectSaveCreateList(
+      SelectSaveCreateList selectSaveCreateListNewData) {
+    _selectSaveCreateList = selectSaveCreateListNewData;
     notifyListeners();
   }
 }
@@ -235,7 +250,10 @@ class MyHomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
           toolbarHeight: SizeConfig.safeBlockAppBarGridVertical!, // 5 percent
-          title: const Text('Sudoku')),
+          title: const Text('Tulli Sudoku'),
+          // Top bar button list is defined is seperate class
+          actions: [appBarActions()]),
+      // _appBarActions
       body: Column(
         mainAxisAlignment:
             MainAxisAlignment.center, // Align children vertically
@@ -293,6 +311,55 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(),
     );
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// App top bar
+//////////////////////////////////////////////////////////////////////////
+class appBarActions extends StatefulWidget {
+  const appBarActions({super.key});
+
+  @override
+  State<appBarActions> createState() => _appBarActions();
+}
+
+class _appBarActions extends State<appBarActions> {
+  SelectedUndoIconList _selectSaveCreateListNewData = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        child: ToggleButtons(
+      direction: Axis.horizontal,
+      onPressed: (int index) {
+        // The button that is tapped is set to true, and the others to false.
+        for (int i = 0; i < _selectSaveCreateListNewData.length; i++) {
+          _selectSaveCreateListNewData[i] = i == index;
+        }
+        Provider.of<DataProvider>(context, listen: false)
+            .updateDataselectSaveCreateList(_selectSaveCreateListNewData);
+      },
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      selectedBorderColor: Colors.blue[700],
+      selectedColor: Colors.white,
+      fillColor: Colors.blue[200],
+      color: Colors.blue[400],
+      constraints: const BoxConstraints(
+        minHeight: 20.0,
+        minWidth: 80.0,
+        // maxHeight: 60.0,
+        // maxWidth: SizeConfig.safeBlockHorizontal!,
+      ),
+      isSelected: _selectSaveCreateListNewData,
+      children: saveCreateList,
+    ));
   }
 }
 
@@ -400,8 +467,6 @@ class _SudokuElementState extends State<SudokuElement> {
   ];
 
   SelectedUndoIconList _selectedUndoIconListNewData = <bool>[true, false];
-
-  HighLightingOnBool _highLightingOnBoolNewData = false;
 
   //  End HMI input variables////////////////////////////////////////////////////////////////////////
 
@@ -540,8 +605,6 @@ class _SudokuElementState extends State<SudokuElement> {
         Provider.of<DataProvider>(context)._selectedPatternList;
     _selectedUndoIconListNewData =
         Provider.of<DataProvider>(context)._selectedUndoIconList;
-    _highLightingOnBoolNewData =
-        Provider.of<DataProvider>(context)._highLightingOnBool;
 
     return InkWell(
         onTap: () {
@@ -804,7 +867,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   double selectedUndoIconListWidthMax = 0.0;
 
   final bool _vertical = false; // constant setting
-  bool _highLightingOn = true; // runtime setting
 
 // State HMI variables END
 ///////////////////////////////////////////////////
@@ -963,17 +1025,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
           ),
         ),
       ),
-      /*floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          setState(() {
-            _highLightingOn = !_highLightingOn;
-            Provider.of<DataProvider>(context, listen: false)
-                .updateDataHighLightingOnBool(_highLightingOn);
-          });
-        },
-        icon: const Icon(Icons.screen_rotation_outlined),
-        label: Text(_highLightingOn ? 'highlight on' : 'highlight off'),
-      ),*/
     );
   }
 }
