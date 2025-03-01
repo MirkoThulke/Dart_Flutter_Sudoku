@@ -25,8 +25,8 @@ const List<Widget> setresetlist = <Widget>[
 ];
 
 const List<Widget> patternlist = <Widget>[
-  Text('HlNumSelOn'),
-  Text('HlAllNumOn'),
+  Text('HiLightOn'),
+  Text('ABC'),
   Text('Pairs'),
   Text('MatchPairs'),
   Text('Twins'),
@@ -412,8 +412,10 @@ class _SudokuElementState extends State<SudokuElement> {
   subelementlist_CandidateChoice[0, ..., 8]: Chosen Candidate Numbers -1 (boolean)
   */
   bool _subelementChoiceState = false; // No choice made
+
   var _subelementNumberChoice = 0; // Init value 0
-  Color _numberBackGroundColor = Color(0xFFFFFFFF); // white
+
+  Color _numberBackGroundColor = Color(0xFFFFFFFF); // white number background
 
   List<bool> _subelementlistCandidateChoice = [
     false,
@@ -462,6 +464,14 @@ class _SudokuElementState extends State<SudokuElement> {
     });
   }
 
+  bool _checkCandidate(int number) {
+    if (_subelementlistCandidateChoice[number - 1] == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void _resetCandidate(int number) {
     setState(() {
       _subelementlistCandidateChoice[number - 1] = false;
@@ -470,12 +480,26 @@ class _SudokuElementState extends State<SudokuElement> {
 
   Color _getNumberBackgroundColor() {
     Color _color = Color(0xFFFFFFFF); // opac white
+    int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
+
     setState(() {
-      if (_selectedPatternListNewData[0] ==
-          true) // HighLighting Button Switched ON
+      if ((_selectedPatternListNewData[0] ==
+              true) && // Highlighting is switched ON on HMI
+          (_subelementChoiceState == true) && // Numner is chosen in Grid
+          (_subelementNumberChoice ==
+              _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromARGB(255, 248, 248, 35); // yellow highlighting
-      } else {
+        _color = const Color.fromARGB(255, 129, 255, 140);
+      } // highlighting on
+      else if ((_selectedPatternListNewData[0] ==
+              true) && // Highlighting is switched ON on HMI
+          (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
+          (_checkCandidate(_numberHMI) ==
+              true)) // Numner on HMI corresponds to Candidate Number in Grid
+      {
+        _color = const Color.fromARGB(255, 129, 255, 140);
+      } // yellow highlighting
+      else {
         _color = const Color(0xFFFFFFFF); // keep white
       }
     });
@@ -519,9 +543,6 @@ class _SudokuElementState extends State<SudokuElement> {
     _highLightingOnBoolNewData =
         Provider.of<DataProvider>(context)._highLightingOnBool;
 
-    // obtain Color Change if Highlighting is On
-    _numberBackGroundColor = _getNumberBackgroundColor();
-
     return InkWell(
         onTap: () {
           setState(() {
@@ -552,9 +573,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[0] == true)
-                              ? const Text("1",
+                              ? Text("1",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("1",
                                   style: TextStyle(
@@ -569,9 +592,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[1] == true)
-                              ? const Text("2",
+                              ? Text("2",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("2",
                                   style: TextStyle(
@@ -586,9 +611,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[2] == true)
-                              ? const Text("3",
+                              ? Text("3",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("3",
                                   style: TextStyle(
@@ -603,9 +630,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[3] == true)
-                              ? const Text("4",
+                              ? Text("4",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("4",
                                   style: TextStyle(
@@ -620,9 +649,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[4] == true)
-                              ? const Text("5",
+                              ? Text("5",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("5",
                                   style: TextStyle(
@@ -637,9 +668,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[5] == true)
-                              ? const Text("6",
+                              ? Text("6",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("6",
                                   style: TextStyle(
@@ -654,9 +687,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[6] == true)
-                              ? const Text("7",
+                              ? Text("7",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("7",
                                   style: TextStyle(
@@ -671,9 +706,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[7] == true)
-                              ? const Text("8",
+                              ? Text("8",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.bold))
                               : Text("8",
                                   style: TextStyle(
@@ -688,9 +725,11 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[8] == true)
-                              ? const Text("9",
+                              ? Text("9",
                                   style: TextStyle(
                                       color: Colors.black,
+                                      backgroundColor:
+                                          _getNumberBackgroundColor(),
                                       fontWeight: FontWeight.w900))
                               : Text("9",
                                   style: TextStyle(
@@ -709,7 +748,7 @@ class _SudokuElementState extends State<SudokuElement> {
                       child: Text('$_subelementNumberChoice',
                           style: TextStyle(
                               color: Colors.black,
-                              backgroundColor: _numberBackGroundColor,
+                              backgroundColor: _getNumberBackgroundColor(),
                               fontWeight: FontWeight.w900))),
                 ),
         ));
