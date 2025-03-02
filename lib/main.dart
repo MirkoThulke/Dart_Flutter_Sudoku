@@ -1,8 +1,17 @@
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:logging/logging.dart';
+import 'dart:math'; // basics
+import 'package:flutter/material.dart'; // basics
+import 'package:provider/provider.dart'; // data excahnge between classes
+import 'package:logging/logging.dart'; // logging
+import 'dart:async'; // to persist data on local storage
+import 'dart:io'; // to persist data on local storage
+import 'package:path_provider/path_provider.dart'; // to persist data on local storage
 
+////////////////////////////////////////////////////////////
+// Debug Logging class
+final log = Logger('SudokuLogger');
+////////////////////////////////////////////////////////////
+
+/////////////////////////////////////
 // constants
 /////////////////////////////////////
 const List<Widget> numberlist = <Widget>[
@@ -58,9 +67,9 @@ enum SudokuItem { itemOne, itemTwo, itemThree }
 
 // This is the type used by the popup menu below.
 enum SampleItem { itemOne, itemTwo, itemThree }
-
 /////////////////////////////////////
 
+/////////////////////////////////////
 // typedefs
 /////////////////////////////////////
 typedef SelectedNumberList = List<bool>;
@@ -68,76 +77,9 @@ typedef SelectedSetResetList = List<bool>;
 typedef SelectedPatternList = List<bool>;
 typedef SelectedUndoIconList = List<bool>;
 typedef SelectAddRemoveList = List<bool>;
+
 /////////////////////////////////////
-
-// Debug Logging class
-final log = Logger('SudokuLogger');
-
-// Use Provider Class is used to exchange data between widgets
-class DataProvider with ChangeNotifier {
-  SelectedNumberList _selectedNumberList = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
-
-  SelectedSetResetList _selectedSetResetList = <bool>[
-    true,
-    false,
-    false,
-    false
-  ];
-
-  SelectedPatternList _selectedPatternList = <bool>[
-    true,
-    false,
-    false,
-    false,
-    false
-  ];
-
-  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
-
-  SelectAddRemoveList _selectAddRemoveList = <bool>[true, false];
-
-  void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
-    _selectedNumberList = selectedNumberListNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectedSetResetList(
-      SelectedSetResetList selectedSetResetListNewData) {
-    _selectedSetResetList = selectedSetResetListNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectedPatternList(
-      SelectedPatternList selectedPatternListNewData) {
-    _selectedPatternList = selectedPatternListNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectedUndoIconList(
-      SelectedUndoIconList selectedUndoIconListNewData) {
-    _selectedUndoIconList = selectedUndoIconListNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectAddRemoveList(
-      SelectAddRemoveList selectAddRemoveListNewData) {
-    _selectAddRemoveList = selectAddRemoveListNewData;
-    notifyListeners();
-  }
-}
-
-// Use this calss to handle the overall dimension of the app content depending on the actual screen size
-
+// Use this class to handle the overall dimension of the app content depending on the actual screen size
 /*
 example :
 @override
@@ -236,6 +178,106 @@ class SizeConfig {
 }
 
 ////////////////////////////////////////////////////////////
+// Use Provider Class is used to exchange data between widgets
+class DataProvider with ChangeNotifier {
+  SelectedNumberList _selectedNumberList = <bool>[
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ];
+  SelectedSetResetList _selectedSetResetList = <bool>[
+    true,
+    false,
+    false,
+    false
+  ];
+
+  SelectedPatternList _selectedPatternList = <bool>[
+    true,
+    false,
+    false,
+    false,
+    false
+  ];
+
+  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
+
+  SelectAddRemoveList _selectAddRemoveList = <bool>[true, false];
+
+  void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
+    _selectedNumberList = selectedNumberListNewData;
+    notifyListeners();
+  }
+
+  void updateDataselectedSetResetList(
+      SelectedSetResetList selectedSetResetListNewData) {
+    _selectedSetResetList = selectedSetResetListNewData;
+    notifyListeners();
+  }
+
+  void updateDataselectedPatternList(
+      SelectedPatternList selectedPatternListNewData) {
+    _selectedPatternList = selectedPatternListNewData;
+    notifyListeners();
+  }
+
+  void updateDataselectedUndoIconList(
+      SelectedUndoIconList selectedUndoIconListNewData) {
+    _selectedUndoIconList = selectedUndoIconListNewData;
+    notifyListeners();
+  }
+
+  void updateDataselectAddRemoveList(
+      SelectAddRemoveList selectAddRemoveListNewData) {
+    _selectAddRemoveList = selectAddRemoveListNewData;
+    notifyListeners();
+  }
+}
+
+////////////////////////////////////////////////////////////
+// Persisting data to file
+class CounterStorage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/sudoku.txt');
+  }
+
+  Future<int> readCounter() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      final contents = await file.readAsString();
+
+      return int.parse(contents);
+    } catch (e) {
+      // If encountering an error, return 0
+      return 0;
+    }
+  }
+
+  Future<File> writeCounter(int sudoku) async {
+    final file = await _localFile;
+
+    // Write the file
+    return file.writeAsString('$sudoku');
+  }
+}
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
 // Main classe  -> root
 void main() {
   runApp(
@@ -244,6 +286,19 @@ void main() {
       child: const MyApp(),
     ),
   );
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'TulliSudoku',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MyHomePage(),
+    );
+  }
 }
 
 ////////////////////////////////////////////////////////////
@@ -305,19 +360,6 @@ class MyHomePage extends StatelessWidget {
 */
         ],
       ),
-    );
-  }
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TulliSudoku',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const MyHomePage(),
     );
   }
 }
