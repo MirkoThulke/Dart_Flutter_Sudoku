@@ -37,13 +37,27 @@ const List<Widget> undoiconlist = <Widget>[
   Icon(Icons.redo),
 ];
 
+/*
 const List<Widget> saveCreateList = <Widget>[
   Icon(Icons.list_alt_rounded),
   Icon(Icons.add_box_outlined),
-  Icon(Icons.remove_circle),
+  Icon(Icons.remove_circle_outline),
   Icon(Icons.settings_applications_outlined),
+  Icon(Icons.info_outline_rounded),
   Icon(Icons.exit_to_app_sharp),
 ];
+*/
+
+const List<Widget> addRemoveList = <Widget>[
+  Icon(Icons.add_box_outlined),
+  Icon(Icons.remove_circle_outline),
+];
+
+// This is the type used by the popup menu below.
+enum SudokuItem { itemOne, itemTwo, itemThree }
+
+// This is the type used by the popup menu below.
+enum SampleItem { itemOne, itemTwo, itemThree }
 
 /////////////////////////////////////
 
@@ -53,7 +67,7 @@ typedef SelectedNumberList = List<bool>;
 typedef SelectedSetResetList = List<bool>;
 typedef SelectedPatternList = List<bool>;
 typedef SelectedUndoIconList = List<bool>;
-typedef SelectSaveCreateList = List<bool>;
+typedef SelectAddRemoveList = List<bool>;
 /////////////////////////////////////
 
 // Debug Logging class
@@ -90,13 +104,7 @@ class DataProvider with ChangeNotifier {
 
   SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
 
-  SelectSaveCreateList _selectSaveCreateList = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  SelectAddRemoveList _selectAddRemoveList = <bool>[true, false];
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
@@ -121,9 +129,9 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateDataselectSaveCreateList(
-      SelectSaveCreateList selectSaveCreateListNewData) {
-    _selectSaveCreateList = selectSaveCreateListNewData;
+  void updateDataselectAddRemoveList(
+      SelectAddRemoveList selectAddRemoveListNewData) {
+    _selectAddRemoveList = selectAddRemoveListNewData;
     notifyListeners();
   }
 }
@@ -325,17 +333,128 @@ class appBarActions extends StatefulWidget {
 }
 
 class _appBarActions extends State<appBarActions> {
-  SelectedUndoIconList _selectSaveCreateListNewData = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  SelectAddRemoveList _selectAddRemoveListNewData = <bool>[true, false];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    SudokuItem? _selectedSudoku;
+
+    SampleItem? selectedItem;
+    return Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          PopupMenuButton<SudokuItem>(
+              icon: Icon(Icons.list_alt_rounded),
+              initialValue: _selectedSudoku,
+              onSelected: (SudokuItem _sudokuItem) {
+                setState(() {
+                  _selectedSudoku = _sudokuItem;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<SudokuItem>>[
+                    const PopupMenuItem<SudokuItem>(
+                        value: SudokuItem.itemOne, child: Text('Sudoku 1')),
+                    const PopupMenuItem<SudokuItem>(
+                        value: SudokuItem.itemTwo, child: Text('Sudoku 2')),
+                    const PopupMenuItem<SudokuItem>(
+                        value: SudokuItem.itemThree, child: Text('Sudoku 3')),
+                  ]),
+          ToggleButtons(
+            direction: Axis.horizontal,
+            onPressed: (int index) {
+              // The button that is tapped is set to true, and the others to false.
+              for (int i = 0; i < _selectAddRemoveListNewData.length; i++) {
+                _selectAddRemoveListNewData[i] = i == index;
+              }
+              Provider.of<DataProvider>(context, listen: false)
+                  .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
+            },
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            selectedBorderColor: Colors.blue[700],
+            selectedColor: Colors.white,
+            fillColor: Colors.blue[200],
+            color: Colors.blue[400],
+            constraints: const BoxConstraints(
+              minHeight: 20.0,
+              minWidth: 80.0,
+              // maxHeight: 60.0,
+              // maxWidth: SizeConfig.safeBlockHorizontal!,
+            ),
+            isSelected: _selectAddRemoveListNewData,
+            children: addRemoveList,
+          ),
+          PopupMenuButton<SampleItem>(
+              icon: Icon(Icons.list_alt_rounded),
+              initialValue: selectedItem,
+              onSelected: (SampleItem item) {
+                setState(() {
+                  selectedItem = item;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<SampleItem>>[
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemOne, child: Text('Item 1')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemTwo, child: Text('Item 2')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemThree, child: Text('Item 3')),
+                  ]),
+          PopupMenuButton<SampleItem>(
+              icon: Icon(Icons.list_alt_rounded),
+              initialValue: selectedItem,
+              onSelected: (SampleItem item) {
+                setState(() {
+                  selectedItem = item;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<SampleItem>>[
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemOne, child: Text('Item 1')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemTwo, child: Text('Item 2')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemThree, child: Text('Item 3')),
+                  ]),
+          PopupMenuButton<SampleItem>(
+              icon: Icon(Icons.list_alt_rounded),
+              initialValue: selectedItem,
+              onSelected: (SampleItem item) {
+                setState(() {
+                  selectedItem = item;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<SampleItem>>[
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemOne, child: Text('Item 1')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemTwo, child: Text('Item 2')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemThree, child: Text('Item 3')),
+                  ]),
+          PopupMenuButton<SampleItem>(
+              icon: Icon(Icons.list_alt_rounded),
+              initialValue: selectedItem,
+              onSelected: (SampleItem item) {
+                setState(() {
+                  selectedItem = item;
+                });
+              },
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<SampleItem>>[
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemOne, child: Text('Item 1')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemTwo, child: Text('Item 2')),
+                    const PopupMenuItem<SampleItem>(
+                        value: SampleItem.itemThree, child: Text('Item 3')),
+                  ]),
+        ]);
+    /*
         child: ToggleButtons(
       direction: Axis.horizontal,
       onPressed: (int index) {
@@ -358,8 +477,8 @@ class _appBarActions extends State<appBarActions> {
         // maxWidth: SizeConfig.safeBlockHorizontal!,
       ),
       isSelected: _selectSaveCreateListNewData,
-      children: saveCreateList,
-    ));
+      children: saveCreateList, 
+    ) */
   }
 }
 
