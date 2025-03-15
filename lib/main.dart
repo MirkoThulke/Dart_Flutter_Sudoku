@@ -213,6 +213,7 @@ class DataProvider with ChangeNotifier {
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
     notifyListeners();
+    writeSudoku(2);
   }
 
   void updateDataselectedSetResetList(
@@ -238,14 +239,13 @@ class DataProvider with ChangeNotifier {
     _selectAddRemoveList = selectAddRemoveListNewData;
     notifyListeners();
   }
-}
-
 ////////////////////////////////////////////////////////////
 // Persisting data to file
-class CounterStorage {
+
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
-
+    log.info('Directory path :  $directory.path.toString()');
+    print('Directory path :  $directory.path.toString()');
     return directory.path;
   }
 
@@ -254,7 +254,7 @@ class CounterStorage {
     return File('$path/sudoku.txt');
   }
 
-  Future<int> readCounter() async {
+  Future<int> readSudoku() async {
     try {
       final file = await _localFile;
 
@@ -268,9 +268,9 @@ class CounterStorage {
     }
   }
 
-  Future<File> writeCounter(int sudoku) async {
+  Future<File> writeSudoku(int sudoku) async {
     final file = await _localFile;
-
+    print('Directory path :  $_localFile.toString()');
     // Write the file
     return file.writeAsString('$sudoku');
   }
@@ -655,6 +655,7 @@ class _SudokuElementState extends State<SudokuElement> {
     false,
   ];
 
+// return 0 : no number set
   int _readNumberFromList(SelectedNumberList selectedNumberList) {
     int number = 0;
 
@@ -686,12 +687,16 @@ class _SudokuElementState extends State<SudokuElement> {
 
   void _setCandidate(int number) {
     setState(() {
-      _subelementlistCandidateChoice[number - 1] = true;
+      if (number > 0) {
+        _subelementlistCandidateChoice[number - 1] = true;
+      }
     });
   }
 
   bool _checkCandidate(int number) {
-    if (_subelementlistCandidateChoice[number - 1] == true) {
+    if (number == 0) {
+      return false;
+    } else if (_subelementlistCandidateChoice[number - 1] == true) {
       return true;
     } else {
       return false;
