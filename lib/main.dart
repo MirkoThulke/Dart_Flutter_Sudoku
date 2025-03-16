@@ -6,6 +6,8 @@ import 'dart:async'; // to persist data on local storage
 import 'dart:io'; // to persist data on local storage
 import 'package:path_provider/path_provider.dart'; // to persist data on local storage
 
+////// JAVA SKD 11
+
 ////////////////////////////////////////////////////////////
 // Debug Logging class
 final log = Logger('SudokuLogger');
@@ -245,7 +247,6 @@ class DataProvider with ChangeNotifier {
   Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     log.info('Directory path :  $directory.path.toString()');
-    print('Directory path :  $directory.path.toString()');
     return directory.path;
   }
 
