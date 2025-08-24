@@ -1,13 +1,37 @@
+// Copyright 2025, Mirko THULKE, Versailles
+
 import 'dart:math'; // basics
 import 'package:flutter/material.dart'; // basics
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
 import 'dart:async'; // to persist data on local storage
 import 'dart:io'; // to persist data on local storage
-import 'package:path_provider/path_provider.dart'; // to persist data on local storage
+import 'package:sqflite/sqflite.dart'; // Logging data into a database
 
-////// JAVA SKD 11
+////// JAVA 1.19 used
 
+/*
+Important Flutter commands:
+
+cmd> flutter run --profile --verbose // extended debug mode
+command paletet> Open DevTools  // open the devtools browser
+cmd> flutter upgrade
+cmd> flutter pub upgrade 
+cmd> flutter pub outdated
+cmd> flutter build apk
+cmd> flutter build apk --debug
+cmd> flutter pub get
+cmd> flutter clean
+cmd> flutter clean build --refresh-dependencis
+cmd> gradlew clean
+cmd> gradlew cleanBuildCache
+cmd> gradlew build
+cmd> gradlew build --refresh-dependencies
+cmd> flutter pub add "Dart package name"
+cmd> flutter devices
+cmd> flutter emulators
+
+*/
 ////////////////////////////////////////////////////////////
 // Debug Logging class
 final log = Logger('SudokuLogger');
@@ -215,7 +239,6 @@ class DataProvider with ChangeNotifier {
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
     notifyListeners();
-    writeSudoku(2);
   }
 
   void updateDataselectedSetResetList(
@@ -241,43 +264,8 @@ class DataProvider with ChangeNotifier {
     _selectAddRemoveList = selectAddRemoveListNewData;
     notifyListeners();
   }
-////////////////////////////////////////////////////////////
-// Persisting data to file
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    log.info('Directory path :  $directory.path.toString()');
-    return directory.path;
-  }
-
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return File('$path/sudoku.txt');
-  }
-
-  Future<int> readSudoku() async {
-    try {
-      final file = await _localFile;
-
-      // Read the file
-      final contents = await file.readAsString();
-
-      return int.parse(contents);
-    } catch (e) {
-      // If encountering an error, return 0
-      return 0;
-    }
-  }
-
-  Future<File> writeSudoku(int sudoku) async {
-    final file = await _localFile;
-    print('Directory path :  $_localFile.toString()');
-    // Write the file
-    return file.writeAsString('$sudoku');
-  }
 }
 
-////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 // Main classe  -> root
 void main() {
@@ -1195,3 +1183,5 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
     );
   }
 }
+
+// Copyright 2025, Mirko THULKE, Versailles
