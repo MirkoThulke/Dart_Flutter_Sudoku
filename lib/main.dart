@@ -37,6 +37,10 @@ import 'dart:async'; // to persist data on local storage
 import 'dart:io'; // to persist data on local storage
 import 'package:sqflite/sqflite.dart'; // Logging data into a database
 
+// FFI (Foreign Function Interface) to connect to RUST backend
+import 'dart:ffi'; // Rust backend connection
+import 'dart:io'; // Rust backend connection
+
 ////// JAVA 1.19 used
 
 /*
@@ -294,6 +298,25 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 }
+
+///////////////////////////////////////////////////////////////////
+// FFI (Foreign Function Interface) to connect to the RUST backend
+final dylib = DynamicLibrary.open(Platform.isWindows
+    ? 'rust_backend.dll'
+    : Platform.isMacOS
+        ? 'librust_backend.dylib'
+        : 'librust_backend.so');
+
+final int Function(int, int) add = dylib
+    .lookup<NativeFunction<Int32 Function(Int32, Int32)>>('add')
+    .asFunction();
+
+/*
+// Example : 
+void main() {
+  print(add(2, 3)); // 5
+}
+*/
 
 ////////////////////////////////////////////////////////////
 // Main classe  -> root
