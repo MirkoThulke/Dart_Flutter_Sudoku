@@ -1,16 +1,5 @@
 # sudoku
 
-A new Flutter project.
+A new Flutter project with RUST backend.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Flutter project for Android programmed in DART language , Editor : Visual Studio Code . Background : Sudoku training app as a study project to gain skills in Android App development tools with RUST backend.
