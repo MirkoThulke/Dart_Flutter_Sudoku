@@ -39,7 +39,6 @@ import 'package:sqflite/sqflite.dart'; // Logging data into a database
 
 // FFI (Foreign Function Interface) to connect to RUST backend
 import 'dart:ffi'; // Rust backend connection
-import 'dart:io'; // Rust backend connection
 
 ////// JAVA 1.19 used
 
@@ -301,6 +300,7 @@ class DataProvider with ChangeNotifier {
 
 ///////////////////////////////////////////////////////////////////
 // FFI (Foreign Function Interface) to connect to the RUST backend
+
 final dylib = DynamicLibrary.open(Platform.isWindows
     ? 'rust_backend.dll'
     : Platform.isMacOS
