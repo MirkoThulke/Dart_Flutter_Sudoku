@@ -4,21 +4,44 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-         "name": "sudoku (debug)",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "sudoku (profile mode)",
+                {
+         "name": "sudoku (usb phone debug)",
             "request": "launch",
             "type": "dart",
+            "deviceId": "${env:ANDROID_DEVICE_ID}"
+        },
+        {
+            "name": "sudoku (usb phone profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "${env:ANDROID_DEVICE_ID}",
             "flutterMode": "profile"
         },
         {
-            "name": "sudoku (release mode)",
+            "name": "sudoku (usb phone release mode)",
             "request": "launch",
             "type": "dart",
+            "deviceId": "${env:ANDROID_DEVICE_ID}",
+            "flutterMode": "release"
+        },
+        {
+         "name": "sudoku (chrome debug)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome"
+        },
+        {
+            "name": "sudoku (chrome profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "sudoku (chrome release mode)",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome",
             "flutterMode": "release"
         }
     ]

@@ -1,0 +1,8 @@
+C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\adler2-c153826e83acecb5.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\algo.rs
+
+C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\libadler2-c153826e83acecb5.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\algo.rs
+
+C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\libadler2-c153826e83acecb5.rmeta: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\algo.rs
+
+C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\lib.rs:
+C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\adler2-2.0.1\src\algo.rs:
