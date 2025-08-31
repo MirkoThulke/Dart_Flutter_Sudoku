@@ -1,0 +1,74 @@
+@startuml
+class SizeConfig {
+  MediaQueryData? _mediaQueryData
+  double? screenWidth
+  double? screenHeight
+  double? blockSizeHorizontal
+  double? blockSizeVertical
+  double? _safeAreaHorizontal
+  double? _safeAreaVertical
+  double? safeBlockHorizontal
+  double? safeBlockVertical
+  double? safeBlockAppBarGridVertical
+  double? safeBlockSudokuGridVertical
+  double? safeBlockHMIGridVertical
+  double? safeBlockAppBarGridHorizontal
+  double? safeBlockSudokuGridHorizontal
+  double? safeBlockHMIGridHorizontal
+}
+class DataProvider {
+  SelectedNumberList _selectedNumberList
+  SelectedSetResetList _selectedSetResetList
+  SelectedPatternList _selectedPatternList
+  SelectedUndoIconList _selectedUndoIconList
+  SelectAddRemoveList _selectAddRemoveList
+}
+class MyApp {
+}
+class MyHomePage {
+}
+class appBarActions {
+}
+class _appBarActions {
+  SelectAddRemoveList _selectAddRemoveListNewData
+}
+class SudokuGrid {
+}
+class SudokuBlock {
+}
+class SudokuElement {
+}
+class _SudokuElementState {
+  SelectedNumberList _selectedNumberListNewData
+  SelectedSetResetList _selectedSetResetListNewData
+  SelectedPatternList _selectedPatternListNewData
+  SelectedUndoIconList _selectedUndoIconListNewData
+  bool _subelementChoiceState
+  var _subelementNumberChoice
+  Color _numberBackGroundColor
+  List<bool> _subelementlistCandidateChoice
+}
+class ToggleButtonsSample {
+}
+class _ToggleButtonsSampleState {
+  SelectedNumberList _selectedNumberList
+  SelectedSetResetList _selectedSetResetList
+  SelectedPatternList _selectedPatternList
+  SelectedUndoIconList _selectedUndoIconList
+  double selectedNumberListWidthMax
+  double selectedSetResetListWidthMax
+  double selectedPatternListWidthMax
+  double selectedUndoIconListWidthMax
+  bool _vertical
+}
+StatelessWidget <|-- MyApp
+StatelessWidget <|-- MyHomePage
+StatefulWidget <|-- appBarActions
+State <|-- _appBarActions
+StatelessWidget <|-- SudokuGrid
+StatelessWidget <|-- SudokuBlock
+StatefulWidget <|-- SudokuElement
+State <|-- _SudokuElementState
+StatefulWidget <|-- ToggleButtonsSample
+State <|-- _ToggleButtonsSampleState
+@enduml

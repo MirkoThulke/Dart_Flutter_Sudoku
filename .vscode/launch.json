@@ -4,7 +4,14 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-                {
+        {
+        "name": "Sudoku Analyze and Build APK",
+            "request": "launch",
+            "type": "dart",         // type must exist; we can keep dart if you want Flutter context
+            "program": "lib/main.dart",
+            "preLaunchTask": "analyze-and-build"
+        },
+        {
          "name": "sudoku (usb phone debug)",
             "request": "launch",
             "type": "dart",
