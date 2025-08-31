@@ -36,6 +36,8 @@ import 'package:logging/logging.dart'; // logging
 import 'dart:async'; // to persist data on local storage
 import 'dart:io'; // to persist data on local storage
 import 'package:sqflite/sqflite.dart'; // Logging data into a database
+import 'package:analyzer/dart/analysis/utilities.dart'; // For Documentation purpose
+import 'package:analyzer/dart/ast/ast.dart'; // For Documentation purpose
 
 // FFI (Foreign Function Interface) to connect to RUST backend
 import 'dart:ffi'; // Rust backend connection
@@ -299,24 +301,29 @@ class DataProvider with ChangeNotifier {
 }
 
 ///////////////////////////////////////////////////////////////////
-// FFI (Foreign Function Interface) to connect to the RUST backend
+/* FFI (Foreign Function Interface) to connect to the RUST backend
+Compiles RUST *.so libraries must be placed in respective folder
+example : 
+android/app/src/main/jniLibs/arm64-v8a/librust_backend.so
+android/app/src/main/jniLibs/armeabi-v7a/librust_backend.so
+*/
 
-final dylib = DynamicLibrary.open(Platform.isWindows
-    ? 'rust_backend.dll'
-    : Platform.isMacOS
-        ? 'librust_backend.dylib'
-        : 'librust_backend.so');
+final DynamicLibrary dylib = Platform.isAndroid
+    ? DynamicLibrary.open('librust_backend.so')
+    : Platform.isWindows
+        ? DynamicLibrary.open('rust_backend.dll')
+        : Platform.isMacOS
+            ? DynamicLibrary.open('librust_backend.dylib')
+            : DynamicLibrary.open('librust_backend.so');
 
 final int Function(int, int) add = dylib
     .lookup<NativeFunction<Int32 Function(Int32, Int32)>>('add')
     .asFunction();
 
-/*
-// Example : 
-void main() {
+// Example :
+void test_FFI() {
   print(add(2, 3)); // 5
 }
-*/
 
 ////////////////////////////////////////////////////////////
 // Main classe  -> root
