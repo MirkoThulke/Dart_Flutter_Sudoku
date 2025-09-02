@@ -64,8 +64,8 @@ cmd> gradlew build --refresh-dependencies
 cmd> flutter pub add "Dart package name"
 cmd> flutter devices
 cmd> flutter emulators
-
 */
+
 ////////////////////////////////////////////////////////////
 // Debug Logging class
 final log = Logger('SudokuLogger');
@@ -237,6 +237,26 @@ class SizeConfig {
   }
 }
 
+////////////////////////////////////////////////////////////
+// PlantUML inline comment
+////////////////////////////////////////////////////////////
+/// @startuml
+/// class DataProvider {
+/// - SelectedNumberList _selectedNumberList
+/// - SelectedSetResetList _selectedSetResetList
+/// - SelectedPatternList _selectedPatternList
+/// - SelectedUndoIconList _selectedUndoIconList
+/// - SelectAddRemoveList _selectAddRemoveList
+/// + void updateDataNumberlist(SelectedNumberList selectedNumberListNewData)
+/// + void updateDataselectedSetResetList(SelectedSetResetList selectedSetResetListNewData)
+/// + void updateDataselectedPatternList(SelectedPatternList selectedPatternListNewData)
+/// + void updateDataselectedUndoIconList(SelectedUndoIconList selectedUndoIconListNewData)
+/// + void updateDataselectAddRemoveList(SelectAddRemoveList selectAddRemoveListNewData)
+/// }
+/// class ChangeNotifier <<mixin>> {
+/// }
+/// DataProvider ..|> ChangeNotifier
+/// @enduml
 ////////////////////////////////////////////////////////////
 // Use Provider Class is used to exchange data between widgets
 class DataProvider with ChangeNotifier {
@@ -572,6 +592,78 @@ class _appBarActions extends State<appBarActions> {
   }
 }
 
+/// @startuml
+///
+/// class SudokuGrid {
+///   +build(context) : Widget
+/// }
+///
+/// class SudokuBlock {
+///   +build(context) : Widget
+/// }
+///
+/// SudokuGrid *-- SudokuBlock : contains 9
+///
+/// note right of SudokuGrid
+///   Represents the entire Sudoku board.
+///   - A 3x3 grid of SudokuBlock.
+///   - Each SudokuBlock will itself
+///     render a 3x3 set of cells.
+/// end note
+///
+/// note right of SudokuBlock
+///   Represents one 3x3 section
+///   inside the SudokuGrid.
+/// end note
+///
+/// class SudokuElement {
+///  +createState() : _SudokuElementState
+/// }
+///
+/// SudokuBlock *-- SudokuElement : contains 9
+/// class _SudokuElementState {
+///   -_selectedNumberListNewData : SelectedNumberList[9]
+///   -_selectedSetResetListNewData : SelectedSetResetList[4]
+///   -_selectedPatternListNewData : SelectedPatternList[5]
+///   -_selectedUndoIconListNewData : SelectedUndoIconList[2]
+///
+///   -_subelementChoiceState : bool
+///   -_subelementNumberChoice : int
+///   -_numberBackGroundColor : Color
+///   -_subelementlistCandidateChoice : bool[9]
+///
+///   +build(context) : Widget
+/// }
+/// class InkWell {
+///   +onTap() : void
+/// }
+///
+/// class Container
+/// class DataProvider
+///
+/// SudokuElement --|> StatefulWidget
+/// _SudokuElementState --|> State
+/// SudokuElement --> _SudokuElementState : creates
+/// _SudokuElementState *-- InkWell
+/// InkWell *-- Container
+/// _SudokuElementState --> DataProvider : consumes
+///
+/// note right of SudokuElement
+///   A custom Sudoku cell widget.
+///
+/// end note
+///
+/// note right of _SudokuElementState
+///   Holds UI state and HMI input variables.
+///   subelement_ChoiceState: bool, Number chosen = TRUE, only candidates = FALSE
+///   subelement_NumberChoice: Chosen Number (1...9)
+///   subelementlist_CandidateChoice[0, ..., 8]: Chosen Candidate Numbers -1 (boolean)
+/// end note
+///
+/// note right of InkWell
+///   Handles tap gesture via onTap().
+/// end note
+/// @enduml
 //////////////////////////////////////////////////////////////////////////
 /// Sudoku grid
 //////////////////////////////////////////////////////////////////////////
@@ -590,15 +682,17 @@ class SudokuGrid extends StatelessWidget {
         // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: const <Widget>[
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
-          SudokuBlock(),
+          // const. list since IDs known at compile time.
+          // int block_id : Unique ID of the block [1...9]
+          SudokuBlock(block_id: 1),
+          SudokuBlock(block_id: 2),
+          SudokuBlock(block_id: 3),
+          SudokuBlock(block_id: 4),
+          SudokuBlock(block_id: 5),
+          SudokuBlock(block_id: 6),
+          SudokuBlock(block_id: 7),
+          SudokuBlock(block_id: 8),
+          SudokuBlock(block_id: 9),
         ],
       ),
     );
@@ -606,7 +700,9 @@ class SudokuGrid extends StatelessWidget {
 }
 
 class SudokuBlock extends StatelessWidget {
-  const SudokuBlock({super.key});
+  final int block_id; // Unique ID of the block [1...9]
+
+  const SudokuBlock({super.key, required this.block_id});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -618,27 +714,35 @@ class SudokuBlock extends StatelessWidget {
         crossAxisCount: 3,
         // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
-        children: const <Widget>[
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
-          SudokuElement(),
+        children: <Widget>[
+          // dyn. list since IDs not known at compile time.
+          // int element_id :  Unique ID of the element [1...81]
+          // int row : index ~/ 9;
+          // int col : index % 9;
+          SudokuElement(element_id: (block_id - 1) * 9 + 1),
+          SudokuElement(element_id: (block_id - 1) * 9 + 2),
+          SudokuElement(element_id: (block_id - 1) * 9 + 3),
+          SudokuElement(element_id: (block_id - 1) * 9 + 4),
+          SudokuElement(element_id: (block_id - 1) * 9 + 5),
+          SudokuElement(element_id: (block_id - 1) * 9 + 6),
+          SudokuElement(element_id: (block_id - 1) * 9 + 7),
+          SudokuElement(element_id: (block_id - 1) * 9 + 8),
+          SudokuElement(element_id: (block_id - 1) * 9 + 9),
         ],
       ),
     );
   }
 }
+
 //////////////////////////////////////////////////////////////////////////
 /// Sudoku grid element
 //////////////////////////////////////////////////////////////////////////
-
 class SudokuElement extends StatefulWidget {
-  const SudokuElement({super.key});
+  final int element_id; // Unique ID of the element [1...81]
+  // int row = index ~/ 9;
+  // int col = index % 9;
+
+  const SudokuElement({super.key, required this.element_id});
 
   @override
   State<SudokuElement> createState() => _SudokuElementState();
@@ -791,6 +895,8 @@ class _SudokuElementState extends State<SudokuElement> {
       int candNumber = 0;
 
       candNumber = _readNumberFromList(selectedNumberList);
+
+      // Add FFI RUST interface call here ....
 
       // Case 1 : User wants to add a candidate number
       if (actionlist[0] == true) {
