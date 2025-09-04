@@ -29,18 +29,15 @@
 # -----------------------------------------------------------------------------
 */
 
+import 'rust_matrix.dart'; // RUST FFI backend Interface
 import 'dart:math'; // basics
 import 'package:flutter/material.dart'; // basics
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
-import 'dart:async'; // to persist data on local storage
 import 'dart:io'; // to persist data on local storage
-import 'package:sqflite/sqflite.dart'; // Logging data into a database
-import 'package:analyzer/dart/analysis/utilities.dart'; // For Documentation purpose
-import 'package:analyzer/dart/ast/ast.dart'; // For Documentation purpose
 
 // FFI (Foreign Function Interface) to connect to RUST backend
-import 'dart:ffi'; // Rust backend connection
+import 'dart:ffi';
 
 ////// JAVA 1.19 used
 
@@ -257,7 +254,7 @@ class SizeConfig {
 /// }
 /// DataProvider ..|> ChangeNotifier
 /// @enduml
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 // Use Provider Class is used to exchange data between widgets
 class DataProvider with ChangeNotifier {
   SelectedNumberList _selectedNumberList = <bool>[
@@ -318,31 +315,48 @@ class DataProvider with ChangeNotifier {
     _selectAddRemoveList = selectAddRemoveListNewData;
     notifyListeners();
   }
-}
 
-///////////////////////////////////////////////////////////////////
-/* FFI (Foreign Function Interface) to connect to the RUST backend
-Compiles RUST *.so libraries must be placed in respective folder
-example : 
-android/app/src/main/jniLibs/arm64-v8a/librust_backend.so
-android/app/src/main/jniLibs/armeabi-v7a/librust_backend.so
-*/
+  late final RustMatrix matrix;
+  late List<List<CellData>> snapshot;
 
-final DynamicLibrary dylib = Platform.isAndroid
-    ? DynamicLibrary.open('librust_backend.so')
-    : Platform.isWindows
-        ? DynamicLibrary.open('rust_backend.dll')
-        : Platform.isMacOS
-            ? DynamicLibrary.open('librust_backend.dylib')
-            : DynamicLibrary.open('librust_backend.so');
+  DataProvider() {
+    _initMatrix();
+  }
 
-final int Function(int, int) add = dylib
-    .lookup<NativeFunction<Int32 Function(Int32, Int32)>>('add')
-    .asFunction();
+  ///////////////////////////////////////////////////////////////////////
+  // RUST FFI Backend Interface :
+  void _initMatrix() {
+    final DynamicLibrary dylib = Platform.isAndroid
+        ? DynamicLibrary.open('librust_backend.so')
+        : Platform.isWindows
+            ? DynamicLibrary.open('rust_backend.dll')
+            : Platform.isMacOS
+                ? DynamicLibrary.open('librust_backend.dylib')
+                : DynamicLibrary.open('librust_backend.so');
 
-// Example :
-void test_FFI() {
-  print(add(2, 3)); // 5
+    matrix = RustMatrix(dylib, 9, 9);
+
+    // Take initial snapshot
+    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+  }
+
+  void updateCell(int row, int col, double value) {
+    writeCell(matrix.ptr, matrix.rows, matrix.cols, row, col, value);
+    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+    notifyListeners(); // UI can react
+  }
+
+  void callRustUpdate() {
+    matrix.update();
+    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    matrix.dispose(); // optional, FFI finalizer will handle it
+    super.dispose();
+  }
 }
 
 ////////////////////////////////////////////////////////////
@@ -886,6 +900,8 @@ class _SudokuElementState extends State<SudokuElement> {
         _color = const Color(0xFFFFFFFF); // keep white
       }
     });
+
+    // Add FFI RUST interface call here to read data from RUST FFI (Display / Highlight color)
     return _color;
   }
 
@@ -896,17 +912,21 @@ class _SudokuElementState extends State<SudokuElement> {
 
       candNumber = _readNumberFromList(selectedNumberList);
 
-      // Add FFI RUST interface call here ....
+      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
 
-      // Case 1 : User wants to add a candidate number
+      // Case 0 : User wants to add a candidate number
       if (actionlist[0] == true) {
         _setCandidate(candNumber);
+        // Case 1 : User wants to remove a candidate number
       } else if (actionlist[1] == true) {
         _resetCandidate(candNumber);
+        // Case 2 : User wants to add a  number
       } else if (actionlist[2] == true) {
         _setNumber(candNumber);
+        // Case 3 : User wants to remove a number
       } else if (actionlist[3] == true) {
         _resetNumber(candNumber);
+        // Case 4 : ELSE: error
       } else {
         Logger.root.level = Level.ALL;
         log.shout('if actionlist[] entered unintended ELSE statement');
