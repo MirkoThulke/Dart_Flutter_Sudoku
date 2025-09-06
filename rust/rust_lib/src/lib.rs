@@ -20,8 +20,8 @@ pub struct DartToRustElementFFI {
     pub row:                    u8,
     pub col:                    u8,
     pub selectedNumState:       u8,
-    pub selectedCandState:      [u8; constSelectedNumberListSize]
-    pub highLightCandRequest:   [u8; constSelectedNumberListSize]
+    pub selectedCandState:      [u8; constSelectedNumberListSize],
+    pub highLightCandRequest:   [u8; constSelectedNumberListSize],
     pub highLightTypeRequest:   [u8; constSelectedPatternListSize]
 }
 
@@ -54,7 +54,7 @@ pub extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8)) {
+pub extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
     }
