@@ -2,23 +2,36 @@
 // Embed Rust code directly into Flutter using dart:ffi.
 // Rust code compiled to a dynamic library (.so, .dll, .dylib).
 
+/////////////////////////////////////
+// constants
+/////////////////////////////////////
+
+// Hardcoded sizes of above types
+pub const constSelectedNumberListSize: usize    = 9;
+pub const constSelectedPatternListSize: usize   = 5;
+pub const constSelectedNumberList: [u8; constSelectedNumberListSize] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+pub const constSelectedPatternList: [u8; constSelectedPatternListSize] = [0, 0, 0, 0, 0];
+
 use std::alloc::{alloc, dealloc, Layout};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct Cell {
-    pub row: i32,
-    pub col: i32,
-    pub value: f32,
+pub struct DartToRustElementFFI {
+    pub row:                    u8,
+    pub col:                    u8,
+    pub selectedNumState:       u8,
+    pub selectedCandState:      [u8; constSelectedNumberListSize]
+    pub highLightCandRequest:   [u8; constSelectedNumberListSize]
+    pub highLightTypeRequest:   [u8; constSelectedPatternListSize]
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn create_matrix(rows: i32, cols: i32) -> *mut Cell {
+pub extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI {
     let count = (rows * cols) as usize;
-    let layout = Layout::array::<Cell>(count).unwrap();
+    let layout = Layout::array::<DartToRustElementFFI>(count).unwrap();
 
     unsafe {
-        let ptr = alloc(layout) as *mut Cell;
+        let ptr = alloc(layout) as *mut DartToRustElementFFI;
         if ptr.is_null() {
             return std::ptr::null_mut();
         }
@@ -29,32 +42,38 @@ pub extern "C" fn create_matrix(rows: i32, cols: i32) -> *mut Cell {
                 let cell = ptr.offset(idx);
                 (*cell).row = r;
                 (*cell).col = c;
-                (*cell).value = 0.0;
+                (*cell).selectedNumState = 0;
+                (*cell).selectedCandState = constSelectedNumberList; // all false
+                (*cell).highLightCandRequest= constSelectedNumberList; // all false
+                (*cell).highLightTypeRequest= constSelectedPatternList;// all false
             }
         }
 
-        ptr
+        ptr // return value
     }
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn update_matrix(ptr: *mut Cell, rows: i32, cols: i32) {
+pub extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8)) {
     if ptr.is_null() {
         return;
     }
     let slice = unsafe { std::slice::from_raw_parts_mut(ptr, (rows * cols) as usize) };
     for cell in slice.iter_mut() {
-        cell.value += 1.0;
+
+        // temprary code
+        cell.selectedNumState = 1;
+
     }
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn free_matrix(ptr: *mut Cell, rows: i32, cols: i32) {
+pub extern "C" fn free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
     }
     let count = (rows * cols) as usize;
-    let layout = Layout::array::<Cell>(count).unwrap();
+    let layout = Layout::array::<DartToRustElementFFI>(count).unwrap();
     unsafe {
         dealloc(ptr as *mut u8, layout);
     }

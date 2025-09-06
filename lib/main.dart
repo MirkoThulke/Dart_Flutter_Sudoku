@@ -30,6 +30,7 @@
 */
 
 import 'rust_matrix.dart'; // RUST FFI backend Interface
+import 'shared_types.dart'; // RUST FFI backend Interface
 import 'dart:math'; // basics
 import 'package:flutter/material.dart'; // basics
 import 'package:provider/provider.dart'; // data excahnge between classes
@@ -67,73 +68,6 @@ cmd> flutter emulators
 // Debug Logging class
 final log = Logger('SudokuLogger');
 ////////////////////////////////////////////////////////////
-
-/////////////////////////////////////
-// constants
-/////////////////////////////////////
-const List<Widget> numberlist = <Widget>[
-  Text('1'),
-  Text('2'),
-  Text('3'),
-  Text('4'),
-  Text('5'),
-  Text('6'),
-  Text('7'),
-  Text('8'),
-  Text('9')
-];
-
-const List<Widget> setresetlist = <Widget>[
-  Text('SetCand'),
-  Text('ResetCand'),
-  Text('SetNum'),
-  Text('ResetNum')
-];
-
-const List<Widget> patternlist = <Widget>[
-  Text('HiLightOn'),
-  Text('AI'),
-  Text('Pairs'),
-  Text('MatchPairs'),
-  Text('Twins'),
-];
-
-const List<Widget> undoiconlist = <Widget>[
-  Icon(Icons.undo),
-  Icon(Icons.redo),
-];
-
-/*
-const List<Widget> saveCreateList = <Widget>[
-  Icon(Icons.list_alt_rounded),
-  Icon(Icons.add_box_outlined),
-  Icon(Icons.remove_circle_outline),
-  Icon(Icons.settings_applications_outlined),
-  Icon(Icons.info_outline_rounded),
-  Icon(Icons.exit_to_app_sharp),
-];
-*/
-
-const List<Widget> addRemoveList = <Widget>[
-  Icon(Icons.add_box_outlined),
-  Icon(Icons.remove_circle_outline),
-];
-
-// This is the type used by the popup menu below.
-enum SudokuItem { itemOne, itemTwo, itemThree }
-
-// This is the type used by the popup menu below.
-enum SampleItem { itemOne, itemTwo, itemThree }
-/////////////////////////////////////
-
-/////////////////////////////////////
-// typedefs
-/////////////////////////////////////
-typedef SelectedNumberList = List<bool>;
-typedef SelectedSetResetList = List<bool>;
-typedef SelectedPatternList = List<bool>;
-typedef SelectedUndoIconList = List<bool>;
-typedef SelectAddRemoveList = List<bool>;
 
 /////////////////////////////////////
 // Use this class to handle the overall dimension of the app content depending on the actual screen size
@@ -234,9 +168,6 @@ class SizeConfig {
   }
 }
 
-////////////////////////////////////////////////////////////
-// PlantUML inline comment
-////////////////////////////////////////////////////////////
 /// @startuml
 /// class DataProvider {
 /// - SelectedNumberList _selectedNumberList
@@ -254,9 +185,12 @@ class SizeConfig {
 /// }
 /// DataProvider ..|> ChangeNotifier
 /// @enduml
-///////////////////////////////////////////////////////////////
-// Use Provider Class is used to exchange data between widgets
+
+// Use Provider Class is used to exchange data between widgets :
 class DataProvider with ChangeNotifier {
+  // HMI Input section :
+
+  // HMI Number selection input
   SelectedNumberList _selectedNumberList = <bool>[
     false,
     false,
@@ -268,6 +202,7 @@ class DataProvider with ChangeNotifier {
     false,
     false
   ];
+
   SelectedSetResetList _selectedSetResetList = <bool>[
     true,
     false,
@@ -316,17 +251,23 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  late final RustMatrix matrix;
-  late List<List<CellData>> snapshot;
+  ///////////////////////////////////////////////////////////////////////
+  // RUST FFI Backend Interface :
+  // Backend section. Store matrix state  in backend.
+  // only data is stored. The visual highlighting state is not stored in the backend
+
+  late final RustMatrix rustMatrix;
+  late List<List<DartToRustElement>> dartMatrix;
 
   DataProvider() {
     _initMatrix();
   }
 
-  ///////////////////////////////////////////////////////////////////////
-  // RUST FFI Backend Interface :
+  // -------------------------------
+  // Rust matrix initialization
+  // -------------------------------
   void _initMatrix() {
-    final DynamicLibrary dylib = Platform.isAndroid
+    final dylib = Platform.isAndroid
         ? DynamicLibrary.open('librust_backend.so')
         : Platform.isWindows
             ? DynamicLibrary.open('rust_backend.dll')
@@ -334,27 +275,72 @@ class DataProvider with ChangeNotifier {
                 ? DynamicLibrary.open('librust_backend.dylib')
                 : DynamicLibrary.open('librust_backend.so');
 
-    matrix = RustMatrix(dylib, 9, 9);
+    // Create Rust matrix
+    rustMatrix = RustMatrix(dylib, 9, 9);
 
-    // Take initial snapshot
-    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+    // Initialize Dart-side matrix snapshot
+    dartMatrix = rustMatrix.readMatrixFromRust();
   }
 
-  void updateCell(int row, int col, double value) {
-    writeCell(matrix.ptr, matrix.rows, matrix.cols, row, col, value);
-    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
-    notifyListeners(); // UI can react
+  // -------------------------------
+  // Full Dart → Rust sync
+  // -------------------------------
+  void writeFullMatrixToRust() {
+    rustMatrix.writeMatrixToRust(
+        rustMatrix.ptr, dartMatrix, rustMatrix.rows, rustMatrix.cols);
   }
 
-  void callRustUpdate() {
-    matrix.update();
-    snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+  // -------------------------------
+  // Single-cell Rust → Dart update
+  // -------------------------------
+  void updateCellFromRust(int r, int c) {
+    dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
+
     notifyListeners();
   }
 
+  // -------------------------------
+  // Full Rust → Dart update
+  // -------------------------------
+  void updateMatrixFromRust() {
+    // Update full snapshot from Rust
+    dartMatrix = rustMatrix.readMatrixFromRust();
+
+    notifyListeners();
+  }
+
+  // -------------------------------
+  // Call Rust update function
+  // -------------------------------
+  void callRustUpdate() {
+    rustMatrix.update();
+
+    // Update full snapshot from Rust
+    dartMatrix = rustMatrix.readMatrixFromRust();
+
+    notifyListeners();
+  }
+
+  // -------------------------------
+  // Debug print
+  // -------------------------------
+  void printMatrix() {
+    for (int r = 0; r < rustMatrix.rows; r++) {
+      String rowStr = '';
+      for (int c = 0; c < rustMatrix.cols; c++) {
+        final cell = dartMatrix[r][c];
+        rowStr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
+      }
+      print(rowStr);
+    }
+  }
+
+  // -------------------------------
+  // Dispose / cleanup
+  // -------------------------------
   @override
   void dispose() {
-    matrix.dispose(); // optional, FFI finalizer will handle it
+    rustMatrix.dispose(); // FFI memory cleanup
     super.dispose();
   }
 }

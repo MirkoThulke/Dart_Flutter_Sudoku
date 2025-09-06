@@ -29,6 +29,7 @@
 # -----------------------------------------------------------------------------
 */
 
+import 'shared_types.dart'; // RUST FFI backend Interface
 import 'dart:ffi';
 
 ///////////////////////////////////////////////////////////////////
@@ -52,88 +53,169 @@ import 'dart:ffi';
 ////////////////////////////////////////////////////////////
 /// @startuml
 /// class Cell {
-/// - external int row;
-/// - external int col;
-///
-///
-///
+/// + int row
+/// + int col
+/// + int selectedNumState
+/// + selectedCandState : bool[9]
+/// + highLightCandRequest: bool[9]
+/// + highLightTypeRequest: bool[constSelectedPatternListSize]
 /// }
+///
+/// note right of Cell::row
+///   row number
+/// end note
+/// note right of Cell::col
+///   collumn number
+/// end note
+/// note right of Cell::selectedNumState
+///   selected final number choice for this cell: [1...9]
+///   [0] : no number set
+/// end note
+/// note right of Cell::selectedCandState
+///   selected candidates for this cell
+/// end note
+/// note right of Cell::highLightCandRequest
+///   request to highlight canidates depending on the highlighting patter which the user has chosen
+/// end note
+/// note right of Cell::highLightTypeRequest
+///   requested highlighting-pattern which the user has chosen
+/// end note
 /// @enduml
-// Rust struct mapping
-sealed class Cell extends Struct {
-  @Int32()
+
+/* Dart class to map Dart matrix data to the Rust structure
+This mirrors your Rust struct.
+Each Array<Bool> is native memory, so you cannot assign a Dart list directly.
+Access individual elements with indexing: cell.selectedCandState[i]. */
+sealed class DartToRustElementFFI extends Struct {
+  @Int8()
   external int row;
 
-  @Int32()
+  @Int8()
   external int col;
 
-  @Float()
-  external double value;
+  @Int8()
+  external int selectedNumState;
+
+  @Array(constSelectedNumberListSize)
+  external Array<Bool> selectedCandState;
+
+  @Array(constSelectedNumberListSize)
+  external Array<Bool> highLightCandRequest;
+
+  @Array(constSelectedPatternListSize)
+  external Array<Bool> highLightTypeRequest;
 }
 
-// For Dart
-class CellData {
+/* Dart class to map Dart matrix data to the Rust structure.
+Dart “friendly” class.
+This is a pure Dart copy of the Rust struct.
+You use this when you want Dart-side representation of the Rust matrix.
+Good for debugging or local processing. */
+
+class DartToRustElement {
   final int row;
   final int col;
-  final double value;
+  int selectedNumState = 0; // no number set
 
-  const CellData(this.row, this.col, this.value);
+  // use global constants and types for cleaner code
+  SelectedNumberList selectedCandState = List.from(constSelectedNumberList);
+  SelectedNumberList highLightCandRequest = List.from(constSelectedNumberList);
+  SelectedPatternList highLightTypeRequest =
+      List.from(constSelectedPatternList);
 
+  // Constructure to define position of Cell inside matrix
+  DartToRustElement(this.row, this.col);
+
+  // for debugging
   @override
-  String toString() => "($row,$col=$value)";
-}
-
-// Native bindings
-typedef CreateMatrixNative = Pointer<Cell> Function(Int32, Int32);
-typedef CreateMatrixDart = Pointer<Cell> Function(int, int);
-
-typedef UpdateMatrixNative = Void Function(Pointer<Cell>, Int32, Int32);
-typedef UpdateMatrixDart = void Function(Pointer<Cell>, int, int);
-
-typedef FreeMatrixNative = Void Function(Pointer<Cell>, Int32, Int32);
-typedef FreeMatrixDart = void Function(Pointer<Cell>, int, int);
-
-// Convert Rust matrix → Dart list of lists
-List<List<CellData>> toDartList(Pointer<Cell> ptr, int rows, int cols) {
-  final result = List.generate(
-      rows,
-      (r) => List<CellData>.filled(cols, const CellData(0, 0, 0.0),
-          growable: false));
-
-  for (int r = 0; r < rows; r++) {
-    for (int c = 0; c < cols; c++) {
-      final idx = r * cols + c;
-      final cell = ptr.elementAt(idx).ref;
-      result[r][c] = CellData(cell.row, cell.col, cell.value);
-    }
+  String toString() {
+    return 'DartToRustElement('
+        'row=$row, '
+        'col=$col, '
+        'selectedNumState=$selectedNumState, '
+        'selectedCandState=$selectedCandState, '
+        'highLightCandRequest=$highLightCandRequest, '
+        'highLightTypeRequest=$highLightTypeRequest'
+        ')';
   }
-
-  return result;
 }
 
-void writeCell(
-    Pointer<Cell> ptr, int rows, int cols, int r, int c, double newValue) {
-  final idx = r * cols + c;
-  ptr.elementAt(idx).ref.value = newValue;
-}
+//////////////////////////////////////////////////////
+// Native bindings
+//////////////////////////////////////////////////////
+// Matches the exact C/Rust function signature
+typedef CreateMatrixNative = Pointer<DartToRustElementFFI> Function(
+    Uint8, Uint8);
+// A Dart-friendly version of the same function.
+typedef CreateMatrixDart = Pointer<DartToRustElementFFI> Function(int, int);
 
-// Helper to store matrix metadata for Finalizer
+// Matches the exact C/Rust function signature
+typedef UpdateMatrixNative = Void Function(
+    Pointer<DartToRustElementFFI>, Uint8, Uint8);
+// A Dart-friendly version of the same function.
+typedef UpdateMatrixDart = void Function(
+    Pointer<DartToRustElementFFI>, int, int);
+
+// Matches the exact C/Rust function signature
+typedef FreeMatrixNative = Void Function(
+    Pointer<DartToRustElementFFI>, Uint8, Uint8);
+// A Dart-friendly version of the same function.
+typedef FreeMatrixDart = void Function(Pointer<DartToRustElementFFI>, int, int);
+
+/*
+Helper to store matrix metadata for Finalizer
+RustMatrix class :
+Wraps the FFI pointer into a Dart class.
+Uses a Finalizer to automatically free Rust memory when Dart object is garbage collected.
+update() → calls Rust’s update_matrix.
+printMatrix() → reads values directly from Rust memory.
+✅ Key design: you own the pointer on Dart side, and you must free it either via dispose() or let the Finalizer handle it.
+*/
+
+/*
+This is a simple metadata container for the Rust matrix.
+The Finalizer needs this to know which pointer to free when the Dart object is garbage collected.
+You never use _MatrixHandle directly; it’s only for the Finalizer.
+*/
 class _MatrixHandle {
-  final Pointer<Cell> ptr;
+  final Pointer<DartToRustElementFFI> ptr;
   final int rows;
   final int cols;
   const _MatrixHandle(this.ptr, this.rows, this.cols);
 }
 
+/*
+Allocate a Rust matrix
+final rustMatrix = RustMatrix(dylib, rows, cols);
+Calls create_matrix in Rust.
+Stores the returned pointer (ptr) in Dart.
+Automatically free memory
+static final Finalizer<_MatrixHandle> _finalizer = Finalizer<_MatrixHandle>((handle) {
+    _freeMatrix(handle.ptr, handle.rows, handle.cols);
+});
+When Dart GC collects the RustMatrix object, the Rust memory is automatically freed.
+_MatrixHandle tells the finalizer what pointer to free.
+Manual cleanup (optional)
+rustMatrix.dispose();
+Detaches the finalizer and calls free_matrix immediately.
+Useful if you want deterministic memory release.
+Call Rust update function
+rustMatrix.update();
+Calls your Rust update_matrix function to modify the matrix on the Rust side.
+Debug / inspect matrix
+rustMatrix.printMatrix();
+Reads matrix values from Rust memory and prints them.
+Useful for testing.
+*/
 class RustMatrix {
-  final Pointer<Cell> ptr;
+  final Pointer<DartToRustElementFFI> ptr;
   final int rows;
   final int cols;
 
   static late final UpdateMatrixDart _updateMatrix;
   static late final FreeMatrixDart _freeMatrix;
 
-  // Finalizer to free matrix when GC collects RustMatrix
+  // Finalizer to free Rust memory
   static final Finalizer<_MatrixHandle> _finalizer =
       Finalizer<_MatrixHandle>((handle) {
     _freeMatrix(handle.ptr, handle.rows, handle.cols);
@@ -141,6 +223,7 @@ class RustMatrix {
 
   RustMatrix._(this.ptr, this.rows, this.cols);
 
+  /// Factory: creates Rust matrix from dynamic library
   factory RustMatrix(DynamicLibrary dylib, int rows, int cols) {
     final createMatrix = dylib
         .lookupFunction<CreateMatrixNative, CreateMatrixDart>('create_matrix');
@@ -159,23 +242,121 @@ class RustMatrix {
     return matrix;
   }
 
+  // -------------------------------
+  // Call Rust update function
+  // -------------------------------
   void update() {
     _updateMatrix(ptr, rows, cols);
   }
 
-  void printMatrix() {
+/*
+Writing the complete Dart matrix to Rust
+We can optimize writeMatrixToRust so it writes the entire Dart matrix into Rust memory efficiently, 
+without calling writeCell repeatedly. Instead, we calculate the flat index once and copy arrays directly.
+Why this is efficient:
+No repeated writeCell calls — avoids function overhead for every cell.
+Flat memory indexing: uses idx = r * cols + c once per cell.
+Element-by-element copy for arrays: required for FFI safety, since Array<Bool> can’t be assigned directly.
+Scales better for larger matrices while keeping all logic in one loop.
+*/
+  void writeMatrixToRust(
+    Pointer<DartToRustElementFFI> ptr,
+    List<List<DartToRustElement>> dartMatrix,
+    int rows,
+    int cols,
+  ) {
+    final totalCells = rows * cols;
+
+    // Flatten the matrix for direct pointer indexing
     for (int r = 0; r < rows; r++) {
-      String rowStr = "";
       for (int c = 0; c < cols; c++) {
         final idx = r * cols + c;
-        final cell = ptr.elementAt(idx).ref;
-        rowStr += "(${cell.row},${cell.col}=${cell.value.toStringAsFixed(1)}) ";
+        final cellPtr = ptr.elementAt(idx).ref;
+        final dartCell = dartMatrix[r][c];
+
+        // Copy scalar values
+        cellPtr.row = dartCell.row;
+        cellPtr.col = dartCell.col;
+        cellPtr.selectedNumState = dartCell.selectedNumState;
+
+        // Copy arrays element by element
+        for (int i = 0; i < constSelectedNumberListSize; i++) {
+          cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
+          cellPtr.highLightCandRequest[i] = dartCell.highLightCandRequest[i];
+        }
+
+        for (int i = 0; i < constSelectedPatternListSize; i++) {
+          cellPtr.highLightTypeRequest[i] = dartCell.highLightTypeRequest[i];
+        }
+      }
+    }
+  }
+
+  // -------------------------------
+  // Read a single cell from Rust into Dart
+  // -------------------------------
+  DartToRustElement readCellFromRust(int r, int c) {
+    final cellPtr = ptr.elementAt(r * cols + c).ref;
+    return DartToRustElement(cellPtr.row, cellPtr.col)
+      ..selectedNumState = cellPtr.selectedNumState
+      ..selectedCandState = List.generate(
+          constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
+      ..highLightCandRequest = List.generate(
+          constSelectedNumberListSize, (i) => cellPtr.highLightCandRequest[i])
+      ..highLightTypeRequest = List.generate(
+          constSelectedPatternListSize, (i) => cellPtr.highLightTypeRequest[i]);
+  }
+
+  // -------------------------------
+  // Convert entire Rust matrix into Dart list
+  // -------------------------------
+  /* 
+Reading the Rust matrix into Dart.
+Convert Rust matrix → Dart list of lists.
+Creates a 2D Dart list of DartToRustElement.
+*/
+// Reads the entire Rust matrix into Dart
+  List<List<DartToRustElement>> readMatrixFromRust() {
+    final result = List.generate(
+      rows,
+      (r) => List<DartToRustElement>.filled(cols, const DartToRustElement(0, 0),
+          growable: false),
+    );
+
+    for (int r = 0; r < rows; r++) {
+      for (int c = 0; c < cols; c++) {
+        final cellPtr = ptr.elementAt(r * cols + c).ref;
+        result[r][c] = DartToRustElement(cellPtr.row, cellPtr.col)
+          ..selectedNumState = cellPtr.selectedNumState
+          ..selectedCandState = List.generate(
+              constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
+          ..highLightCandRequest = List.generate(constSelectedNumberListSize,
+              (i) => cellPtr.highLightCandRequest[i])
+          ..highLightTypeRequest = List.generate(constSelectedPatternListSize,
+              (i) => cellPtr.highLightTypeRequest[i]);
+      }
+    }
+
+    return result;
+  }
+
+  // -------------------------------
+  // Optional debug print
+  // -------------------------------
+  void printMatrix() {
+    for (int r = 0; r < rows; r++) {
+      String rowStr = '';
+      for (int c = 0; c < cols; c++) {
+        final cell = readCell(r, c);
+        rowStr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
       }
       print(rowStr);
     }
   }
 
-  // Optional manual cleanup
+  // -------------------------------
+  // Manual cleanup
+  // -------------------------------
   void dispose() {
     _finalizer.detach(this);
     _freeMatrix(ptr, rows, cols);
