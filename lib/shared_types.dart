@@ -29,6 +29,7 @@
 # -----------------------------------------------------------------------------
 */
 
+import 'package:flutter/material.dart';
 
 /// @startuml
 /// class SelectedSetResetList {
@@ -60,57 +61,36 @@ typedef SelectedPatternList = List<bool>;
 typedef SelectedUndoIconList = List<bool>;
 typedef SelectAddRemoveList = List<bool>;
 
-
-
 /////////////////////////////////////
 // constants
 /////////////////////////////////////
 
 // Hardcoded sizes of above types
-static const int constSelectedNumberListSize    = 9;
-static const int constSelectedSetResetListSize  = 4;
-static const int constSelectedPatternListSize   = 5;
-static const int constSelectedUndoIconListSize  = 2;
-static const int constSelectAddRemoveListSize   = 2;
-
+const int constSelectedNumberListSize = 9;
+const int constSelectedSetResetListSize = 4;
+const int constSelectedPatternListSize = 5;
+const int constSelectedUndoIconListSize = 2;
+const int constSelectAddRemoveListSize = 2;
 
 const List<bool> constSelectedNumberList = [
-  false, 
-  false, 
-  false, 
-  false, 
-  false,
-  false, 
-  false, 
-  false, 
-  false
-];
-
-const List<bool> constSelectedSetResetList = [
-  true,
   false,
   false,
-  false
-];
-
-const List<bool> constSelectedPatternList = [
-  true,
+  false,
+  false,
+  false,
   false,
   false,
   false,
   false
 ];
 
-const List<bool> constSelectedUndoIconList= [
-  false, 
-  false
-];
+const List<bool> constSelectedSetResetList = [true, false, false, false];
 
-const List<bool> constSelectAddRemoveList = [
-  false, 
-  false
-];
+const List<bool> constSelectedPatternList = [true, false, false, false, false];
 
+const List<bool> constSelectedUndoIconList = [false, false];
+
+const List<bool> constSelectAddRemoveList = [false, false];
 
 const List<Widget> numberlist = <Widget>[
   Text('1'),
