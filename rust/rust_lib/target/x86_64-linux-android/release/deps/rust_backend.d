@@ -1,0 +1,5 @@
+C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\x86_64-linux-android\release\deps\rust_backend.d: src\lib.rs
+
+C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\x86_64-linux-android\release\deps\librust_backend.so: src\lib.rs
+
+src\lib.rs:
