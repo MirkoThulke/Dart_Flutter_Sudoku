@@ -31,6 +31,7 @@
 
 import 'shared_types.dart'; // RUST FFI backend Interface
 import 'dart:ffi';
+import 'package:logging/logging.dart';
 
 ///////////////////////////////////////////////////////////////////
 /* FFI (Foreign Function Interface) to connect to the RUST backend
@@ -49,6 +50,11 @@ import 'dart:ffi';
         // Take snapshot into Dart List<List<CellData>>
         var snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
 */
+
+////////////////////////////////////////////////////////////
+// Debug Logging class
+final Logger _logger = Logger('RustMatrixLogger');
+////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
 /// @startuml
@@ -265,8 +271,6 @@ Scales better for larger matrices while keeping all logic in one loop.
     int rows,
     int cols,
   ) {
-    final totalCells = rows * cols;
-
     // Flatten the matrix for direct pointer indexing
     for (int r = 0; r < rows; r++) {
       for (int c = 0; c < cols; c++) {
@@ -319,8 +323,12 @@ Creates a 2D Dart list of DartToRustElement.
   List<List<DartToRustElement>> readMatrixFromRust() {
     final result = List.generate(
       rows,
-      (r) => List<DartToRustElement>.filled(cols, const DartToRustElement(0, 0),
-          growable: false),
+      (r) => List.generate(
+        cols,
+        (c) => DartToRustElement(0, 0),
+        growable: false,
+      ),
+      growable: false,
     );
 
     for (int r = 0; r < rows; r++) {
@@ -343,14 +351,14 @@ Creates a 2D Dart list of DartToRustElement.
   // -------------------------------
   // Optional debug print
   // -------------------------------
-  void printMatrix() {
+  void printRustAllElements() {
     for (int r = 0; r < rows; r++) {
       String rowStr = '';
       for (int c = 0; c < cols; c++) {
-        final cell = readCell(r, c);
+        final cell = readCellFromRust(r, c); // returns DartToRustElement
         rowStr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
       }
-      print(rowStr);
+      _logger.fine(rowStr); // use 'fine' for debug-level messages
     }
   }
 

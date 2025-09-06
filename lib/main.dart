@@ -324,15 +324,8 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   // Debug print
   // -------------------------------
-  void printMatrix() {
-    for (int r = 0; r < rustMatrix.rows; r++) {
-      String rowStr = '';
-      for (int c = 0; c < rustMatrix.cols; c++) {
-        final cell = dartMatrix[r][c];
-        rowStr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
-      }
-      print(rowStr);
-    }
+  void printDebug() {
+    rustMatrix.printRustAllElements();
   }
 
   // -------------------------------
