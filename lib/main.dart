@@ -191,36 +191,20 @@ class DataProvider with ChangeNotifier {
   // HMI Input section :
 
   // HMI Number selection input
-  SelectedNumberList _selectedNumberList = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  SelectedNumberList _selectedNumberList =
+      List<bool>.from(constSelectedNumberList);
 
-  SelectedSetResetList _selectedSetResetList = <bool>[
-    true,
-    false,
-    false,
-    false
-  ];
+  SelectedSetResetList _selectedSetResetList =
+      List<bool>.from(constSelectedSetResetList);
 
-  SelectedPatternList _selectedPatternList = <bool>[
-    true,
-    false,
-    false,
-    false,
-    false
-  ];
+  SelectedPatternList _selectedPatternList =
+      List<bool>.from(constSelectedPatternList);
 
-  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
+  SelectedUndoIconList _selectedUndoIconList =
+      List<bool>.from(constSelectedUndoIconList);
 
-  SelectAddRemoveList _selectAddRemoveList = <bool>[true, false];
+  SelectAddRemoveList _selectAddRemoveList =
+      List<bool>.from(constSelectAddRemoveList);
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
@@ -260,6 +244,9 @@ class DataProvider with ChangeNotifier {
   late List<List<DartToRustElement>> dartMatrix;
 
   DataProvider() {
+    // link the Rust library
+    // create the Rust matrix
+    // and create a Dart SnapShot .
     _initMatrix();
   }
 
@@ -332,6 +319,7 @@ class DataProvider with ChangeNotifier {
   // Dispose / cleanup
   // -------------------------------
   @override
+  // is automatically called by ChangeNotifierProvider
   void dispose() {
     rustMatrix.dispose(); // FFI memory cleanup
     super.dispose();
@@ -712,15 +700,15 @@ class SudokuBlock extends StatelessWidget {
           // int element_id :  Unique ID of the element [1...81]
           // int row : index ~/ 9;
           // int col : index % 9;
-          SudokuElement(element_id: (block_id - 1) * 9 + 1),
-          SudokuElement(element_id: (block_id - 1) * 9 + 2),
-          SudokuElement(element_id: (block_id - 1) * 9 + 3),
-          SudokuElement(element_id: (block_id - 1) * 9 + 4),
-          SudokuElement(element_id: (block_id - 1) * 9 + 5),
-          SudokuElement(element_id: (block_id - 1) * 9 + 6),
-          SudokuElement(element_id: (block_id - 1) * 9 + 7),
-          SudokuElement(element_id: (block_id - 1) * 9 + 8),
-          SudokuElement(element_id: (block_id - 1) * 9 + 9),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 1),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 2),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 3),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 4),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 5),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 6),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 7),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 8),
+          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 9),
         ],
       ),
     );
@@ -745,34 +733,18 @@ class _SudokuElementState extends State<SudokuElement> {
   // _SudokuElementState({super.key});
 
   // HMI input variables
-  SelectedNumberList _selectedNumberListNewData = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
 
-  SelectedSetResetList _selectedSetResetListNewData = <bool>[
-    true,
-    false,
-    false,
-    false
-  ];
+  SelectedNumberList _selectedNumberListNewData =
+      List<bool>.from(constSelectedNumberList);
 
-  SelectedPatternList _selectedPatternListNewData = <bool>[
-    true,
-    false,
-    false,
-    false,
-    false
-  ];
+  SelectedSetResetList _selectedSetResetListNewData =
+      List<bool>.from(constSelectedSetResetList);
 
-  SelectedUndoIconList _selectedUndoIconListNewData = <bool>[true, false];
+  SelectedPatternList _selectedPatternListNewData =
+      List<bool>.from(constSelectedPatternList);
+
+  SelectedUndoIconList _selectedUndoIconListNewData =
+      List<bool>.from(constSelectedUndoIconList);
 
   //  End HMI input variables////////////////////////////////////////////////////////////////////////
 
@@ -788,17 +760,8 @@ class _SudokuElementState extends State<SudokuElement> {
 
   Color _numberBackGroundColor = Color(0xFFFFFFFF); // white number background
 
-  List<bool> _subelementlistCandidateChoice = [
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-  ];
+  List<bool> _subelementlistCandidateChoice =
+      List<bool>.from(constSelectedNumberList);
 
 // return 0 : no number set
   int _readNumberFromList(SelectedNumberList selectedNumberList) {
@@ -818,8 +781,16 @@ class _SudokuElementState extends State<SudokuElement> {
 
   void _setNumber(int number) {
     setState(() {
+      // Update HMI
       _subelementChoiceState = true;
       _subelementNumberChoice = number;
+
+      // Extract col and row from unique ID
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      // Provider.of<DataProvider>(context, listen: false).dartMatrix
+      // Provider.of<DataProvider>(context, listen: false).rustMatrix           
+                  // .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
+      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
     });
   }
 
@@ -827,6 +798,8 @@ class _SudokuElementState extends State<SudokuElement> {
     setState(() {
       _subelementChoiceState = false;
       _subelementNumberChoice = 0;
+
+      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
     });
   }
 
@@ -834,6 +807,7 @@ class _SudokuElementState extends State<SudokuElement> {
     setState(() {
       if (number > 0) {
         _subelementlistCandidateChoice[number - 1] = true;
+        // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
       }
     });
   }
@@ -851,6 +825,7 @@ class _SudokuElementState extends State<SudokuElement> {
   void _resetCandidate(int number) {
     setState(() {
       _subelementlistCandidateChoice[number - 1] = false;
+      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
     });
   }
 
@@ -890,8 +865,6 @@ class _SudokuElementState extends State<SudokuElement> {
       int candNumber = 0;
 
       candNumber = _readNumberFromList(selectedNumberList);
-
-      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
 
       // Case 0 : User wants to add a candidate number
       if (actionlist[0] == true) {
@@ -1151,33 +1124,20 @@ class ToggleButtonsSample extends StatefulWidget {
 class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 ///////////////////////////////////////////////////
   /// State HMI variables :
-  SelectedNumberList _selectedNumberList = <bool>[
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false
-  ];
+  ///
+  // HMI Number selection input
 
-  SelectedSetResetList _selectedSetResetList = <bool>[
-    true,
-    false,
-    false,
-    false
-  ];
+  SelectedNumberList _selectedNumberList =
+      List<bool>.from(constSelectedNumberList);
 
-  SelectedPatternList _selectedPatternList = <bool>[
-    true,
-    false,
-    false,
-    false,
-    false
-  ];
-  SelectedUndoIconList _selectedUndoIconList = <bool>[true, false];
+  SelectedSetResetList _selectedSetResetList =
+      List<bool>.from(constSelectedSetResetList);
+
+  SelectedPatternList _selectedPatternList =
+      List<bool>.from(constSelectedPatternList);
+
+  SelectedUndoIconList _selectedUndoIconList =
+      List<bool>.from(constSelectedUndoIconList);
 
   // variable to calculate max. size of button list
   double selectedNumberListWidthMax = 0.0;
