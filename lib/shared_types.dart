@@ -155,9 +155,9 @@ enum SampleItem { itemOne, itemTwo, itemThree }
 
 class GridPosition {
   final int row;
-  final int column;
+  final int col;
 
-  GridPosition(this.row, this.column);
+  GridPosition(this.row, this.col);
 }
 
 /*
@@ -170,8 +170,10 @@ ID: 5 → row 1, col 2
 ...
 */
 GridPosition getRowColFromId(int id, int numColumns) {
+  // int element_id :  Unique ID of the element [0...80]
   int row = id ~/ numColumns;
   int col = id % numColumns;
+
   return GridPosition(row, col);
 }
 /*

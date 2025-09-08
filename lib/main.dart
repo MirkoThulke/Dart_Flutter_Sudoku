@@ -220,6 +220,14 @@ class DataProvider with ChangeNotifier {
   void updateDataselectedPatternList(
       SelectedPatternList selectedPatternListNewData) {
     _selectedPatternList = selectedPatternListNewData;
+
+    // Add FFI update trigger of pattern selection here ....
+    // write a rustMatrix function that allows to sent the Pattern Request to Rust
+    // writeMatrixToRust ()  -> update all candidates
+    // writePatternToRust ()  -> updated the global pattern request
+    // then process.
+    // Check timing and synchronisaiton with HMI Pattern button .
+    // Then read New Highlight Pattern request matrix back .
     notifyListeners();
   }
 
@@ -262,17 +270,26 @@ class DataProvider with ChangeNotifier {
                 ? DynamicLibrary.open('librust_backend.dylib')
                 : DynamicLibrary.open('librust_backend.so');
 
-    // Create Rust matrix
+    // Create Rust matrix interface class instance
     rustMatrix = RustMatrix(dylib, 9, 9);
 
-    // Initialize Dart-side matrix snapshot
+    // Initialize a Dart-side matrix and write a snapshot
     dartMatrix = rustMatrix.readMatrixFromRust();
+  }
+
+  // -------------------------------
+  // Single-Cell Dart → Rust update
+  // -------------------------------
+  void writeCellToRust(int r, int c) {
+    // Write into FFI interface class
+    rustMatrix.writeCellToRust(rustMatrix.ptr, dartMatrix, r, c);
   }
 
   // -------------------------------
   // Full Dart → Rust sync
   // -------------------------------
   void writeFullMatrixToRust() {
+    // Write into FFI interface class
     rustMatrix.writeMatrixToRust(
         rustMatrix.ptr, dartMatrix, rustMatrix.rows, rustMatrix.cols);
   }
@@ -280,7 +297,7 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   // Single-cell Rust → Dart update
   // -------------------------------
-  void updateCellFromRust(int r, int c) {
+  void readCellFromRust(int r, int c) {
     dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
 
     notifyListeners();
@@ -289,7 +306,7 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   // Full Rust → Dart update
   // -------------------------------
-  void updateMatrixFromRust() {
+  void readMatrixFromRust() {
     // Update full snapshot from Rust
     dartMatrix = rustMatrix.readMatrixFromRust();
 
@@ -664,7 +681,8 @@ class SudokuGrid extends StatelessWidget {
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: const <Widget>[
           // const. list since IDs known at compile time.
-          // int block_id : Unique ID of the block [1...9]
+          // int block_id : Unique ID of the block [0...8]
+          SudokuBlock(block_id: 0),
           SudokuBlock(block_id: 1),
           SudokuBlock(block_id: 2),
           SudokuBlock(block_id: 3),
@@ -673,7 +691,6 @@ class SudokuGrid extends StatelessWidget {
           SudokuBlock(block_id: 6),
           SudokuBlock(block_id: 7),
           SudokuBlock(block_id: 8),
-          SudokuBlock(block_id: 9),
         ],
       ),
     );
@@ -681,7 +698,7 @@ class SudokuGrid extends StatelessWidget {
 }
 
 class SudokuBlock extends StatelessWidget {
-  final int block_id; // Unique ID of the block [1...9]
+  final int block_id; // Unique ID of the block [0...8]
 
   const SudokuBlock({super.key, required this.block_id});
   @override
@@ -697,18 +714,18 @@ class SudokuBlock extends StatelessWidget {
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
         children: <Widget>[
           // dyn. list since IDs not known at compile time.
-          // int element_id :  Unique ID of the element [1...81]
+          // int element_id :  Unique ID of the element [0...80]
           // int row : index ~/ 9;
           // int col : index % 9;
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 1),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 2),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 3),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 4),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 5),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 6),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 7),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 8),
-          SudokuElement(element_id: (block_id - 1) * constSudokuNumRow + 9),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 0),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 1),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 2),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 3),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 4),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 5),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 6),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 7),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 8),
         ],
       ),
     );
@@ -719,7 +736,7 @@ class SudokuBlock extends StatelessWidget {
 /// Sudoku grid element
 //////////////////////////////////////////////////////////////////////////
 class SudokuElement extends StatefulWidget {
-  final int element_id; // Unique ID of the element [1...81]
+  final int element_id; // Unique ID of the element [0...80]
   // int row = index ~/ 9;
   // int col = index % 9;
 
@@ -787,10 +804,10 @@ class _SudokuElementState extends State<SudokuElement> {
 
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
-      // Provider.of<DataProvider>(context, listen: false).dartMatrix
-      // Provider.of<DataProvider>(context, listen: false).rustMatrix           
-                  // .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
+
       // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      Provider.of<DataProvider>(context, listen: false)
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
@@ -799,7 +816,12 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementChoiceState = false;
       _subelementNumberChoice = 0;
 
+      // Extract col and row from unique ID
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
       // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      Provider.of<DataProvider>(context, listen: false)
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
@@ -807,8 +829,28 @@ class _SudokuElementState extends State<SudokuElement> {
     setState(() {
       if (number > 0) {
         _subelementlistCandidateChoice[number - 1] = true;
+
+        // Extract col and row from unique ID
+        GridPosition _pos =
+            getRowColFromId(widget.element_id, constSudokuNumRow);
+
         // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+        Provider.of<DataProvider>(context, listen: false)
+            .writeCellToRust(_pos.row, _pos.col);
       }
+    });
+  }
+
+  void _resetCandidate(int number) {
+    setState(() {
+      _subelementlistCandidateChoice[number - 1] = false;
+
+      // Extract col and row from unique ID
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      Provider.of<DataProvider>(context, listen: false)
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
@@ -820,13 +862,6 @@ class _SudokuElementState extends State<SudokuElement> {
     } else {
       return false;
     }
-  }
-
-  void _resetCandidate(int number) {
-    setState(() {
-      _subelementlistCandidateChoice[number - 1] = false;
-      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
-    });
   }
 
   Color _getNumberBackgroundColor() {
