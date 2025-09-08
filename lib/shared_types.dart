@@ -64,6 +64,8 @@ typedef SelectAddRemoveList = List<bool>;
 /////////////////////////////////////
 // constants
 /////////////////////////////////////
+const int constSudokuNumRow = 9;
+const int constSudokuNumCol = 9;
 
 // Hardcoded sizes of above types
 const int constSelectedNumberListSize = 9;
@@ -146,3 +148,42 @@ enum SudokuItem { itemOne, itemTwo, itemThree }
 // This is the type used by the popup menu below.
 enum SampleItem { itemOne, itemTwo, itemThree }
 /////////////////////////////////////
+
+/////////////////////////////////////
+// Global helper functions
+/////////////////////////////////////
+
+class GridPosition {
+  final int row;
+  final int column;
+
+  GridPosition(this.row, this.column);
+}
+
+/*
+ID: 0 → row 0, col 0
+ID: 1 → row 0, col 1
+ID: 2 → row 0, col 2
+ID: 3 → row 1, col 0
+ID: 4 → row 1, col 1
+ID: 5 → row 1, col 2
+...
+*/
+GridPosition getRowColFromId(int id, int numColumns) {
+  int row = id ~/ numColumns;
+  int col = id % numColumns;
+  return GridPosition(row, col);
+}
+/*
+row = 0 is the first row
+col = 0 is the first column
+
+void main() {
+  int id = 7;
+  int numColumns = 3;
+  
+  GridPosition pos = getRowColFromId(id, numColumns);
+  print("Row: ${pos.row}, Column: ${pos.column}"); // Row: 2, Column: 1
+}
+
+*/
