@@ -255,6 +255,28 @@ class RustMatrix {
     _updateMatrix(ptr, rows, cols);
   }
 
+  void writeCellToRust(Pointer<DartToRustElementFFI> ptr,
+      List<List<DartToRustElement>> dartMatrix, int r, int c) {
+    final idx = r * constSudokuNumCol + c;
+    final cellPtr = ptr.elementAt(idx).ref;
+    final dartCell = dartMatrix[r][c];
+
+    // Copy scalar values
+    cellPtr.row = dartCell.row;
+    cellPtr.col = dartCell.col;
+    cellPtr.selectedNumState = dartCell.selectedNumState;
+
+    // Copy arrays element by element
+    for (int i = 0; i < constSelectedNumberListSize; i++) {
+      cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
+      cellPtr.highLightCandRequest[i] = dartCell.highLightCandRequest[i];
+    }
+
+    for (int i = 0; i < constSelectedPatternListSize; i++) {
+      cellPtr.highLightTypeRequest[i] = dartCell.highLightTypeRequest[i];
+    }
+  }
+
 /*
 Writing the complete Dart matrix to Rust
 We can optimize writeMatrixToRust so it writes the entire Dart matrix into Rust memory efficiently, 
