@@ -17,12 +17,12 @@ use std::alloc::{alloc, dealloc, Layout};
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct DartToRustElementFFI {
-    pub row:                    u8,
-    pub col:                    u8,
-    pub selectedNumState:       u8,
-    pub selectedCandState:      [u8; constSelectedNumberListSize],
-    pub highLightCandRequest:   [u8; constSelectedNumberListSize],
-    pub highLightTypeRequest:   [u8; constSelectedPatternListSize]
+    pub row:                        u8,
+    pub col:                        u8,
+    pub selectedNumState:           u8,
+    pub selectedCandList:           [u8; constSelectedNumberListSize],
+    pub selectedPatternList:        [u8; constSelectedPatternListSize], // User selection of Pattern display request
+    pub requestedHighLightType:     [u8; constSelectedPatternListSize] // Rust feedback on what to display
 }
 
 #[unsafe(no_mangle)]
@@ -42,10 +42,10 @@ pub extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI
                 let cell = ptr.offset(idx);
                 (*cell).row = r;
                 (*cell).col = c;
-                (*cell).selectedNumState = 0;
-                (*cell).selectedCandState = constSelectedNumberList; // all false
-                (*cell).highLightCandRequest= constSelectedNumberList; // all false
-                (*cell).highLightTypeRequest= constSelectedPatternList;// all false
+                (*cell).selectedNumState        = 0;
+                (*cell).selectedCandList        = constSelectedNumberList; // all false
+                (*cell).selectedPatternList     = constSelectedPatternList;// all false
+                (*cell).requestedHighLightType  = constSelectedPatternList;// all false
             }
         }
 

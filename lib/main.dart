@@ -200,6 +200,9 @@ class DataProvider with ChangeNotifier {
   SelectedPatternList _selectedPatternList =
       List<bool>.from(constSelectedPatternList);
 
+  SelectedPatternList _requestedHighLightType =
+      List<bool>.from(constSelectedPatternList);
+
   SelectedUndoIconList _selectedUndoIconList =
       List<bool>.from(constSelectedUndoIconList);
 
@@ -221,13 +224,21 @@ class DataProvider with ChangeNotifier {
       SelectedPatternList selectedPatternListNewData) {
     _selectedPatternList = selectedPatternListNewData;
 
-    // Add FFI update trigger of pattern selection here ....
-    // write a rustMatrix function that allows to sent the Pattern Request to Rust
-    // writeMatrixToRust ()  -> update all candidates
-    // writePatternToRust ()  -> updated the global pattern request
-    // then process.
-    // Check timing and synchronisaiton with HMI Pattern button .
-    // Then read New Highlight Pattern request matrix back .
+    /* If the user presses the Pattern button, then the ChangeNotifier class
+    is informed by calling this function.
+    Then the matrix data is completely written into via the FFI interface into the 
+    RUST matrix.
+    */
+    writeFullMatrixToRust();
+    callRustUpdate();
+    readMatrixFromRust();
+    /* After the Rust processing update */
+    notifyListeners();
+  }
+
+  void updateRequestedHighLightType(
+      RequestedHighLightType requestedHighLightTypeNewData) {
+    _requestedHighLightType = requestedHighLightTypeNewData;
     notifyListeners();
   }
 
@@ -271,7 +282,7 @@ class DataProvider with ChangeNotifier {
                 : DynamicLibrary.open('librust_backend.so');
 
     // Create Rust matrix interface class instance
-    rustMatrix = RustMatrix(dylib, 9, 9);
+    rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
     // Initialize a Dart-side matrix and write a snapshot
     dartMatrix = rustMatrix.readMatrixFromRust();
@@ -299,8 +310,6 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   void readCellFromRust(int r, int c) {
     dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
-
-    notifyListeners();
   }
 
   // -------------------------------
@@ -309,8 +318,6 @@ class DataProvider with ChangeNotifier {
   void readMatrixFromRust() {
     // Update full snapshot from Rust
     dartMatrix = rustMatrix.readMatrixFromRust();
-
-    notifyListeners();
   }
 
   // -------------------------------
@@ -318,11 +325,6 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   void callRustUpdate() {
     rustMatrix.update();
-
-    // Update full snapshot from Rust
-    dartMatrix = rustMatrix.readMatrixFromRust();
-
-    notifyListeners();
   }
 
   // -------------------------------
@@ -760,6 +762,9 @@ class _SudokuElementState extends State<SudokuElement> {
   SelectedPatternList _selectedPatternListNewData =
       List<bool>.from(constSelectedPatternList);
 
+  SelectedPatternList _requestedHighLightTypeNewData =
+      List<bool>.from(constSelectedPatternList);
+
   SelectedUndoIconList _selectedUndoIconListNewData =
       List<bool>.from(constSelectedUndoIconList);
 
@@ -805,7 +810,7 @@ class _SudokuElementState extends State<SudokuElement> {
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
-      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
           .writeCellToRust(_pos.row, _pos.col);
     });
@@ -819,7 +824,7 @@ class _SudokuElementState extends State<SudokuElement> {
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
-      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
           .writeCellToRust(_pos.row, _pos.col);
     });
@@ -834,7 +839,7 @@ class _SudokuElementState extends State<SudokuElement> {
         GridPosition _pos =
             getRowColFromId(widget.element_id, constSudokuNumRow);
 
-        // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+        //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false)
             .writeCellToRust(_pos.row, _pos.col);
       }
@@ -848,7 +853,7 @@ class _SudokuElementState extends State<SudokuElement> {
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
-      // Add FFI RUST interface call here to write data to RUST FFI (Number and candidate choices)
+      // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
           .writeCellToRust(_pos.row, _pos.col);
     });
@@ -869,7 +874,7 @@ class _SudokuElementState extends State<SudokuElement> {
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
     setState(() {
-      if ((_selectedPatternListNewData[0] ==
+      if ((_selectedPatternListNewData[PatternListIndex.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
@@ -877,7 +882,7 @@ class _SudokuElementState extends State<SudokuElement> {
       {
         _color = const Color.fromARGB(255, 129, 255, 140);
       } // highlighting on
-      else if ((_selectedPatternListNewData[0] ==
+      else if ((_selectedPatternListNewData[PatternListIndex.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(_numberHMI) ==
@@ -930,6 +935,8 @@ class _SudokuElementState extends State<SudokuElement> {
         Provider.of<DataProvider>(context)._selectedSetResetList;
     _selectedPatternListNewData =
         Provider.of<DataProvider>(context)._selectedPatternList;
+    _requestedHighLightTypeNewData =
+        Provider.of<DataProvider>(context)._requestedHighLightType;
     _selectedUndoIconListNewData =
         Provider.of<DataProvider>(context)._selectedUndoIconList;
 
