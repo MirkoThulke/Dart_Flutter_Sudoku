@@ -105,11 +105,11 @@ sealed class DartToRustElementFFI extends Struct {
   @Array(constSelectedNumberListSize)
   external Array<Bool> selectedCandState;
 
-  @Array(constSelectedNumberListSize)
-  external Array<Bool> highLightCandRequest;
+  @Array(constSelectedPatternListSize)
+  external Array<Bool> selectedPatternList;
 
   @Array(constSelectedPatternListSize)
-  external Array<Bool> highLightTypeRequest;
+  external Array<Bool> requestedHighLightType;
 }
 
 /* Dart class to map Dart matrix data to the Rust structure.
@@ -121,12 +121,16 @@ Good for debugging or local processing. */
 class DartToRustElement {
   final int row;
   final int col;
+
+  // Final element number chosen
   int selectedNumState = 0; // no number set
 
-  // use global constants and types for cleaner code
+  // Candidates which are chosen
   SelectedNumberList selectedCandState = List.from(constSelectedNumberList);
-  SelectedNumberList highLightCandRequest = List.from(constSelectedNumberList);
-  SelectedPatternList highLightTypeRequest =
+  // User pattern display request
+  SelectedNumberList selectedPatternList = List.from(constSelectedPatternList);
+  // Rust feedback with which candidate to highlight
+  SelectedPatternList requestedHighLightType =
       List.from(constSelectedPatternList);
 
   // Constructure to define position of Cell inside matrix
@@ -140,8 +144,8 @@ class DartToRustElement {
         'col=$col, '
         'selectedNumState=$selectedNumState, '
         'selectedCandState=$selectedCandState, '
-        'highLightCandRequest=$highLightCandRequest, '
-        'highLightTypeRequest=$highLightTypeRequest'
+        'selectedPatternList=$selectedPatternList, '
+        'requestedHighLightType=$requestedHighLightType'
         ')';
   }
 }
@@ -269,11 +273,11 @@ class RustMatrix {
     // Copy arrays element by element
     for (int i = 0; i < constSelectedNumberListSize; i++) {
       cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
-      cellPtr.highLightCandRequest[i] = dartCell.highLightCandRequest[i];
+      cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
     }
 
     for (int i = 0; i < constSelectedPatternListSize; i++) {
-      cellPtr.highLightTypeRequest[i] = dartCell.highLightTypeRequest[i];
+      cellPtr.requestedHighLightType[i] = dartCell.requestedHighLightType[i];
     }
   }
 
@@ -308,11 +312,12 @@ Scales better for larger matrices while keeping all logic in one loop.
         // Copy arrays element by element
         for (int i = 0; i < constSelectedNumberListSize; i++) {
           cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
-          cellPtr.highLightCandRequest[i] = dartCell.highLightCandRequest[i];
+          cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
         }
 
         for (int i = 0; i < constSelectedPatternListSize; i++) {
-          cellPtr.highLightTypeRequest[i] = dartCell.highLightTypeRequest[i];
+          cellPtr.requestedHighLightType[i] =
+              dartCell.requestedHighLightType[i];
         }
       }
     }
@@ -327,10 +332,10 @@ Scales better for larger matrices while keeping all logic in one loop.
       ..selectedNumState = cellPtr.selectedNumState
       ..selectedCandState = List.generate(
           constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
-      ..highLightCandRequest = List.generate(
-          constSelectedNumberListSize, (i) => cellPtr.highLightCandRequest[i])
-      ..highLightTypeRequest = List.generate(
-          constSelectedPatternListSize, (i) => cellPtr.highLightTypeRequest[i]);
+      ..selectedPatternList = List.generate(
+          constSelectedNumberListSize, (i) => cellPtr.selectedPatternList[i])
+      ..requestedHighLightType = List.generate(constSelectedPatternListSize,
+          (i) => cellPtr.requestedHighLightType[i]);
   }
 
   // -------------------------------
@@ -360,10 +365,10 @@ Creates a 2D Dart list of DartToRustElement.
           ..selectedNumState = cellPtr.selectedNumState
           ..selectedCandState = List.generate(
               constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
-          ..highLightCandRequest = List.generate(constSelectedNumberListSize,
-              (i) => cellPtr.highLightCandRequest[i])
-          ..highLightTypeRequest = List.generate(constSelectedPatternListSize,
-              (i) => cellPtr.highLightTypeRequest[i]);
+          ..selectedPatternList = List.generate(constSelectedNumberListSize,
+              (i) => cellPtr.selectedPatternList[i])
+          ..requestedHighLightType = List.generate(constSelectedPatternListSize,
+              (i) => cellPtr.requestedHighLightType[i]);
       }
     }
 

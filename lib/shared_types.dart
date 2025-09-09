@@ -58,6 +58,7 @@ import 'package:flutter/material.dart';
 typedef SelectedNumberList = List<bool>;
 typedef SelectedSetResetList = List<bool>;
 typedef SelectedPatternList = List<bool>;
+typedef RequestedHighLightType = List<bool>;
 typedef SelectedUndoIconList = List<bool>;
 typedef SelectAddRemoveList = List<bool>;
 
@@ -69,10 +70,6 @@ const int constSudokuNumCol = 9;
 
 // Hardcoded sizes of above types
 const int constSelectedNumberListSize = 9;
-const int constSelectedSetResetListSize = 4;
-const int constSelectedPatternListSize = 5;
-const int constSelectedUndoIconListSize = 2;
-const int constSelectAddRemoveListSize = 2;
 
 const List<bool> constSelectedNumberList = [
   false,
@@ -86,14 +83,6 @@ const List<bool> constSelectedNumberList = [
   false
 ];
 
-const List<bool> constSelectedSetResetList = [true, false, false, false];
-
-const List<bool> constSelectedPatternList = [true, false, false, false, false];
-
-const List<bool> constSelectedUndoIconList = [false, false];
-
-const List<bool> constSelectAddRemoveList = [false, false];
-
 const List<Widget> numberlist = <Widget>[
   Text('1'),
   Text('2'),
@@ -106,6 +95,10 @@ const List<Widget> numberlist = <Widget>[
   Text('9')
 ];
 
+const int constSelectedSetResetListSize = 4;
+
+const List<bool> constSelectedSetResetList = [true, false, false, false];
+
 const List<Widget> setresetlist = <Widget>[
   Text('SetCand'),
   Text('ResetCand'),
@@ -113,18 +106,69 @@ const List<Widget> setresetlist = <Widget>[
   Text('ResetNum')
 ];
 
+const int constSelectedPatternListSize = 5;
+
+const List<bool> constSelectedPatternList = [true, false, false, false, false];
+
 const List<Widget> patternlist = <Widget>[
   Text('HiLightOn'),
-  Text('AI'),
   Text('Pairs'),
   Text('MatchPairs'),
   Text('Twins'),
+  Text('AI'),
 ];
+
+class PatternListIndex {
+  static const int hiLightOn = 0;
+  static const int pairs = 1;
+  static const int matchPairs = 2;
+  static const int twins = 3;
+  static const int ai = 4;
+}
+
+const int constSelectedUndoIconListSize = 2;
+const List<bool> constSelectedUndoIconList = [false, false];
 
 const List<Widget> undoiconlist = <Widget>[
   Icon(Icons.undo),
   Icon(Icons.redo),
 ];
+
+class undoiconlistIndex {
+  static const int undo = 0;
+  static const int redo = 1;
+}
+
+const int constSelectAddRemoveListSize = 2;
+const List<bool> constSelectAddRemoveList = [false, false];
+
+const List<Widget> addRemoveList = <Widget>[
+  Icon(Icons.add_box_outlined),
+  Icon(Icons.remove_circle_outline),
+];
+
+class addRemoveListIndex {
+  static const int add = 0;
+  static const int remove = 1;
+}
+
+// This is the type used by the popup menu below.
+enum SudokuItem { itemOne, itemTwo, itemThree }
+
+class SudokuItemIndex {
+  static const int add = itemOne;
+  static const int remove = itemTwo;
+  static const int remove = itemThree;
+}
+
+// This is the type used by the popup menu below.
+enum SampleItem { itemOne, itemTwo, itemThree }
+
+class SampleItemIndex {
+  static const int add = itemOne;
+  static const int remove = itemTwo;
+  static const int remove = itemThree;
+}
 
 /*
 const List<Widget> saveCreateList = <Widget>[
@@ -136,17 +180,6 @@ const List<Widget> saveCreateList = <Widget>[
   Icon(Icons.exit_to_app_sharp),
 ];
 */
-
-const List<Widget> addRemoveList = <Widget>[
-  Icon(Icons.add_box_outlined),
-  Icon(Icons.remove_circle_outline),
-];
-
-// This is the type used by the popup menu below.
-enum SudokuItem { itemOne, itemTwo, itemThree }
-
-// This is the type used by the popup menu below.
-enum SampleItem { itemOne, itemTwo, itemThree }
 /////////////////////////////////////
 
 /////////////////////////////////////
