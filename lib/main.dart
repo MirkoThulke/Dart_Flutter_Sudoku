@@ -237,7 +237,7 @@ class DataProvider with ChangeNotifier {
   }
 
   void updateRequestedHighLightType(
-      RequestedHighLightType requestedHighLightTypeNewData) {
+      RequestedElementHighLightType requestedHighLightTypeNewData) {
     _requestedHighLightType = requestedHighLightTypeNewData;
     notifyListeners();
   }
@@ -874,21 +874,21 @@ class _SudokuElementState extends State<SudokuElement> {
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
     setState(() {
-      if ((_selectedPatternListNewData[PatternListIndex.hiLightOn] ==
+      if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
               _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromARGB(255, 129, 255, 140);
+        _color = const Color.fromRGBO(255, 251, 5, 1);
       } // highlighting on
-      else if ((_selectedPatternListNewData[PatternListIndex.hiLightOn] ==
+      else if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(_numberHMI) ==
               true)) // Numner on HMI corresponds to Candidate Number in Grid
       {
-        _color = const Color.fromARGB(255, 129, 255, 140);
+        _color = const Color.fromRGBO(255, 251, 5, 1);
       } // yellow highlighting
       else {
         _color = const Color(0xFFFFFFFF); // keep white
