@@ -7,22 +7,28 @@
 /////////////////////////////////////
 
 // Hardcoded sizes of above types
-pub const constSelectedNumberListSize: usize    = 9;
-pub const constSelectedPatternListSize: usize   = 5;
+pub const constSelectedNumberListSize: usize                    = 9;
+pub const constSelectedPatternListSize: usize                   = 5;
+pub const constRequestedElementHighLightTypeListSize: usize     = constSelectedPatternListSize;
+pub const constRequestedCandHighLightTypeListSize: usize        = constSelectedNumberListSize;
+
 pub const constSelectedNumberList: [u8; constSelectedNumberListSize] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 pub const constSelectedPatternList: [u8; constSelectedPatternListSize] = [0, 0, 0, 0, 0];
+pub const constRequestedElementHighLightType: [u8; constRequestedElementHighLightTypeListSize] = [0, 0, 0, 0, 0];
+pub const constRequestedCandHighLightType: [u8; constRequestedCandHighLightTypeListSize] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
 use std::alloc::{alloc, dealloc, Layout};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct DartToRustElementFFI {
-    pub row:                        u8,
-    pub col:                        u8,
-    pub selectedNumState:           u8,
-    pub selectedCandList:           [u8; constSelectedNumberListSize],
-    pub selectedPatternList:        [u8; constSelectedPatternListSize], // User selection of Pattern display request
-    pub requestedHighLightType:     [u8; constSelectedPatternListSize] // Rust feedback on what to display
+    pub row:                            u8,
+    pub col:                            u8,
+    pub selectedNumState:               u8,
+    pub selectedCandList:               [u8; constSelectedNumberListSize],
+    pub selectedPatternList:            [u8; constSelectedPatternListSize], // User selection of Pattern display request
+    pub requestedElementHighLightType:  [u8; constRequestedElementHighLightType] // Rust feedback on what to display
+    pub requestedCandHighLightType:     [u8; constRequestedCandHighLightType] // Rust feedback on what to display
 }
 
 #[unsafe(no_mangle)]
@@ -42,10 +48,11 @@ pub extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI
                 let cell = ptr.offset(idx);
                 (*cell).row = r;
                 (*cell).col = c;
-                (*cell).selectedNumState        = 0;
-                (*cell).selectedCandList        = constSelectedNumberList; // all false
-                (*cell).selectedPatternList     = constSelectedPatternList;// all false
-                (*cell).requestedHighLightType  = constSelectedPatternList;// all false
+                (*cell).selectedNumState                = 0;
+                (*cell).selectedCandList                = constSelectedNumberList; // all false
+                (*cell).selectedPatternList             = constSelectedPatternList;// all false
+                (*cell).requestedElementHighLightType   = constRequestedElementHighLightType;// all false
+                (*cell).requestedCandHighLightType      = constRequestedCandHighLightType;// all false
             }
         }
 

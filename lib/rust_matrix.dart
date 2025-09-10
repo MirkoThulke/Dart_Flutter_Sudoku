@@ -109,7 +109,10 @@ sealed class DartToRustElementFFI extends Struct {
   external Array<Bool> selectedPatternList;
 
   @Array(constSelectedPatternListSize)
-  external Array<Bool> requestedHighLightType;
+  external Array<Bool> requestedElementHighLightType;
+
+  @Array(constSelectedNumberListSize)
+  external Array<Int8> requestedCandHighLightType;
 }
 
 /* Dart class to map Dart matrix data to the Rust structure.
@@ -124,14 +127,16 @@ class DartToRustElement {
 
   // Final element number chosen
   int selectedNumState = 0; // no number set
-
   // Candidates which are chosen
   SelectedNumberList selectedCandState = List.from(constSelectedNumberList);
   // User pattern display request
   SelectedNumberList selectedPatternList = List.from(constSelectedPatternList);
-  // Rust feedback with which candidate to highlight
-  SelectedPatternList requestedHighLightType =
-      List.from(constSelectedPatternList);
+  // Rust feedback on how to highlight the cell
+  RequestedElementHighLightType requestedElementHighLightType =
+      List.from(constRequestedElementHighLightType);
+  // Rust feedback on how to highlight each candidate
+  RequestedCandHighLightType requestedCandHighLightType =
+      List.from(constRequestedCandHighLightType);
 
   // Constructure to define position of Cell inside matrix
   DartToRustElement(this.row, this.col);
@@ -145,7 +150,8 @@ class DartToRustElement {
         'selectedNumState=$selectedNumState, '
         'selectedCandState=$selectedCandState, '
         'selectedPatternList=$selectedPatternList, '
-        'requestedHighLightType=$requestedHighLightType'
+        'requestedElementHighLightType=$requestedElementHighLightType'
+        'requestedCandHighLightType=$requestedCandHighLightType'
         ')';
   }
 }
@@ -274,10 +280,10 @@ class RustMatrix {
     for (int i = 0; i < constSelectedNumberListSize; i++) {
       cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
       cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
-    }
-
-    for (int i = 0; i < constSelectedPatternListSize; i++) {
-      cellPtr.requestedHighLightType[i] = dartCell.requestedHighLightType[i];
+      cellPtr.requestedElementHighLightType[i] =
+          dartCell.requestedElementHighLightType[i];
+      cellPtr.requestedCandHighLightType[i] =
+          dartCell.requestedCandHighLightType[i];
     }
   }
 
@@ -316,8 +322,8 @@ Scales better for larger matrices while keeping all logic in one loop.
         }
 
         for (int i = 0; i < constSelectedPatternListSize; i++) {
-          cellPtr.requestedHighLightType[i] =
-              dartCell.requestedHighLightType[i];
+          cellPtr.requestedCandHighLightType[i] =
+              dartCell.requestedCandHighLightType[i];
         }
       }
     }
@@ -334,8 +340,8 @@ Scales better for larger matrices while keeping all logic in one loop.
           constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
       ..selectedPatternList = List.generate(
           constSelectedNumberListSize, (i) => cellPtr.selectedPatternList[i])
-      ..requestedHighLightType = List.generate(constSelectedPatternListSize,
-          (i) => cellPtr.requestedHighLightType[i]);
+      ..requestedCandHighLightType = List.generate(constSelectedPatternListSize,
+          (i) => cellPtr.requestedCandHighLightType[i]);
   }
 
   // -------------------------------
@@ -367,8 +373,9 @@ Creates a 2D Dart list of DartToRustElement.
               constSelectedNumberListSize, (i) => cellPtr.selectedCandState[i])
           ..selectedPatternList = List.generate(constSelectedNumberListSize,
               (i) => cellPtr.selectedPatternList[i])
-          ..requestedHighLightType = List.generate(constSelectedPatternListSize,
-              (i) => cellPtr.requestedHighLightType[i]);
+          ..requestedCandHighLightType = List.generate(
+              constSelectedPatternListSize,
+              (i) => cellPtr.requestedCandHighLightType[i]);
       }
     }
 

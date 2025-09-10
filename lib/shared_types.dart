@@ -55,22 +55,32 @@ import 'package:flutter/material.dart';
 /// end note
 /// @enduml
 
-typedef SelectedNumberList = List<bool>;
-typedef SelectedSetResetList = List<bool>;
-typedef SelectedPatternList = List<bool>;
-typedef RequestedHighLightType = List<bool>;
-typedef SelectedUndoIconList = List<bool>;
-typedef SelectAddRemoveList = List<bool>;
-
 /////////////////////////////////////
 // constants
 /////////////////////////////////////
 const int constSudokuNumRow = 9;
 const int constSudokuNumCol = 9;
 
-// Hardcoded sizes of above types
-const int constSelectedNumberListSize = 9;
+// types
+typedef SelectedNumberList = List<bool>;
+typedef SelectedSetResetList = List<bool>;
+typedef SelectedPatternList = List<bool>;
+typedef RequestedElementHighLightType = List<bool>;
+typedef RequestedCandHighLightType = List<int>;
+typedef SelectedUndoIconList = List<bool>;
+typedef SelectAddRemoveList = List<bool>;
 
+// Hardcoded List sizes of above types
+const int constSelectedNumberListSize = 9;
+const int constSelectedSetResetListSize = 4;
+const int constSelectedPatternListSize = 5;
+const int constRequestedElementHighLightTypeListSize =
+    constSelectedPatternListSize;
+const int constRequestedCandHighLightTypeListSize = constSelectedNumberListSize;
+const int constSelectedUndoIconListSize = 2;
+const int constSelectAddRemoveListSize = 2;
+
+// constant arrays for initialisation
 const List<bool> constSelectedNumberList = [
   false,
   false,
@@ -95,10 +105,6 @@ const List<Widget> numberlist = <Widget>[
   Text('9')
 ];
 
-const int constSelectedSetResetListSize = 4;
-
-const List<bool> constSelectedSetResetList = [true, false, false, false];
-
 const List<Widget> setresetlist = <Widget>[
   Text('SetCand'),
   Text('ResetCand'),
@@ -106,9 +112,7 @@ const List<Widget> setresetlist = <Widget>[
   Text('ResetNum')
 ];
 
-const int constSelectedPatternListSize = 5;
-
-const List<bool> constSelectedPatternList = [true, false, false, false, false];
+const List<bool> constSelectedSetResetList = [true, false, false, false];
 
 const List<Widget> patternlist = <Widget>[
   Text('HiLightOn'),
@@ -118,34 +122,55 @@ const List<Widget> patternlist = <Widget>[
   Text('AI'),
 ];
 
-class PatternListIndex {
-  static const int hiLightOn = 0;
-  static const int pairs = 1;
-  static const int matchPairs = 2;
-  static const int twins = 3;
-  static const int ai = 4;
+const List<bool> constSelectedPatternList = [true, false, false, false, false];
+
+class PatternList {
+  static const int off = 0;
+  static const int hiLightOn = 1;
+  static const int pairs = 2;
+  static const int matchPairs = 3;
+  static const int twins = 4;
+  static const int ai = 5;
 }
 
-const int constSelectedUndoIconListSize = 2;
-const List<bool> constSelectedUndoIconList = [false, false];
+const List<bool> constRequestedElementHighLightType = [
+  false,
+  false,
+  false,
+  false,
+  false
+];
+
+const List<int> constRequestedCandHighLightType = [
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off,
+  PatternList.off
+];
 
 const List<Widget> undoiconlist = <Widget>[
   Icon(Icons.undo),
   Icon(Icons.redo),
 ];
 
+const List<bool> constSelectedUndoIconList = [false, false];
+
 class undoiconlistIndex {
   static const int undo = 0;
   static const int redo = 1;
 }
 
-const int constSelectAddRemoveListSize = 2;
-const List<bool> constSelectAddRemoveList = [false, false];
-
 const List<Widget> addRemoveList = <Widget>[
   Icon(Icons.add_box_outlined),
   Icon(Icons.remove_circle_outline),
 ];
+
+const List<bool> constSelectAddRemoveList = [false, false];
 
 class addRemoveListIndex {
   static const int add = 0;
@@ -156,18 +181,16 @@ class addRemoveListIndex {
 enum SudokuItem { itemOne, itemTwo, itemThree }
 
 class SudokuItemIndex {
-  static const int add = itemOne;
-  static const int remove = itemTwo;
-  static const int remove = itemThree;
+  static const int add = 0;
+  static const int remove = 1;
 }
 
 // This is the type used by the popup menu below.
 enum SampleItem { itemOne, itemTwo, itemThree }
 
 class SampleItemIndex {
-  static const int add = itemOne;
-  static const int remove = itemTwo;
-  static const int remove = itemThree;
+  static const int add = 0;
+  static const int remove = 1;
 }
 
 /*
