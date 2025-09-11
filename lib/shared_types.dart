@@ -63,6 +63,7 @@ const int constSudokuNumCol = 9;
 
 // types
 typedef SelectedNumberList = List<bool>;
+typedef SelectedCandList = List<bool>;
 typedef SelectedSetResetList = List<bool>;
 typedef SelectedPatternList = List<bool>;
 typedef RequestedElementHighLightType = List<bool>;
@@ -72,11 +73,11 @@ typedef SelectAddRemoveList = List<bool>;
 
 // Hardcoded List sizes of above types
 const int constSelectedNumberListSize = 9;
+const int constSelectedCandListSize = 9;
 const int constSelectedSetResetListSize = 4;
 const int constSelectedPatternListSize = 5;
-const int constRequestedElementHighLightTypeListSize =
-    constSelectedPatternListSize;
-const int constRequestedCandHighLightTypeListSize = constSelectedNumberListSize;
+const int constRequestedElementHighLightTypeListSize = 5;
+const int constRequestedCandHighLightTypeListSize = 9;
 const int constSelectedUndoIconListSize = 2;
 const int constSelectAddRemoveListSize = 2;
 
@@ -92,6 +93,7 @@ const List<bool> constSelectedNumberList = [
   false,
   false
 ];
+const List<bool> constSelectedCandList = constSelectedNumberList;
 
 const List<Widget> numberlist = <Widget>[
   Text('1'),

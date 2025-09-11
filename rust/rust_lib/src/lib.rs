@@ -27,8 +27,8 @@ pub struct DartToRustElementFFI {
     pub selectedNumState:               u8,
     pub selectedCandList:               [u8; constSelectedNumberListSize],
     pub selectedPatternList:            [u8; constSelectedPatternListSize], // User selection of Pattern display request
-    pub requestedElementHighLightType:  [u8; constRequestedElementHighLightType] // Rust feedback on what to display
-    pub requestedCandHighLightType:     [u8; constRequestedCandHighLightType] // Rust feedback on what to display
+    pub requestedElementHighLightType:  [u8; constRequestedElementHighLightTypeListSize], // Rust feedback on what to display
+    pub requestedCandHighLightType:     [u8; constRequestedCandHighLightTypeListSize], // Rust feedback on what to display
 }
 
 #[unsafe(no_mangle)]

@@ -71,20 +71,6 @@ final log = Logger('SudokuLogger');
 
 /////////////////////////////////////
 // Use this class to handle the overall dimension of the app content depending on the actual screen size
-/*
-example :
-@override
-Widget build(BuildContext context) {
- return Center(
-  child: Container(
-   height: SizeConfig.blockSizeVertical * 20,
-   width: SizeConfig.blockSizeHorizontal * 50,
-   color: Colors.orange,
-  ),
- );
-}
-// or use the safeSizeConfig.safeBlock... parameters
-*/
 
 class SizeConfig {
   static MediaQueryData? _mediaQueryData;
@@ -200,9 +186,6 @@ class DataProvider with ChangeNotifier {
   SelectedPatternList _selectedPatternList =
       List<bool>.from(constSelectedPatternList);
 
-  SelectedPatternList _requestedHighLightType =
-      List<bool>.from(constSelectedPatternList);
-
   SelectedUndoIconList _selectedUndoIconList =
       List<bool>.from(constSelectedUndoIconList);
 
@@ -229,16 +212,19 @@ class DataProvider with ChangeNotifier {
     Then the matrix data is completely written into via the FFI interface into the 
     RUST matrix.
     */
-    writeFullMatrixToRust();
-    callRustUpdate();
-    readMatrixFromRust();
+    // writeFullMatrixToRust();
+    // callRustUpdate();
+    // readMatrixFromRust();
     /* After the Rust processing update */
     notifyListeners();
   }
 
+  RequestedCandHighLightType _requestedCandHighLightType =
+      List<int>.from(constRequestedCandHighLightType);
+
   void updateRequestedHighLightType(
-      RequestedElementHighLightType requestedHighLightTypeNewData) {
-    _requestedHighLightType = requestedHighLightTypeNewData;
+      RequestedCandHighLightType requestedCandHighLightTypeNewData) {
+    _requestedCandHighLightType = requestedCandHighLightTypeNewData;
     notifyListeners();
   }
 
@@ -310,6 +296,19 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   void readCellFromRust(int r, int c) {
     dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
+  }
+
+  // -------------------------------
+  // Read candidate pattern highlighting tyep from RUST
+  // -------------------------------
+  int readRequestedCandHighLightTypeFromRust(int r, int c, int cand) {
+    dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
+
+    int _patternRequest_int = PatternList.off;
+
+    _patternRequest_int = dartMatrix[r][c].requestedCandHighLightType[cand - 1];
+
+    return _patternRequest_int;
   }
 
   // -------------------------------
@@ -397,16 +396,6 @@ class MyHomePage extends StatelessWidget {
             color: Colors.orange,
             child: const SudokuGrid(),
           ),
-/*
-          // Test Code for definition of app segment sizes via simple containers with different color
-          Container(
-            // test container for app screen size definition
-            height: SizeConfig
-                .safeBlockSudokuGridVertical!, // Square with height equal to width equal to screen widths in percent
-            width: SizeConfig.safeBlockHorizontal!,
-            color: Colors.orange,
-          ),
-*/
           Expanded(
               child: Container(
             height: SizeConfig
@@ -415,17 +404,6 @@ class MyHomePage extends StatelessWidget {
             color: Colors.blue,
             child: ToggleButtonsSample(),
           ))
-/*
-          Expanded(
-              child: Container(
-            // user lower segement for potential filling in case of small gaps in size calcualtions
-            // test container for app screen size definition
-            height: SizeConfig
-                .safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
-            width: SizeConfig.safeBlockHorizontal!,
-            color: Colors.blue,
-          )),
-*/
         ],
       ),
     );
@@ -564,31 +542,6 @@ class _appBarActions extends State<appBarActions> {
                         value: SampleItem.itemThree, child: Text('Item 3')),
                   ]),
         ]);
-    /*
-        child: ToggleButtons(
-      direction: Axis.horizontal,
-      onPressed: (int index) {
-        // The button that is tapped is set to true, and the others to false.
-        for (int i = 0; i < _selectSaveCreateListNewData.length; i++) {
-          _selectSaveCreateListNewData[i] = i == index;
-        }
-        Provider.of<DataProvider>(context, listen: false)
-            .updateDataselectSaveCreateList(_selectSaveCreateListNewData);
-      },
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      selectedBorderColor: Colors.blue[700],
-      selectedColor: Colors.white,
-      fillColor: Colors.blue[200],
-      color: Colors.blue[400],
-      constraints: const BoxConstraints(
-        minHeight: 20.0,
-        minWidth: 80.0,
-        // maxHeight: 60.0,
-        // maxWidth: SizeConfig.safeBlockHorizontal!,
-      ),
-      isSelected: _selectSaveCreateListNewData,
-      children: saveCreateList, 
-    ) */
   }
 }
 
@@ -749,8 +702,6 @@ class SudokuElement extends StatefulWidget {
 }
 
 class _SudokuElementState extends State<SudokuElement> {
-  // _SudokuElementState({super.key});
-
   // HMI input variables
 
   SelectedNumberList _selectedNumberListNewData =
@@ -760,9 +711,6 @@ class _SudokuElementState extends State<SudokuElement> {
       List<bool>.from(constSelectedSetResetList);
 
   SelectedPatternList _selectedPatternListNewData =
-      List<bool>.from(constSelectedPatternList);
-
-  SelectedPatternList _requestedHighLightTypeNewData =
       List<bool>.from(constSelectedPatternList);
 
   SelectedUndoIconList _selectedUndoIconListNewData =
@@ -782,8 +730,11 @@ class _SudokuElementState extends State<SudokuElement> {
 
   Color _numberBackGroundColor = Color(0xFFFFFFFF); // white number background
 
-  List<bool> _subelementlistCandidateChoice =
-      List<bool>.from(constSelectedNumberList);
+  SelectedCandList _subelementlistCandidateChoice =
+      List<bool>.from(constSelectedCandList);
+
+  RequestedCandHighLightType _requestedCandHighLightTypeNewData =
+      List<int>.from(constRequestedCandHighLightType);
 
 // return 0 : no number set
   int _readNumberFromList(SelectedNumberList selectedNumberList) {
@@ -808,11 +759,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementNumberChoice = number;
 
       // Extract col and row from unique ID
-      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      /* GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+         Provider.of<DataProvider>(context, listen: false)
+          .writeCellToRust(_pos.row, _pos.col); */
     });
   }
 
@@ -822,11 +773,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementNumberChoice = 0;
 
       // Extract col and row from unique ID
-      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      /*  GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+          .writeCellToRust(_pos.row, _pos.col); */
     });
   }
 
@@ -836,12 +787,12 @@ class _SudokuElementState extends State<SudokuElement> {
         _subelementlistCandidateChoice[number - 1] = true;
 
         // Extract col and row from unique ID
-        GridPosition _pos =
+        /* GridPosition _pos =
             getRowColFromId(widget.element_id, constSudokuNumRow);
 
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false)
-            .writeCellToRust(_pos.row, _pos.col);
+            .writeCellToRust(_pos.row, _pos.col); */
       }
     });
   }
@@ -851,11 +802,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementlistCandidateChoice[number - 1] = false;
 
       // Extract col and row from unique ID
-      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      /* GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+          .writeCellToRust(_pos.row, _pos.col); */
     });
   }
 
@@ -869,12 +820,38 @@ class _SudokuElementState extends State<SudokuElement> {
     }
   }
 
+  bool _checkCandidatePatternRequestType(
+      int cand_number, int patternCandRequest) {
+    // Extract col and row from unique ID
+    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+    // Extract requested hightlight pattern for current candidate
+    int _patternTypeRequest = Provider.of<DataProvider>(context, listen: false)
+        .readRequestedCandHighLightTypeFromRust(
+            _pos.row, _pos.col, cand_number);
+
+    bool _check_bool = (_subelementChoiceState ==
+            false) && // Check if Number is already chosen for Element
+        (_subelementlistCandidateChoice[cand_number - 1] ==
+            true) && // Check if Candidate is chosen
+        (_patternTypeRequest ==
+            patternCandRequest); // Check if HighLight request type is active
+
+    if (cand_number == 0) {
+      return false;
+    } else if (_check_bool == true) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   Color _getNumberBackgroundColor() {
     Color _color = Color(0xFFFFFFFF); // opac white
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
     setState(() {
-      if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
+      if ((_selectedPatternListNewData[1] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
@@ -882,14 +859,20 @@ class _SudokuElementState extends State<SudokuElement> {
       {
         _color = const Color.fromRGBO(255, 251, 5, 1);
       } // highlighting on
-      else if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
+      else if ((_selectedPatternListNewData[1] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(_numberHMI) ==
               true)) // Numner on HMI corresponds to Candidate Number in Grid
       {
         _color = const Color.fromRGBO(255, 251, 5, 1);
-      } // yellow highlighting
+      } /* else if ((_selectedPatternListNewData[PatternList.pairs] ==
+              true) && // Highlighting is switched ON on HMI
+          _checkCandidatePatternRequestType(
+                  _subelementNumberChoice, PatternList.pairs) ==
+              true) {
+        _color = const Color.fromARGB(255, 5, 255, 18);
+      } // green highlighting */
       else {
         _color = const Color(0xFFFFFFFF); // keep white
       }
@@ -935,10 +918,10 @@ class _SudokuElementState extends State<SudokuElement> {
         Provider.of<DataProvider>(context)._selectedSetResetList;
     _selectedPatternListNewData =
         Provider.of<DataProvider>(context)._selectedPatternList;
-    _requestedHighLightTypeNewData =
-        Provider.of<DataProvider>(context)._requestedHighLightType;
     _selectedUndoIconListNewData =
         Provider.of<DataProvider>(context)._selectedUndoIconList;
+    _requestedCandHighLightTypeNewData =
+        Provider.of<DataProvider>(context)._requestedCandHighLightType;
 
     return InkWell(
         onTap: () {
