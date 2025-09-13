@@ -225,7 +225,7 @@ class DataProvider with ChangeNotifier {
     Then the matrix data is completely written into via the FFI interface into the 
     RUST matrix.
     */
-    // writeFullMatrixToRust();
+    writeFullMatrixToRust();
     // callRustUpdate();
     // readMatrixFromRust();
     /* After the Rust processing update */
