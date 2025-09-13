@@ -343,8 +343,12 @@ Scales better for larger matrices while keeping all logic in one loop.
       ..selectedCandState = List.generate(
           constSelectedCandListSize, (i) => cellPtr.selectedCandState[i])
       ..selectedPatternList = List.generate(
-          constSelectedCandListSize, (i) => cellPtr.selectedPatternList[i])
-      ..requestedCandHighLightType = List.generate(constSelectedPatternListSize,
+          constSelectedPatternListSize, (i) => cellPtr.selectedPatternList[i])
+      ..requestedElementHighLightType = List.generate(
+          constRequestedElementHighLightTypeListSize,
+          (i) => cellPtr.requestedElementHighLightType[i])
+      ..requestedCandHighLightType = List.generate(
+          constRequestedCandHighLightTypeListSize,
           (i) => cellPtr.requestedCandHighLightType[i]);
   }
 
@@ -375,10 +379,13 @@ Creates a 2D Dart list of DartToRustElement.
           ..selectedNumState = cellPtr.selectedNumState
           ..selectedCandState = List.generate(
               constSelectedCandListSize, (i) => cellPtr.selectedCandState[i])
-          ..selectedPatternList = List.generate(
-              constSelectedCandListSize, (i) => cellPtr.selectedPatternList[i])
+          ..selectedPatternList = List.generate(constSelectedPatternListSize,
+              (i) => cellPtr.selectedPatternList[i])
+          ..requestedElementHighLightType = List.generate(
+              constRequestedElementHighLightTypeListSize,
+              (i) => cellPtr.requestedElementHighLightType[i])
           ..requestedCandHighLightType = List.generate(
-              constSelectedPatternListSize,
+              constRequestedCandHighLightTypeListSize,
               (i) => cellPtr.requestedCandHighLightType[i]);
       }
     }

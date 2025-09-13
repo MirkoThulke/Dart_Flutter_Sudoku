@@ -851,21 +851,21 @@ class _SudokuElementState extends State<SudokuElement> {
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
     setState(() {
-      if ((_selectedPatternListNewData[1] ==
+      if ((_selectedPatternListNewData[0] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
               _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromRGBO(255, 251, 5, 1);
+        _color = const Color.fromARGB(255, 5, 255, 243);
       } // highlighting on
-      else if ((_selectedPatternListNewData[1] ==
+      else if ((_selectedPatternListNewData[0] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(_numberHMI) ==
               true)) // Numner on HMI corresponds to Candidate Number in Grid
       {
-        _color = const Color.fromRGBO(255, 251, 5, 1);
+        _color = const Color.fromARGB(255, 5, 255, 243);
       } /* else if ((_selectedPatternListNewData[PatternList.pairs] ==
               true) && // Highlighting is switched ON on HMI
           _checkCandidatePatternRequestType(
