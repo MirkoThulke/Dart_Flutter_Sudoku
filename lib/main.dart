@@ -876,13 +876,13 @@ class _SudokuElementState extends State<SudokuElement> {
               true)) // Numner on HMI corresponds to Candidate Number in Grid
       {
         _color = const Color.fromARGB(255, 5, 255, 243);
-      } /* else if ((_selectedPatternListNewData[PatternList.pairs] ==
+      } else if ((_selectedPatternListNewData[PatternList.pairs] ==
               true) && // Highlighting is switched ON on HMI
           _checkCandidatePatternRequestType(
                   _subelementNumberChoice, PatternList.pairs) ==
               true) {
         _color = const Color.fromARGB(255, 5, 255, 18);
-      } // green highlighting */
+      } // green highlighting
       else {
         _color = const Color(0xFFFFFFFF); // keep white
       }
