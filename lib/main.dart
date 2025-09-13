@@ -769,11 +769,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementNumberChoice = number;
 
       // Extract col and row from unique ID
-      /* GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
-         Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col); */
+      Provider.of<DataProvider>(context, listen: false)
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
@@ -783,11 +783,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementNumberChoice = 0;
 
       // Extract col and row from unique ID
-      /*  GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col); */
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
@@ -797,12 +797,12 @@ class _SudokuElementState extends State<SudokuElement> {
         _subelementlistCandidateChoice[number - 1] = true;
 
         // Extract col and row from unique ID
-        /* GridPosition _pos =
+        GridPosition _pos =
             getRowColFromId(widget.element_id, constSudokuNumRow);
 
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false)
-            .writeCellToRust(_pos.row, _pos.col); */
+            .writeCellToRust(_pos.row, _pos.col);
       }
     });
   }
@@ -812,11 +812,11 @@ class _SudokuElementState extends State<SudokuElement> {
       _subelementlistCandidateChoice[number - 1] = false;
 
       // Extract col and row from unique ID
-      /* GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col); */
+          .writeCellToRust(_pos.row, _pos.col);
     });
   }
 
