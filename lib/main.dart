@@ -204,6 +204,18 @@ class DataProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateDataselectedUndoIconList(
+      SelectedUndoIconList selectedUndoIconListNewData) {
+    _selectedUndoIconList = selectedUndoIconListNewData;
+    notifyListeners();
+  }
+
+  void updateDataselectAddRemoveList(
+      SelectAddRemoveList selectAddRemoveListNewData) {
+    _selectAddRemoveList = selectAddRemoveListNewData;
+    notifyListeners();
+  }
+
   void updateDataselectedPatternList(
       SelectedPatternList selectedPatternListNewData) {
     _selectedPatternList = selectedPatternListNewData;
@@ -217,27 +229,6 @@ class DataProvider with ChangeNotifier {
     // callRustUpdate();
     // readMatrixFromRust();
     /* After the Rust processing update */
-    notifyListeners();
-  }
-
-  RequestedCandHighLightType _requestedCandHighLightType =
-      List<int>.from(constRequestedCandHighLightType);
-
-  void updateRequestedHighLightType(
-      RequestedCandHighLightType requestedCandHighLightTypeNewData) {
-    _requestedCandHighLightType = requestedCandHighLightTypeNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectedUndoIconList(
-      SelectedUndoIconList selectedUndoIconListNewData) {
-    _selectedUndoIconList = selectedUndoIconListNewData;
-    notifyListeners();
-  }
-
-  void updateDataselectAddRemoveList(
-      SelectAddRemoveList selectAddRemoveListNewData) {
-    _selectAddRemoveList = selectAddRemoveListNewData;
     notifyListeners();
   }
 
@@ -273,6 +264,24 @@ class DataProvider with ChangeNotifier {
 
     // Initialize a Dart-side matrix and write a snapshot
     dartMatrix = rustMatrix.readMatrixFromRust();
+  }
+
+  RequestedCandHighLightType _requestedCandHighLightType =
+      List<int>.from(constRequestedCandHighLightType);
+
+  void updateRequestedCandHighLightType(
+      RequestedCandHighLightType requestedCandHighLightTypeNewData) {
+    _requestedCandHighLightType = requestedCandHighLightTypeNewData;
+    notifyListeners();
+  }
+
+  RequestedElementHighLightType _requestedElementHighLightType =
+      List<bool>.from(constRequestedElementHighLightType);
+
+  void updateRequestedElementHighLightType(
+      RequestedElementHighLightType requestedElementHighLightTypeNewData) {
+    _requestedElementHighLightType = requestedElementHighLightTypeNewData;
+    notifyListeners();
   }
 
   // -------------------------------
