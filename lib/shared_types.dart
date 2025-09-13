@@ -116,24 +116,32 @@ const List<Widget> setresetlist = <Widget>[
 
 const List<bool> constSelectedSetResetList = [true, false, false, false];
 
-const List<Widget> patternlist = <Widget>[
+const List<Widget> patternlistButtonList = <Widget>[
   Text('HiLightOn'),
   Text('Pairs'),
   Text('MatchPairs'),
   Text('Twins'),
-  Text('AI'),
+  Text('User'),
 ];
 
-const List<bool> constSelectedPatternList = [true, false, false, false, false];
+const List<bool> constSelectedPatternList = [
+  false,
+  false,
+  false,
+  false,
+  false,
+];
 
 class PatternList {
-  static const int off = 0;
-  static const int hiLightOn = 1;
-  static const int pairs = 2;
-  static const int matchPairs = 3;
-  static const int twins = 4;
-  static const int ai = 5;
+  static const int hiLightOn = 0;
+  static const int pairs = 1;
+  static const int matchPairs = 2;
+  static const int twins = 3;
+  static const int user = 4;
 }
+
+// Special derived/off state
+const int constPatternListOff = 255;
 
 const List<bool> constRequestedElementHighLightType = [
   false,
@@ -144,15 +152,15 @@ const List<bool> constRequestedElementHighLightType = [
 ];
 
 const List<int> constRequestedCandHighLightType = [
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off,
-  PatternList.off
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff,
+  constPatternListOff
 ];
 
 const List<Widget> undoiconlist = <Widget>[
