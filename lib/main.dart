@@ -751,6 +751,9 @@ class _SudokuElementState extends State<SudokuElement> {
     int number = 0;
 
     // Check which number is selected (corresponding bit is TRUE)
+    assert(selectedNumberList.length <= constSelectedCandListSize,
+        'selectedNumberList.length exceeds maximum allowed size!');
+
     for (int i = 0; i < selectedNumberList.length; i++) {
       if (selectedNumberList[i] == true) {
         number = i + 1;
@@ -759,10 +762,17 @@ class _SudokuElementState extends State<SudokuElement> {
       }
     }
 
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+    assert(number > 0, 'number is 0!');
+
     return number;
   }
 
   void _setNumber(int number) {
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+
     setState(() {
       // Update HMI
       _subelementChoiceState = true;
@@ -778,6 +788,9 @@ class _SudokuElementState extends State<SudokuElement> {
   }
 
   void _resetNumber(int number) {
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+
     setState(() {
       _subelementChoiceState = false;
       _subelementNumberChoice = 0;
@@ -792,6 +805,9 @@ class _SudokuElementState extends State<SudokuElement> {
   }
 
   void _setCandidate(int number) {
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+
     setState(() {
       if (number > 0) {
         _subelementlistCandidateChoice[number - 1] = true;
@@ -808,6 +824,9 @@ class _SudokuElementState extends State<SudokuElement> {
   }
 
   void _resetCandidate(int number) {
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+
     setState(() {
       _subelementlistCandidateChoice[number - 1] = false;
 
@@ -821,6 +840,9 @@ class _SudokuElementState extends State<SudokuElement> {
   }
 
   bool _checkCandidate(int number) {
+    assert(number <= constSelectedCandListSize,
+        'number exceeds maximum allowed size!');
+
     if (number == 0) {
       return false;
     } else if (_subelementlistCandidateChoice[number - 1] == true) {
@@ -832,6 +854,11 @@ class _SudokuElementState extends State<SudokuElement> {
 
   bool _checkCandidatePatternRequestType(
       int cand_number, int patternCandRequest) {
+    assert(cand_number <= constSelectedCandListSize,
+        '_numberHMI exceeds maximum allowed size!');
+    assert(patternCandRequest <= constPatternListMaxIndex,
+        'patternCandRequest exceeds maximum allowed size!');
+
     // Extract col and row from unique ID
     GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
@@ -858,7 +885,17 @@ class _SudokuElementState extends State<SudokuElement> {
 
   Color _getNumberBackgroundColor() {
     Color _color = Color(0xFFFFFFFF); // opac white
+
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
+
+    assert(_numberHMI <= constSelectedCandListSize,
+        '_numberHMI exceeds maximum allowed size!');
+    assert(_selectedPatternListNewData.length <= constSelectedPatternListSize,
+        '_selectedPatternListNewData.lengthexceeds maximum allowed size!');
+    assert(PatternList.hiLightOn <= constPatternListMaxIndex,
+        'PatternList.hiLightOn exceeds maximum allowed size!');
+    assert(PatternList.pairs <= constPatternListMaxIndex,
+        'PatternList.pairs exceeds maximum allowed size!');
 
     setState(() {
       if ((_selectedPatternListNewData[PatternList.hiLightOn] ==

@@ -140,6 +140,8 @@ class PatternList {
   static const int user = 4;
 }
 
+const int constPatternListMaxIndex = PatternList.user;
+
 // Special derived/off state
 const int constPatternListOff = 255;
 
