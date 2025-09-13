@@ -226,8 +226,8 @@ class DataProvider with ChangeNotifier {
     RUST matrix.
     */
     writeFullMatrixToRust();
-    // callRustUpdate();
-    // readMatrixFromRust();
+    callRustUpdate();
+    readMatrixFromRust();
     /* After the Rust processing update */
     notifyListeners();
   }
