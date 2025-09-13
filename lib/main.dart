@@ -54,6 +54,7 @@ cmd> flutter build apk
 cmd> flutter build apk --debug
 cmd> flutter pub get
 cmd> flutter clean
+cmd> flutter analyse 
 cmd> flutter clean build --refresh-dependencis
 cmd> gradlew clean
 cmd> gradlew cleanBuildCache
@@ -304,7 +305,7 @@ class DataProvider with ChangeNotifier {
   int readRequestedCandHighLightTypeFromRust(int r, int c, int cand) {
     dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
 
-    int _patternRequest_int = PatternList.off;
+    int _patternRequest_int = constPatternListOff;
 
     _patternRequest_int = dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
@@ -851,7 +852,7 @@ class _SudokuElementState extends State<SudokuElement> {
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
     setState(() {
-      if ((_selectedPatternListNewData[0] ==
+      if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
@@ -859,7 +860,7 @@ class _SudokuElementState extends State<SudokuElement> {
       {
         _color = const Color.fromARGB(255, 5, 255, 243);
       } // highlighting on
-      else if ((_selectedPatternListNewData[0] ==
+      else if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(_numberHMI) ==
@@ -1264,7 +1265,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   // maxWidth: SizeConfig.safeBlockHorizontal!,
                 ),
                 isSelected: _selectedPatternList,
-                children: patternlist,
+                children: patternlistButtonList,
               ),
               // ToggleButtons with icons only.
               const SizedBox(height: 5),
