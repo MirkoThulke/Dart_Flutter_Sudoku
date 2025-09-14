@@ -241,7 +241,9 @@ GridPosition getRowColFromId(int id, int numColumns) {
   // int element_id :  Unique ID of the element [0...80]
   int row = id ~/ numColumns;
   int col = id % numColumns;
-
+  assert(id <= 80, 'id exceeds maximum allowed size!');
+  assert(row <= constSudokuNumRow - 1, 'row exceeds maximum allowed size!');
+  assert(col <= constSudokuNumCol - 1, 'col exceeds maximum allowed size!');
   return GridPosition(row, col);
 }
 /*

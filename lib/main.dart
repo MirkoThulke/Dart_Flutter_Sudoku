@@ -313,6 +313,8 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   int readRequestedCandHighLightTypeFromRust(int r, int c, int cand) {
     dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
+    assert(cand <= constSelectedCandListSize,
+        'cand exceeds maximum allowed size!');
 
     int _patternRequest_int = constPatternListOff;
 
@@ -746,6 +748,27 @@ class _SudokuElementState extends State<SudokuElement> {
   RequestedCandHighLightType _requestedCandHighLightTypeNewData =
       List<int>.from(constRequestedCandHighLightType);
 
+  @override
+  void initState() {
+    super.initState();
+
+    _subelementNumberChoice = 0;
+    _numberBackGroundColor = Color(0xFFFFFFFF);
+
+    // Initialize lists from constants
+    _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
+    _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
+    _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
+    _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
+    _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
+    _requestedCandHighLightTypeNewData =
+        List<int>.from(constRequestedCandHighLightType);
+
+    // Check which number is selected (corresponding bit is TRUE)
+    assert(widget.element_id <= 80, 'element_id exceeds maximum allowed size!');
+    assert(widget.element_id >= 0, 'element_id equals 0 or negative!');
+  }
+
 // return 0 : no number set
   int _readNumberFromList(SelectedNumberList selectedNumberList) {
     int number = 0;
@@ -858,6 +881,8 @@ class _SudokuElementState extends State<SudokuElement> {
         '_numberHMI exceeds maximum allowed size!');
     assert(patternCandRequest <= constPatternListMaxIndex,
         'patternCandRequest exceeds maximum allowed size!');
+    assert(widget.element_id <= 80,
+        'widget.element_id exceeds maximum allowed size!');
 
     // Extract col and row from unique ID
     GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
@@ -935,6 +960,8 @@ class _SudokuElementState extends State<SudokuElement> {
       int candNumber = 0;
 
       candNumber = _readNumberFromList(selectedNumberList);
+      assert(candNumber <= constSelectedCandListSize,
+          '_numberHMI exceeds maximum allowed size!');
 
       // Case 0 : User wants to add a candidate number
       if (actionlist[0] == true) {

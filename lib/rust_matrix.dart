@@ -278,11 +278,17 @@ class RustMatrix {
 
     // Copy arrays element by element
     for (int i = 0; i < constSelectedCandListSize; i++) {
+      // Check which number is selected (corresponding bit is TRUE)
+      assert(i < constSelectedCandListSize, 'i  exceeds maximum allowed size!');
+
       cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
       cellPtr.requestedCandHighLightType[i] =
           dartCell.requestedCandHighLightType[i];
     }
     for (int i = 0; i < constSelectedPatternListSize; i++) {
+      assert(
+          i < constSelectedPatternListSize, 'i  exceeds maximum allowed size!');
+
       cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
       cellPtr.requestedElementHighLightType[i] =
           dartCell.requestedElementHighLightType[i];
@@ -319,12 +325,16 @@ Scales better for larger matrices while keeping all logic in one loop.
 
         // Copy arrays element by element
         for (int i = 0; i < constSelectedCandListSize; i++) {
+          assert(i < constSelectedCandListSize,
+              'i  exceeds maximum allowed size!');
           cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
           cellPtr.requestedCandHighLightType[i] =
               dartCell.requestedCandHighLightType[i];
         }
 
         for (int i = 0; i < constSelectedPatternListSize; i++) {
+          assert(i < constSelectedPatternListSize,
+              'i  exceeds maximum allowed size!');
           cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
           cellPtr.requestedElementHighLightType[i] =
               dartCell.requestedElementHighLightType[i];
