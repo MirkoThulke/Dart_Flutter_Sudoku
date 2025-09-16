@@ -263,7 +263,8 @@ class DataProvider with ChangeNotifier {
     rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
     // Initialize a Dart-side matrix and write a snapshot
-    dartMatrix = rustMatrix.readMatrixFromRust();
+    dartMatrix =
+        rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
   }
 
   RequestedCandHighLightType _requestedCandHighLightType =
@@ -287,9 +288,10 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   // Single-Cell Dart → Rust update
   // -------------------------------
-  void writeCellToRust(int r, int c) {
+  void writeCellToRust(int r, int c, int numRows, int numCols) {
     // Write into FFI interface class
-    rustMatrix.writeCellToRust(rustMatrix.ptr, dartMatrix, r, c);
+    rustMatrix.writeCellToRust(
+        rustMatrix.ptr, dartMatrix, r, c, numRows, numCols);
   }
 
   // -------------------------------
@@ -298,32 +300,40 @@ class DataProvider with ChangeNotifier {
   void writeFullMatrixToRust() {
     // Write into FFI interface class
     rustMatrix.writeMatrixToRust(
-        rustMatrix.ptr, dartMatrix, rustMatrix.rows, rustMatrix.cols);
+        rustMatrix.ptr, dartMatrix, rustMatrix.numRows, rustMatrix.numCols);
   }
 
   // -------------------------------
   // Single-cell Rust → Dart update
   // -------------------------------
-  void readCellFromRust(int r, int c) {
-    dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
+  void readCellFromRust(int r, int c, int numRows, int numCols) {
+    dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c, numRows, numCols);
   }
 
   // -------------------------------
   // Read candidate pattern highlighting tyep from RUST
   // -------------------------------
-  int readRequestedCandHighLightTypeFromRust(int r, int c, int cand) {
-    dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c);
-    assert(cand <= constSelectedCandListSize,
-        'cand exceeds maximum allowed size!');
+  int readRequestedCandHighLightTypeFromRust(
+      int r, int c, int cand, int numRows, int numCols) {
+    if (cand < 1 || cand > 9) {
+      dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c, numRows, numCols);
 
-    int _patternRequest_int = constPatternListOff;
+      assert(cand <= constSelectedCandListSize,
+          'cand exceeds maximum allowed size!');
+      assert(cand > 0, 'cand < 1!');
 
-    _patternRequest_int = dartMatrix[r][c].requestedCandHighLightType[cand - 1];
+      int _patternRequest_int = constPatternListOff;
 
-    assert(_patternRequest_int <= PatternList.user,
-        '_patternRequest_int exceeds maximum allowed size!');
+      _patternRequest_int =
+          dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
-    return _patternRequest_int;
+      assert(_patternRequest_int <= PatternList.user,
+          '_patternRequest_int exceeds maximum allowed size!');
+
+      return _patternRequest_int;
+    } else {
+      throw RangeError('cand must be between 1 and 9, got $cand');
+    }
   }
 
   // -------------------------------
@@ -331,7 +341,8 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   void readMatrixFromRust() {
     // Update full snapshot from Rust
-    dartMatrix = rustMatrix.readMatrixFromRust();
+    dartMatrix =
+        rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
   }
 
   // -------------------------------
@@ -808,8 +819,8 @@ class _SudokuElementState extends State<SudokuElement> {
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+      Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
 
@@ -825,8 +836,8 @@ class _SudokuElementState extends State<SudokuElement> {
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+      Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
 
@@ -843,8 +854,8 @@ class _SudokuElementState extends State<SudokuElement> {
             getRowColFromId(widget.element_id, constSudokuNumRow);
 
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
-        Provider.of<DataProvider>(context, listen: false)
-            .writeCellToRust(_pos.row, _pos.col);
+        Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+            _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
       }
     });
   }
@@ -860,8 +871,8 @@ class _SudokuElementState extends State<SudokuElement> {
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false)
-          .writeCellToRust(_pos.row, _pos.col);
+      Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
 
@@ -887,27 +898,28 @@ class _SudokuElementState extends State<SudokuElement> {
     assert(widget.element_id <= 80,
         'widget.element_id exceeds maximum allowed size!');
 
-    // Extract col and row from unique ID
-    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
-
-    // Extract requested hightlight pattern for current candidate
-    int _patternTypeRequest = Provider.of<DataProvider>(context, listen: false)
-        .readRequestedCandHighLightTypeFromRust(
-            _pos.row, _pos.col, cand_number);
-
-    bool _check_bool = (_subelementChoiceState ==
-            false) && // Check if Number is already chosen for Element
-        (_subelementlistCandidateChoice[cand_number - 1] ==
-            true) && // Check if Candidate is chosen
-        (_patternTypeRequest ==
-            patternCandRequest); // Check if HighLight request type is active
-
     if (cand_number == 0) {
       return false;
-    } else if (_check_bool == true) {
-      return true;
+    } else if (cand_number < 1 || cand_number > constSelectedCandListSize) {
+      throw RangeError('cand must be between 1 and 9, got $cand_number');
     } else {
-      return false;
+      // Extract col and row from unique ID
+      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+      // Extract requested hightlight pattern for current candidate
+      int _patternTypeRequest =
+          Provider.of<DataProvider>(context, listen: false)
+              .readRequestedCandHighLightTypeFromRust(_pos.row, _pos.col,
+                  cand_number, constSudokuNumRow, constSudokuNumCol);
+
+      bool _check_bool = (_subelementChoiceState ==
+              false) && // Check if Number is already chosen for Element
+          (_subelementlistCandidateChoice[cand_number - 1] ==
+              true) && // Check if Candidate is chosen
+          (_patternTypeRequest ==
+              patternCandRequest); // Check if HighLight request type is active
+
+      return _check_bool;
     }
   }
 
@@ -950,17 +962,22 @@ class _SudokuElementState extends State<SudokuElement> {
       }
 
       // Check PatternList.pairs
-      if ((_selectedPatternListNewData[PatternList.pairs] ==
-              true) && // Highlighting is switched ON on HMI
-          _checkCandidatePatternRequestType(
-                  _subelementNumberChoice, PatternList.pairs) ==
-              true) {
-        _color = const Color.fromARGB(255, 5, 255, 18);
+      if (_checkCandidate(_numberHMI) == true) // Candidate is chosen
+      {
+        if ((_selectedPatternListNewData[PatternList.pairs] ==
+                true) && // Highlighting is switched ON on HMI
+            _checkCandidatePatternRequestType(
+                    _subelementNumberChoice, PatternList.pairs) ==
+                true) {
+          _color = const Color.fromARGB(255, 5, 255, 18);
+        } else {
+          // do nothing, keep default color
+        }
       } else {
-        // do nothing, keep default color
+        // do nothing, keep default color}
       }
+      ;
     });
-
     // Add FFI RUST interface call here to read data from RUST FFI (Display / Highlight color)
     return _color;
   }

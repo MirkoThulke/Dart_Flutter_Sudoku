@@ -58,8 +58,13 @@ import 'package:flutter/material.dart';
 /////////////////////////////////////
 // constants
 /////////////////////////////////////
-const int constSudokuNumRow = 9;
-const int constSudokuNumCol = 9;
+///
+const int CONST_MATRIX_SIZE = 9;
+const int CONST_MATRIX_ELEMENTS = 81;
+const int MAX_UINT8 = 255;
+
+const int constSudokuNumRow = CONST_MATRIX_SIZE;
+const int constSudokuNumCol = CONST_MATRIX_SIZE;
 
 // types
 typedef SelectedNumberList = List<bool>;
@@ -72,12 +77,12 @@ typedef SelectedUndoIconList = List<bool>;
 typedef SelectAddRemoveList = List<bool>;
 
 // Hardcoded List sizes of above types
-const int constSelectedNumberListSize = 9;
-const int constSelectedCandListSize = 9;
+const int constSelectedNumberListSize = CONST_MATRIX_SIZE;
+const int constSelectedCandListSize = CONST_MATRIX_SIZE;
 const int constSelectedSetResetListSize = 4;
 const int constSelectedPatternListSize = 5;
 const int constRequestedElementHighLightTypeListSize = 5;
-const int constRequestedCandHighLightTypeListSize = 9;
+const int constRequestedCandHighLightTypeListSize = CONST_MATRIX_SIZE;
 const int constSelectedUndoIconListSize = 2;
 const int constSelectAddRemoveListSize = 2;
 
@@ -143,7 +148,7 @@ class PatternList {
 const int constPatternListMaxIndex = PatternList.user;
 
 // Special derived/off state
-const int constPatternListOff = 255;
+const int constPatternListOff = MAX_UINT8;
 
 const List<bool> constRequestedElementHighLightType = [
   false,

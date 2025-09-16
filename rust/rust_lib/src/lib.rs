@@ -14,16 +14,20 @@ Array lengths and indices are safely cast to usize internally.
 Allocations, updates, and deallocation all compile cleanly.
 */
 
+pub const MAX_UINT: u8 = 255;
+pub const CONST_MATRIX_SIZE: u8 = 9;
+pub const CONST_MATRIX_ELEMENTS: u8 = 81;
+
 use std::alloc::{alloc, dealloc, Layout};
 
 // Sizes as u8 for FFI
-pub const constSelectedNumberListSize: u8 = 9;
+pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
 pub const constSelectedPatternListSize: u8 = 5;
 pub const constRequestedElementHighLightTypeSize: u8 = 5;
-pub const constRequestedCandHighLightTypeSize: u8 = 9;
+pub const constRequestedCandHighLightTypeSize: u8 = CONST_MATRIX_SIZE;
 
 // Special constant
-pub const constPatternListOff: u8 = 255;
+pub const constPatternListOff: u8 = MAX_UINT;
 
 // Arrays as u8, cast length to usize for Rust
 pub const constSelectedNumberList: [u8; constSelectedNumberListSize as usize] =

@@ -49,7 +49,7 @@ import 'package:logging/logging.dart';
         final rowData = provider.snapshot[row];
 
         // Take snapshot into Dart List<List<CellData>>
-        var snapshot = toDartList(matrix.ptr, matrix.rows, matrix.cols);
+        var snapshot = toDartList(matrix.ptr, matrix.numRows, matrix.numCols);
 */
 
 ////////////////////////////////////////////////////////////
@@ -164,24 +164,24 @@ class DartToRustElement {
 
 // Matches the exact C/Rust function signature
 typedef CreateMatrixNative = Pointer<DartToRustElementFFI> Function(
-    Uint8 rows, Uint8 cols);
+    Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
 typedef CreateMatrixDart = Pointer<DartToRustElementFFI> Function(
-    int rows, int cols);
+    int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
 typedef UpdateMatrixNative = Void Function(
-    Pointer<DartToRustElementFFI> ptr, Uint8 rows, Uint8 cols);
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
 typedef UpdateMatrixDart = void Function(
-    Pointer<DartToRustElementFFI> ptr, int rows, int cols);
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
-    Pointer<DartToRustElementFFI> ptr, Uint8 rows, Uint8 cols);
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
 typedef FreeMatrixDart = void Function(
-    Pointer<DartToRustElementFFI> ptr, int rows, int cols);
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 /*
 Helper to store matrix metadata for Finalizer
@@ -200,19 +200,19 @@ You never use _MatrixHandle directly; it’s only for the Finalizer.
 */
 class _MatrixHandle {
   final Pointer<DartToRustElementFFI> ptr;
-  final int rows;
-  final int cols;
-  const _MatrixHandle(this.ptr, this.rows, this.cols);
+  final int numRows;
+  final int numCols;
+  const _MatrixHandle(this.ptr, this.numRows, this.numCols);
 }
 
 /*
 Allocate a Rust matrix
-final rustMatrix = RustMatrix(dylib, rows, cols);
+final rustMatrix = RustMatrix(dylib, numRows, numCols);
 Calls create_matrix in Rust.
 Stores the returned pointer (ptr) in Dart.
 Automatically free memory
 static final Finalizer<_MatrixHandle> _finalizer = Finalizer<_MatrixHandle>((handle) {
-    _freeMatrix(handle.ptr, handle.rows, handle.cols);
+    _freeMatrix(handle.ptr, handle.numRows, handle.numCols);
 });
 When Dart GC collects the RustMatrix object, the Rust memory is automatically freed.
 _MatrixHandle tells the finalizer what pointer to free.
@@ -230,8 +230,8 @@ Useful for testing.
 */
 class RustMatrix {
   final Pointer<DartToRustElementFFI> ptr;
-  final int rows;
-  final int cols;
+  final int numRows;
+  final int numCols;
 
   static late final UpdateMatrixDart _updateMatrix;
   static late final FreeMatrixDart _freeMatrix;
@@ -239,13 +239,27 @@ class RustMatrix {
   // Finalizer to free Rust memory
   static final Finalizer<_MatrixHandle> _finalizer =
       Finalizer<_MatrixHandle>((handle) {
-    _freeMatrix(handle.ptr, handle.rows, handle.cols);
+    _freeMatrix(handle.ptr, handle.numRows, handle.numCols);
   });
 
-  RustMatrix._(this.ptr, this.rows, this.cols);
+  RustMatrix._(this.ptr, this.numRows, this.numCols);
 
   /// Factory: creates Rust matrix from dynamic library
-  factory RustMatrix(DynamicLibrary dylib, int rows, int cols) {
+  factory RustMatrix(DynamicLibrary dylib, int numRows, int numCols) {
+    assert(CONST_MATRIX_ELEMENTS >= numRows * numCols,
+        'Matrix element size exceeds maximum allowed size ${CONST_MATRIX_ELEMENTS}!');
+
+    // --- Size checks ---
+    if (numRows <= 0 || numRows > constSudokuNumRow) {
+      throw RangeError(
+          'Invalid number of rows: $numRows (max ${constSudokuNumRow})');
+    }
+    if (numCols <= 0 || numCols > constSudokuNumCol) {
+      throw RangeError(
+          'Invalid number of columns: $numCols (max ${constSudokuNumCol})');
+    }
+
+    // --- Lookup FFI functions ---
     final createMatrix = dylib
         .lookupFunction<CreateMatrixNative, CreateMatrixDart>('create_matrix');
     _updateMatrix = dylib
@@ -253,13 +267,16 @@ class RustMatrix {
     _freeMatrix =
         dylib.lookupFunction<FreeMatrixNative, FreeMatrixDart>('free_matrix');
 
-    final ptr = createMatrix(rows, cols);
+    // --- Allocate Rust matrix ---
+    final ptr = createMatrix(numRows, numCols);
     if (ptr.address == 0) {
       throw Exception("Rust failed to allocate matrix!");
     }
 
-    final matrix = RustMatrix._(ptr, rows, cols);
-    _finalizer.attach(matrix, _MatrixHandle(ptr, rows, cols), detach: matrix);
+    // --- Wrap in RustMatrix and attach finalizer ---
+    final matrix = RustMatrix._(ptr, numRows, numCols);
+    _finalizer.attach(matrix, _MatrixHandle(ptr, numRows, numCols),
+        detach: matrix);
     return matrix;
   }
 
@@ -267,14 +284,24 @@ class RustMatrix {
   // Call Rust update function
   // -------------------------------
   void update() {
-    _updateMatrix(ptr, rows, cols);
+    _updateMatrix(ptr, numRows, numCols);
   }
 
-  void writeCellToRust(Pointer<DartToRustElementFFI> ptr,
-      List<List<DartToRustElement>> dartMatrix, int r, int c) {
-    final idx = r * constSudokuNumCol + c;
+  void writeCellToRust(
+      Pointer<DartToRustElementFFI> ptr,
+      List<List<DartToRustElement>> dartMatrix,
+      int row,
+      int col,
+      int numRows,
+      int numCols) {
+    final idx = row * numCols + col;
+
+    assert(row < numRows, 'row exceeds maximum allowed size!');
+    assert(col < numCols, 'col exceeds maximum allowed size!');
+    assert(idx < CONST_MATRIX_ELEMENTS, 'idx exceeds maximum allowed size!');
+
     final cellPtr = ptr.elementAt(idx).ref;
-    final dartCell = dartMatrix[r][c];
+    final dartCell = dartMatrix[row][col];
 
     // Copy scalar values
     cellPtr.row = dartCell.row;
@@ -307,20 +334,20 @@ We can optimize writeMatrixToRust so it writes the entire Dart matrix into Rust 
 without calling writeCell repeatedly. Instead, we calculate the flat index once and copy arrays directly.
 Why this is efficient:
 No repeated writeCell calls — avoids function overhead for every cell.
-Flat memory indexing: uses idx = r * cols + c once per cell.
+Flat memory indexing: uses idx = r * numCols + c once per cell.
 Element-by-element copy for arrays: required for FFI safety, since Array<Bool> can’t be assigned directly.
 Scales better for larger matrices while keeping all logic in one loop.
 */
   void writeMatrixToRust(
     Pointer<DartToRustElementFFI> ptr,
     List<List<DartToRustElement>> dartMatrix,
-    int rows,
-    int cols,
+    int numRows,
+    int numCols,
   ) {
     // Flatten the matrix for direct pointer indexing
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        final idx = r * cols + c;
+    for (int r = 0; r < numRows; r++) {
+      for (int c = 0; c < numCols; c++) {
+        final idx = r * numCols + c;
         final cellPtr = ptr.elementAt(idx).ref;
         final dartCell = dartMatrix[r][c];
 
@@ -354,8 +381,13 @@ Scales better for larger matrices while keeping all logic in one loop.
   // -------------------------------
   // Read a single cell from Rust into Dart
   // -------------------------------
-  DartToRustElement readCellFromRust(int r, int c) {
-    final cellPtr = ptr.elementAt(r * cols + c).ref;
+  DartToRustElement readCellFromRust(int r, int c, int numRows, int numCols) {
+    final idx = r * numCols + c;
+    assert(r < numRows, 'row exceeds maximum allowed size!');
+    assert(c < numCols, 'col exceeds maximum allowed size!');
+    assert(idx < CONST_MATRIX_ELEMENTS, 'idx exceeds maximum allowed size!');
+
+    final cellPtr = ptr.elementAt(idx).ref;
     return DartToRustElement(cellPtr.row, cellPtr.col)
       ..selectedNumState = cellPtr.selectedNumState
       ..selectedCandList = List.generate(constSelectedCandListSize,
@@ -379,20 +411,23 @@ Convert Rust matrix → Dart list of lists.
 Creates a 2D Dart list of DartToRustElement.
 */
 // Reads the entire Rust matrix into Dart
-  List<List<DartToRustElement>> readMatrixFromRust() {
+  List<List<DartToRustElement>> readMatrixFromRust(
+    int numRows,
+    int numCols,
+  ) {
     final result = List.generate(
-      rows,
+      numRows,
       (r) => List.generate(
-        cols,
+        numCols,
         (c) => DartToRustElement(0, 0),
         growable: false,
       ),
       growable: false,
     );
 
-    for (int r = 0; r < rows; r++) {
-      for (int c = 0; c < cols; c++) {
-        final cellPtr = ptr.elementAt(r * cols + c).ref;
+    for (int r = 0; r < numRows; r++) {
+      for (int c = 0; c < numCols; c++) {
+        final cellPtr = ptr.elementAt(r * numCols + c).ref;
         result[r][c] = DartToRustElement(cellPtr.row, cellPtr.col)
           ..selectedNumState = cellPtr.selectedNumState
           ..selectedCandList = List.generate(constSelectedCandListSize,
@@ -415,13 +450,14 @@ Creates a 2D Dart list of DartToRustElement.
   // Optional debug print
   // -------------------------------
   void printRustAllElements() {
-    for (int r = 0; r < rows; r++) {
-      String rowStr = '';
-      for (int c = 0; c < cols; c++) {
-        final cell = readCellFromRust(r, c); // returns DartToRustElement
-        rowStr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
+    for (int r = 0; r < numRows; r++) {
+      String numRowstr = '';
+      for (int c = 0; c < numCols; c++) {
+        final cell = readCellFromRust(
+            r, c, numRows, numCols); // returns DartToRustElement
+        numRowstr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
       }
-      _logger.fine(rowStr); // use 'fine' for debug-level messages
+      _logger.fine(numRowstr); // use 'fine' for debug-level messages
     }
   }
 
@@ -430,6 +466,6 @@ Creates a 2D Dart list of DartToRustElement.
   // -------------------------------
   void dispose() {
     _finalizer.detach(this);
-    _freeMatrix(ptr, rows, cols);
+    _freeMatrix(ptr, numRows, numCols);
   }
 }
