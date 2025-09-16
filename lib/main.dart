@@ -320,6 +320,9 @@ class DataProvider with ChangeNotifier {
 
     _patternRequest_int = dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
+    assert(_patternRequest_int <= PatternList.user,
+        '_patternRequest_int exceeds maximum allowed size!');
+
     return _patternRequest_int;
   }
 
@@ -923,6 +926,9 @@ class _SudokuElementState extends State<SudokuElement> {
         'PatternList.pairs exceeds maximum allowed size!');
 
     setState(() {
+      _color = const Color(0xFFFFFFFF); // keep white by default
+
+      // Check PatternList.hiLightOn
       if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
@@ -938,15 +944,20 @@ class _SudokuElementState extends State<SudokuElement> {
               true)) // Numner on HMI corresponds to Candidate Number in Grid
       {
         _color = const Color.fromARGB(255, 5, 255, 243);
-      } else if ((_selectedPatternListNewData[PatternList.pairs] ==
+      } // green highlighting
+      else {
+        // do nothing, keep default color
+      }
+
+      // Check PatternList.pairs
+      if ((_selectedPatternListNewData[PatternList.pairs] ==
               true) && // Highlighting is switched ON on HMI
           _checkCandidatePatternRequestType(
                   _subelementNumberChoice, PatternList.pairs) ==
               true) {
         _color = const Color.fromARGB(255, 5, 255, 18);
-      } // green highlighting
-      else {
-        _color = const Color(0xFFFFFFFF); // keep white
+      } else {
+        // do nothing, keep default color
       }
     });
 
@@ -1321,6 +1332,8 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   // All buttons are selectable.
                   setState(() {
+                    assert(index <= PatternList.user,
+                        'index exceeds maximum allowed size!');
                     _selectedPatternList[index] = !_selectedPatternList[index];
                     Provider.of<DataProvider>(context, listen: false)
                         .updateDataselectedPatternList(_selectedPatternList);

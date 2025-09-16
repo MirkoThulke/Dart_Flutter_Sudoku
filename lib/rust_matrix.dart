@@ -31,6 +31,7 @@
 
 import 'shared_types.dart'; // RUST FFI backend Interface
 import 'dart:ffi';
+
 import 'package:logging/logging.dart';
 
 ///////////////////////////////////////////////////////////////////
@@ -92,27 +93,27 @@ final Logger _logger = Logger('RustMatrixLogger');
 This mirrors your Rust struct.
 Each Array<Bool> is native memory, so you cannot assign a Dart list directly.
 Access individual elements with indexing: cell.selectedCandState[i]. */
-sealed class DartToRustElementFFI extends Struct {
-  @Int8()
+final class DartToRustElementFFI extends Struct {
+  @Uint8()
   external int row;
 
-  @Int8()
+  @Uint8()
   external int col;
 
-  @Int8()
+  @Uint8()
   external int selectedNumState;
 
-  @Array(constSelectedCandListSize)
-  external Array<Bool> selectedCandState;
+  @Array(constSelectedNumberListSize)
+  external Array<Uint8> selectedCandList;
 
   @Array(constSelectedPatternListSize)
-  external Array<Bool> selectedPatternList;
+  external Array<Uint8> selectedPatternList;
 
   @Array(constRequestedElementHighLightTypeListSize)
-  external Array<Bool> requestedElementHighLightType;
+  external Array<Uint8> requestedElementHighLightType;
 
   @Array(constRequestedCandHighLightTypeListSize)
-  external Array<Int8> requestedCandHighLightType;
+  external Array<Uint8> requestedCandHighLightType;
 }
 
 /* Dart class to map Dart matrix data to the Rust structure.
@@ -128,7 +129,7 @@ class DartToRustElement {
   // Final element number chosen
   int selectedNumState = 0; // no number set
   // Candidates which are chosen
-  SelectedCandList selectedCandState = List.from(constSelectedCandList);
+  SelectedCandList selectedCandList = List.from(constSelectedCandList);
   // User pattern display request
   SelectedPatternList selectedPatternList = List.from(constSelectedPatternList);
   // Rust feedback on how to highlight the cell
@@ -148,7 +149,7 @@ class DartToRustElement {
         'row=$row, '
         'col=$col, '
         'selectedNumState=$selectedNumState, '
-        'selectedCandState=$selectedCandState, '
+        'selectedCandList=$selectedCandList, '
         'selectedPatternList=$selectedPatternList, '
         'requestedElementHighLightType=$requestedElementHighLightType'
         'requestedCandHighLightType=$requestedCandHighLightType'
@@ -160,23 +161,27 @@ class DartToRustElement {
 // Native bindings
 //////////////////////////////////////////////////////
 // Matches the exact C/Rust function signature
+
+// Matches the exact C/Rust function signature
 typedef CreateMatrixNative = Pointer<DartToRustElementFFI> Function(
-    Uint8, Uint8);
-// A Dart-friendly version of the same function.
-typedef CreateMatrixDart = Pointer<DartToRustElementFFI> Function(int, int);
+    Uint8 rows, Uint8 cols);
+// Dart-friendly version
+typedef CreateMatrixDart = Pointer<DartToRustElementFFI> Function(
+    int rows, int cols);
 
 // Matches the exact C/Rust function signature
 typedef UpdateMatrixNative = Void Function(
-    Pointer<DartToRustElementFFI>, Uint8, Uint8);
-// A Dart-friendly version of the same function.
+    Pointer<DartToRustElementFFI> ptr, Uint8 rows, Uint8 cols);
+// Dart-friendly version
 typedef UpdateMatrixDart = void Function(
-    Pointer<DartToRustElementFFI>, int, int);
+    Pointer<DartToRustElementFFI> ptr, int rows, int cols);
 
 // Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
-    Pointer<DartToRustElementFFI>, Uint8, Uint8);
-// A Dart-friendly version of the same function.
-typedef FreeMatrixDart = void Function(Pointer<DartToRustElementFFI>, int, int);
+    Pointer<DartToRustElementFFI> ptr, Uint8 rows, Uint8 cols);
+// Dart-friendly version
+typedef FreeMatrixDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int rows, int cols);
 
 /*
 Helper to store matrix metadata for Finalizer
@@ -281,7 +286,7 @@ class RustMatrix {
       // Check which number is selected (corresponding bit is TRUE)
       assert(i < constSelectedCandListSize, 'i  exceeds maximum allowed size!');
 
-      cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
+      cellPtr.selectedCandList[i] = boolToU8(dartCell.selectedCandList[i]);
       cellPtr.requestedCandHighLightType[i] =
           dartCell.requestedCandHighLightType[i];
     }
@@ -289,9 +294,10 @@ class RustMatrix {
       assert(
           i < constSelectedPatternListSize, 'i  exceeds maximum allowed size!');
 
-      cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
+      cellPtr.selectedPatternList[i] =
+          boolToU8(dartCell.selectedPatternList[i]);
       cellPtr.requestedElementHighLightType[i] =
-          dartCell.requestedElementHighLightType[i];
+          boolToU8(dartCell.requestedElementHighLightType[i]);
     }
   }
 
@@ -327,7 +333,8 @@ Scales better for larger matrices while keeping all logic in one loop.
         for (int i = 0; i < constSelectedCandListSize; i++) {
           assert(i < constSelectedCandListSize,
               'i  exceeds maximum allowed size!');
-          cellPtr.selectedCandState[i] = dartCell.selectedCandState[i];
+          cellPtr.selectedCandList[i] =
+              boolToU8(dartCell.selectedCandList[i]); // Rust requirs uint8
           cellPtr.requestedCandHighLightType[i] =
               dartCell.requestedCandHighLightType[i];
         }
@@ -335,9 +342,10 @@ Scales better for larger matrices while keeping all logic in one loop.
         for (int i = 0; i < constSelectedPatternListSize; i++) {
           assert(i < constSelectedPatternListSize,
               'i  exceeds maximum allowed size!');
-          cellPtr.selectedPatternList[i] = dartCell.selectedPatternList[i];
-          cellPtr.requestedElementHighLightType[i] =
-              dartCell.requestedElementHighLightType[i];
+          cellPtr.selectedPatternList[i] =
+              boolToU8(dartCell.selectedPatternList[i]); // Rust requirs uint8
+          cellPtr.requestedElementHighLightType[i] = boolToU8(
+              dartCell.requestedElementHighLightType[i]); // Rust requirs uint8
         }
       }
     }
@@ -350,13 +358,13 @@ Scales better for larger matrices while keeping all logic in one loop.
     final cellPtr = ptr.elementAt(r * cols + c).ref;
     return DartToRustElement(cellPtr.row, cellPtr.col)
       ..selectedNumState = cellPtr.selectedNumState
-      ..selectedCandState = List.generate(
-          constSelectedCandListSize, (i) => cellPtr.selectedCandState[i])
-      ..selectedPatternList = List.generate(
-          constSelectedPatternListSize, (i) => cellPtr.selectedPatternList[i])
+      ..selectedCandList = List.generate(constSelectedCandListSize,
+          (i) => u8ToBool(cellPtr.selectedCandList[i]))
+      ..selectedPatternList = List.generate(constSelectedPatternListSize,
+          (i) => u8ToBool(cellPtr.selectedPatternList[i]))
       ..requestedElementHighLightType = List.generate(
           constRequestedElementHighLightTypeListSize,
-          (i) => cellPtr.requestedElementHighLightType[i])
+          (i) => u8ToBool(cellPtr.requestedElementHighLightType[i]))
       ..requestedCandHighLightType = List.generate(
           constRequestedCandHighLightTypeListSize,
           (i) => cellPtr.requestedCandHighLightType[i]);
@@ -387,13 +395,13 @@ Creates a 2D Dart list of DartToRustElement.
         final cellPtr = ptr.elementAt(r * cols + c).ref;
         result[r][c] = DartToRustElement(cellPtr.row, cellPtr.col)
           ..selectedNumState = cellPtr.selectedNumState
-          ..selectedCandState = List.generate(
-              constSelectedCandListSize, (i) => cellPtr.selectedCandState[i])
+          ..selectedCandList = List.generate(constSelectedCandListSize,
+              (i) => u8ToBool(cellPtr.selectedCandList[i]))
           ..selectedPatternList = List.generate(constSelectedPatternListSize,
-              (i) => cellPtr.selectedPatternList[i])
+              (i) => u8ToBool(cellPtr.selectedPatternList[i]))
           ..requestedElementHighLightType = List.generate(
               constRequestedElementHighLightTypeListSize,
-              (i) => cellPtr.requestedElementHighLightType[i])
+              (i) => u8ToBool(cellPtr.requestedElementHighLightType[i]))
           ..requestedCandHighLightType = List.generate(
               constRequestedCandHighLightTypeListSize,
               (i) => cellPtr.requestedCandHighLightType[i]);
