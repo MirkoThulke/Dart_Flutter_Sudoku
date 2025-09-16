@@ -259,3 +259,6 @@ void main() {
 }
 
 */
+
+int boolToU8(bool value) => value ? 1 : 0;
+bool u8ToBool(int value) => value != 0;

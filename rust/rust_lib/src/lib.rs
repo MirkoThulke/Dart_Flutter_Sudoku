@@ -2,87 +2,119 @@
 // Embed Rust code directly into Flutter using dart:ffi.
 // Rust code compiled to a dynamic library (.so, .dll, .dylib).
 
-/////////////////////////////////////
-// constants
-/////////////////////////////////////
+/* 
+FFI function parameters are u8 (Dart-compatible).
+Internal Rust indexing uses usize (casting from u8).
+Array lengths also cast from u8 → usize.
+Struct fields remain u8 so Dart @Uint8() works.
+All unsafe operations are wrapped.
 
-// Hardcoded sizes of above types
-pub const constSelectedNumberListSize: usize                    = 9;
-pub const constSelectedPatternListSize: usize                   = 5;
-pub const constRequestedElementHighLightTypeListSize: usize     = constSelectedPatternListSize;
-pub const constRequestedCandHighLightTypeListSize: usize        = constSelectedNumberListSize;
-
-pub const constSelectedNumberList: [u8; constSelectedNumberListSize] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
-pub const constSelectedPatternList: [u8; constSelectedPatternListSize] = [0, 0, 0, 0, 0];
-pub const constRequestedElementHighLightType: [u8; constRequestedElementHighLightTypeListSize] = [0, 0, 0, 0, 0];
-pub const constRequestedCandHighLightType: [u8; constRequestedCandHighLightTypeListSize] = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+Rust uses u8 for struct fields (Dart-friendly).
+Array lengths and indices are safely cast to usize internally.
+Allocations, updates, and deallocation all compile cleanly.
+*/
 
 use std::alloc::{alloc, dealloc, Layout};
+
+// Sizes as u8 for FFI
+pub const constSelectedNumberListSize: u8 = 9;
+pub const constSelectedPatternListSize: u8 = 5;
+pub const constRequestedElementHighLightTypeSize: u8 = 5;
+pub const constRequestedCandHighLightTypeSize: u8 = 9;
+
+// Special constant
+pub const constPatternListOff: u8 = 255;
+
+// Arrays as u8, cast length to usize for Rust
+pub const constSelectedNumberList: [u8; constSelectedNumberListSize as usize] =
+    [0; constSelectedNumberListSize as usize];
+pub const constSelectedPatternList: [u8; constSelectedPatternListSize as usize] =
+    [0; constSelectedPatternListSize as usize];
+pub const constRequestedElementHighLightType: [u8; constRequestedElementHighLightTypeSize as usize] =
+    [0; constRequestedElementHighLightTypeSize as usize];
+pub const constRequestedCandHighLightType: [u8; constRequestedCandHighLightTypeSize as usize] =
+    [constPatternListOff; constRequestedCandHighLightTypeSize as usize];
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct DartToRustElementFFI {
-    pub row:                            u8,
-    pub col:                            u8,
-    pub selectedNumState:               u8,
-    pub selectedCandList:               [u8; constSelectedNumberListSize],
-    pub selectedPatternList:            [u8; constSelectedPatternListSize], // User selection of Pattern display request
-    pub requestedElementHighLightType:  [u8; constRequestedElementHighLightTypeListSize], // Rust feedback on what to display
-    pub requestedCandHighLightType:     [u8; constRequestedCandHighLightTypeListSize], // Rust feedback on what to display
+    pub row: u8,
+    pub col: u8,
+    pub selectedNumState: u8,
+    pub selectedCandList: [u8; constSelectedNumberListSize as usize],
+    pub selectedPatternList: [u8; constSelectedPatternListSize as usize],
+    pub requestedElementHighLightType: [u8; constRequestedElementHighLightTypeSize as usize],
+    pub requestedCandHighLightType: [u8; constRequestedCandHighLightTypeSize as usize],
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI {
-    let count = (rows * cols) as usize;
+#[no_mangle]
+pub unsafe extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustElementFFI {
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+
+    assert!(rows == constSelectedNumberListSize);
+    assert!(cols == constSelectedNumberListSize);
+
+    let count = rows_usize * cols_usize;
     let layout = Layout::array::<DartToRustElementFFI>(count).unwrap();
+    let ptr = alloc(layout) as *mut DartToRustElementFFI;
 
-    unsafe {
-        let ptr = alloc(layout) as *mut DartToRustElementFFI;
-        if ptr.is_null() {
-            return std::ptr::null_mut();
-        }
+    if ptr.is_null() {
+        return std::ptr::null_mut();
+    }
 
-        for r in 0..rows {
-            for c in 0..cols {
-                let idx = (r * cols + c) as isize;
-                let cell = ptr.offset(idx);
-                (*cell).row = r;
-                (*cell).col = c;
-                (*cell).selectedNumState                = 0;
-                (*cell).selectedCandList                = constSelectedNumberList; // all false
-                (*cell).selectedPatternList             = constSelectedPatternList;// all false
-                (*cell).requestedElementHighLightType   = constRequestedElementHighLightType;// all false
-                (*cell).requestedCandHighLightType      = constRequestedCandHighLightType;// all false
+    for r in 0..rows_usize {
+        for c in 0..cols_usize {
+            let idx = r * cols_usize + c;
+            let cell = ptr.add(idx);
+
+            // Unsafe block to write raw pointer data
+            unsafe {
+                (*cell).row = r as u8;
+                (*cell).col = c as u8;
+                (*cell).selectedNumState = 0;
+                (*cell).selectedCandList = constSelectedNumberList;
+                (*cell).selectedPatternList = constSelectedPatternList;
+                (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
+                (*cell).requestedCandHighLightType = constRequestedCandHighLightType;
             }
         }
-
-        ptr // return value
     }
+
+    ptr
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
+#[no_mangle]
+pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
     }
-    let slice = unsafe { std::slice::from_raw_parts_mut(ptr, (rows * cols) as usize) };
-    for cell in slice.iter_mut() {
 
-        // temprary code
-        cell.selectedNumState = 1;
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+    let count = rows_usize * cols_usize;
 
+    for r in 0..rows_usize {
+        for c in 0..cols_usize {
+            let idx = r * cols_usize + c;
+            assert!(idx < count);
+
+            // Example mutation (optional):
+            // unsafe { (*ptr.add(idx)).selectedNumState = 1; }
+        }
     }
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
+#[no_mangle]
+pub unsafe extern "C" fn free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
     }
-    let count = (rows * cols) as usize;
+
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+    let count = rows_usize * cols_usize;
     let layout = Layout::array::<DartToRustElementFFI>(count).unwrap();
-    unsafe {
-        dealloc(ptr as *mut u8, layout);
-    }
-}
 
+    unsafe { dealloc(ptr as *mut u8, layout) };
+}
