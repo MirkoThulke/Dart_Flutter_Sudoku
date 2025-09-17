@@ -16,7 +16,18 @@ Allocations, updates, and deallocation all compile cleanly.
 
 pub const MAX_UINT: u8 = 255;
 pub const CONST_MATRIX_SIZE: u8 = 9;
+
 pub const CONST_MATRIX_ELEMENTS: u8 = 81;
+
+struct PatternList;
+
+impl PatternList {
+    pub const HI_LIGHT_ON: u8 = 0;
+    pub const PAIRS: u8 = 1;
+    pub const MATCH_PAIRS: u8 = 2;
+    pub const TWINS: u8 = 3;
+    pub const USER: u8 = 4;
+}
 
 use std::alloc::{alloc, dealloc, Layout};
 
@@ -98,13 +109,18 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
     let cols_usize = cols as usize;
     let count = rows_usize * cols_usize;
 
+    // Check matrix size
+    assert!(count <= CONST_MATRIX_ELEMENTS as usize);
+
     for r in 0..rows_usize {
         for c in 0..cols_usize {
             let idx = r * cols_usize + c;
+
+            // check max. index
             assert!(idx < count);
 
-            // Example mutation (optional):
-            // unsafe { (*ptr.add(idx)).selectedNumState = 1; }
+            // Check if the element has only 2 candidates
+            checkForElementPair(ptr, idx)
         }
     }
 }
@@ -122,3 +138,33 @@ pub unsafe extern "C" fn free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, c
 
     unsafe { dealloc(ptr as *mut u8, layout) };
 }
+
+
+
+// Check if element has exactly two candidates seletected
+#[no_mangle]
+pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx: usize) {
+    if ptr.is_null() {
+        return;
+    }
+
+    assert!(idx < CONST_MATRIX_ELEMENTS as usize);
+
+    let elem = &mut *ptr.add(idx);
+
+    if elem.selectedNumState == 0 {
+        if elem.selectedCandList.iter().copied().sum::<u8>() == 2 {
+            for (cand, hl) in elem
+                .selectedCandList
+                .iter()
+                .zip(elem.requestedCandHighLightType.iter_mut())
+            {
+                if *cand != 0 {
+                    *hl = PatternList::PAIRS as u8;
+                }
+            }
+        }
+    }    
+
+}
+
