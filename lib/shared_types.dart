@@ -233,37 +233,45 @@ class GridPosition {
   GridPosition(this.row, this.col);
 }
 
-/*
-ID: 0 → row 0, col 0
-ID: 1 → row 0, col 1
-ID: 2 → row 0, col 2
-ID: 3 → row 1, col 0
-ID: 4 → row 1, col 1
-ID: 5 → row 1, col 2
-...
-*/
 GridPosition getRowColFromId(int id, int numColumns) {
-  // int element_id :  Unique ID of the element [0...80]
-  int row = id ~/ numColumns;
-  int col = id % numColumns;
-  assert(id <= 80, 'id exceeds maximum allowed size!');
-  assert(row <= constSudokuNumRow - 1, 'row exceeds maximum allowed size!');
-  assert(col <= constSudokuNumCol - 1, 'col exceeds maximum allowed size!');
+  /*
+   The matrix in Flutter is organised into 9 Sudoku blocks.
+   Each block contains 9 Sudoku elements.
+   The IDs are assigned block by block:
+   - Block 0 → IDs 0..8
+   - Block 1 → IDs 9..17
+   - Block 2 → IDs 18..26
+   - Block 3 → IDs 27..35
+   ...
+   Inside each block, IDs increase row-wise:
+     0 1 2
+     3 4 5
+     6 7 8
+  */
+
+  assert(id >= 0 && id < 81, 'id must be between 0 and 80');
+
+  // Identify which block this ID belongs to
+  int block = id ~/ 9; // 0..8
+  int inner = id % 9; // position inside block (0..8)
+
+  // Block position (3x3 grid of blocks)
+  int blockRow = block ~/ 3; // 0..2
+  int blockCol = block % 3; // 0..2
+
+  // Position inside block (3x3)
+  int innerRow = inner ~/ 3; // 0..2
+  int innerCol = inner % 3; // 0..2
+
+  // Global row/col in the Sudoku grid
+  int row = blockRow * 3 + innerRow;
+  int col = blockCol * 3 + innerCol;
+
+  assert(row < numColumns && col < numColumns,
+      'Computed row/col exceed Sudoku grid!');
+
   return GridPosition(row, col);
 }
-/*
-row = 0 is the first row
-col = 0 is the first column
-
-void main() {
-  int id = 7;
-  int numColumns = 3;
-  
-  GridPosition pos = getRowColFromId(id, numColumns);
-  print("Row: ${pos.row}, Column: ${pos.column}"); // Row: 2, Column: 1
-}
-
-*/
 
 int boolToU8(bool value) => value ? 1 : 0;
 bool u8ToBool(int value) => value != 0;

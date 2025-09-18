@@ -292,6 +292,7 @@ class DataProvider with ChangeNotifier {
     // Write into FFI interface class
     rustMatrix.writeCellToRust(
         rustMatrix.ptr, dartMatrix, r, c, numRows, numCols);
+    int i = 0;
   }
 
   // -------------------------------
@@ -818,6 +819,11 @@ class _SudokuElementState extends State<SudokuElement> {
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
+      // write into Dart Mirror
+      Provider.of<DataProvider>(context, listen: false)
+          .dartMatrix[_pos.row][_pos.col]
+          .selectedNumState = number;
+
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
@@ -834,6 +840,11 @@ class _SudokuElementState extends State<SudokuElement> {
 
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+      // write into Dart Mirror
+      Provider.of<DataProvider>(context, listen: false)
+          .dartMatrix[_pos.row][_pos.col]
+          .selectedNumState = 0;
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
@@ -853,9 +864,16 @@ class _SudokuElementState extends State<SudokuElement> {
         GridPosition _pos =
             getRowColFromId(widget.element_id, constSudokuNumRow);
 
+        // write into Dart Mirror
+        Provider.of<DataProvider>(context, listen: false)
+            .dartMatrix[_pos.row][_pos.col]
+            .selectedCandList[number - 1] = true;
+
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false).writeCellToRust(
             _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+        int i = 0;
       }
     });
   }
@@ -869,6 +887,11 @@ class _SudokuElementState extends State<SudokuElement> {
 
       // Extract col and row from unique ID
       GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+      // write into Dart Mirror
+      Provider.of<DataProvider>(context, listen: false)
+          .dartMatrix[_pos.row][_pos.col]
+          .selectedCandList[number - 1] = false;
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
