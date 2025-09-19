@@ -30,45 +30,51 @@
 */
 
 import 'package:flutter/material.dart'; // basics
-import 'package:provider/provider.dart'; // data excahnge between classes
 
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
-////// JAVA 1.19 used
-
-/*
-Important Flutter commands:
-
-cmd> flutter run --profile --verbose // extended debug mode
-command paletet> Open DevTools  // open the devtools browser
-cmd> flutter upgrade
-cmd> flutter pub upgrade 
-cmd> flutter pub outdated
-cmd> flutter build apk
-cmd> flutter build apk --debug
-cmd> flutter pub get
-cmd> flutter clean
-cmd> flutter analyse 
-cmd> flutter clean build --refresh-dependencis
-cmd> gradlew clean
-cmd> gradlew cleanBuildCache
-cmd> gradlew build
-cmd> gradlew build --refresh-dependencies
-cmd> flutter pub add "Dart package name"
-cmd> flutter devices
-cmd> flutter emulators
-*/
-
 ////////////////////////////////////////////////////////////
-// Main classe  -> root
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => DataProvider(),
-      child: const MyApp(),
-    ),
-  );
+// Homepage screen . This is the overall root screen
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    SizeConfig().init(context); // obtain current size of App on screen
+
+    return Scaffold(
+      appBar: AppBar(
+          toolbarHeight: SizeConfig.safeBlockAppBarGridVertical!, // 5 percent
+          title: const Text('Tulli Sudoku'),
+          // Top bar button list is defined is seperate class
+          actions: [appBarActions()]),
+      // _appBarActions
+      body: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Align children vertically
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Align children horizontall
+        children: [
+          Container(
+            height: SizeConfig.safeBlockSudokuGridVertical!,
+            width: SizeConfig.safeBlockSudokuGridHorizontal!,
+            color: Colors.orange,
+            child: const SudokuGrid(),
+          ),
+          Expanded(
+              child: Container(
+            height: SizeConfig
+                .safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
+            width: SizeConfig.safeBlockHorizontal!,
+            color: Colors.blue,
+            child: ToggleButtonsSample(),
+          ))
+        ],
+      ),
+    );
+  }
 }
+
 
 // Copyright 2025, Mirko THULKE, Versailles

@@ -8,7 +8,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sudoku/main.dart';
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

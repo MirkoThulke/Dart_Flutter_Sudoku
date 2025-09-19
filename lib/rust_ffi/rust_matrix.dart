@@ -29,7 +29,9 @@
 # -----------------------------------------------------------------------------
 */
 
-import 'shared_types.dart'; // RUST FFI backend Interface
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
+
 import 'dart:ffi';
 
 import 'package:logging/logging.dart';
@@ -469,3 +471,6 @@ Creates a 2D Dart list of DartToRustElement.
     _freeMatrix(ptr, numRows, numCols);
   }
 }
+
+
+// Copyright 2025, Mirko THULKE, Versailles
