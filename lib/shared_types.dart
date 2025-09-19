@@ -193,6 +193,18 @@ class PatternList {
   static const int user = 4;
 }
 
+enum constIntPatternList {
+  hiLightOn(0),
+  pairs(1),
+  matchPairs(2),
+  twins(3),
+  user(4),
+  DEFAULT(255);
+
+  final int value;
+  const constIntPatternList(this.value);
+}
+
 const int constPatternListMaxIndex = PatternList.user;
 
 // Special derived/off state

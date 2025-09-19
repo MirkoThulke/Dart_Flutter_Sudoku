@@ -316,19 +316,21 @@ class DataProvider with ChangeNotifier {
   // -------------------------------
   int readRequestedCandHighLightTypeFromRust(
       int r, int c, int cand, int numRows, int numCols) {
-    if (cand < 1 || cand > 9) {
+    if (cand >= 1 && cand <= 9) {
       dartMatrix[r][c] = rustMatrix.readCellFromRust(r, c, numRows, numCols);
 
       assert(cand <= constSelectedCandListSize,
           'cand exceeds maximum allowed size!');
       assert(cand > 0, 'cand < 1!');
 
-      int _patternRequest_int = constPatternListOff;
+      int _patternRequest_int = constIntPatternList.DEFAULT.value;
 
       _patternRequest_int =
           dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
-      assert(_patternRequest_int <= PatternList.user,
+      assert(
+          _patternRequest_int <= constIntPatternList.user.value ||
+              _patternRequest_int == constIntPatternList.DEFAULT.value,
           '_patternRequest_int exceeds maximum allowed size!');
 
       return _patternRequest_int;
@@ -916,7 +918,7 @@ class _SudokuElementState extends State<SudokuElement> {
       int cand_number, int patternCandRequest) {
     assert(cand_number <= constSelectedCandListSize,
         '_numberHMI exceeds maximum allowed size!');
-    assert(patternCandRequest <= constPatternListMaxIndex,
+    assert(patternCandRequest <= constIntPatternList.user.value,
         'patternCandRequest exceeds maximum allowed size!');
     assert(widget.element_id <= 80,
         'widget.element_id exceeds maximum allowed size!');
@@ -955,17 +957,18 @@ class _SudokuElementState extends State<SudokuElement> {
         '_numberHMI exceeds maximum allowed size!');
     assert(_selectedPatternListNewData.length <= constSelectedPatternListSize,
         '_selectedPatternListNewData.lengthexceeds maximum allowed size!');
-    assert(PatternList.hiLightOn <= constPatternListMaxIndex,
-        'PatternList.hiLightOn exceeds maximum allowed size!');
-    assert(PatternList.pairs <= constPatternListMaxIndex,
-        'PatternList.pairs exceeds maximum allowed size!');
+    assert(constIntPatternList.hiLightOn.value <= constPatternListMaxIndex,
+        'constIntPatternList.hiLightOn.value exceeds maximum allowed size!');
+    assert(constIntPatternList.pairs.value <= constPatternListMaxIndex,
+        'constIntPatternList.pairs.value exceeds maximum allowed size!');
 
     setState(() {
       _color =
           const Color.fromARGB(255, 255, 255, 255); // keep white by default
 
-      // Check PatternList.hiLightOn
-      if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
+      ////////////////////////////////////////////////////////////
+      // Check constIntPatternList.hiLightOn.value
+      if ((_selectedPatternListNewData[constIntPatternList.hiLightOn.value] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == true) && // Numner is chosen in Grid
           (_subelementNumberChoice ==
@@ -973,7 +976,8 @@ class _SudokuElementState extends State<SudokuElement> {
       {
         _color = const Color.fromARGB(255, 5, 255, 243);
       } // highlighting on
-      else if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
+      else if ((_selectedPatternListNewData[
+                  constIntPatternList.hiLightOn.value] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
           (_checkCandidate(numCandCellToCheck) ==
@@ -987,23 +991,20 @@ class _SudokuElementState extends State<SudokuElement> {
         // do nothing, keep default color
       }
 
-      // Check PatternList.pairs
-      if (_checkCandidate(_numberHMI) == true) // Candidate is chosen
-      {
-        if ((_selectedPatternListNewData[PatternList.pairs] ==
-                true) && // Highlighting is switched ON on HMI
-            _checkCandidatePatternRequestType(
-                    _subelementNumberChoice, PatternList.pairs) ==
-                true) {
-          _color = const Color.fromARGB(255, 5, 255, 18);
-        } else {
-          // do nothing, keep default color
-        }
+      ////////////////////////////////////////////////////////////////////
+      // Check constIntPatternList.pairs.value
+
+      if ((_selectedPatternListNewData[constIntPatternList.pairs.value] ==
+              true) && // Highlighting is switched ON on HMI
+          _checkCandidatePatternRequestType(
+                  numCandCellToCheck, constIntPatternList.pairs.value) ==
+              true) {
+        _color = const Color.fromARGB(255, 5, 255, 18);
       } else {
-        // do nothing, keep default color}
+        // do nothing, keep default color
       }
-      ;
     });
+
     // Add FFI RUST interface call here to read data from RUST FFI (Display / Highlight color)
     return _color;
   }
@@ -1385,7 +1386,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 onPressed: (int index) {
                   // All buttons are selectable.
                   setState(() {
-                    assert(index <= PatternList.user,
+                    assert(index <= constIntPatternList.user.value,
                         'index exceeds maximum allowed size!');
                     _selectedPatternList[index] = !_selectedPatternList[index];
                     Provider.of<DataProvider>(context, listen: false)
