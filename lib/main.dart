@@ -916,14 +916,18 @@ class _SudokuElementState extends State<SudokuElement> {
 
   bool _checkCandidatePatternRequestType(
       int cand_number, int patternCandRequest) {
-    assert(cand_number <= constSelectedCandListSize,
-        '_numberHMI exceeds maximum allowed size!');
-    assert(patternCandRequest <= constIntPatternList.user.value,
-        'patternCandRequest exceeds maximum allowed size!');
+    assert(
+        (cand_number <= constSelectedCandListSize) ||
+            (cand_number == constIntCandList.DEFAULT.value),
+        'cand_number exceeds maximum allowed size! $cand_number');
+    assert(
+        (patternCandRequest <= constIntPatternList.user.value) ||
+            (patternCandRequest == constIntPatternList.DEFAULT.value),
+        'patternCandRequest exceeds maximum allowed size! $patternCandRequest');
     assert(widget.element_id <= 80,
-        'widget.element_id exceeds maximum allowed size!');
+        'widget.element_id exceeds maximum allowed size! $widget.element_id');
 
-    if (cand_number == 0) {
+    if (cand_number == 0 || cand_number == constIntCandList.DEFAULT.value) {
       return false;
     } else if (cand_number < 1 || cand_number > constSelectedCandListSize) {
       throw RangeError('cand must be between 1 and 9, got $cand_number');
@@ -999,7 +1003,7 @@ class _SudokuElementState extends State<SudokuElement> {
           _checkCandidatePatternRequestType(
                   numCandCellToCheck, constIntPatternList.pairs.value) ==
               true) {
-        _color = const Color.fromARGB(255, 5, 255, 18);
+        _color = const Color.fromARGB(255, 255, 251, 5);
       } else {
         // do nothing, keep default color
       }
