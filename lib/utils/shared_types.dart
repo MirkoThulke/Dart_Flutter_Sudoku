@@ -335,3 +335,6 @@ GridPosition getRowColFromId(int id, int numColumns) {
 
 int boolToU8(bool value) => value ? 1 : 0;
 bool u8ToBool(int value) => value != 0;
+
+
+// Copyright 2025, Mirko THULKE, Versailles

@@ -29,46 +29,49 @@
 # -----------------------------------------------------------------------------
 */
 
-import 'package:flutter/material.dart'; // basics
-import 'package:provider/provider.dart'; // data excahnge between classes
-
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
-
-////// JAVA 1.19 used
-
 /*
-Important Flutter commands:
-
-cmd> flutter run --profile --verbose // extended debug mode
-command paletet> Open DevTools  // open the devtools browser
-cmd> flutter upgrade
-cmd> flutter pub upgrade 
-cmd> flutter pub outdated
-cmd> flutter build apk
-cmd> flutter build apk --debug
-cmd> flutter pub get
-cmd> flutter clean
-cmd> flutter analyse 
-cmd> flutter clean build --refresh-dependencis
-cmd> gradlew clean
-cmd> gradlew cleanBuildCache
-cmd> gradlew build
-cmd> gradlew build --refresh-dependencies
-cmd> flutter pub add "Dart package name"
-cmd> flutter devices
-cmd> flutter emulators
+List of all required .dart files for conveniend import.
+'Package' avoids absolute path.
+example of usage : 
+import 'package:sudoku/utils/export.dart';
 */
 
-////////////////////////////////////////////////////////////
-// Main classe  -> root
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => DataProvider(),
-      child: const MyApp(),
-    ),
-  );
-}
+// Global type definitions, enum and constants
+export 'package:sudoku/utils/shared_types.dart';
+
+// RUST FFI backend Interface
+export 'package:sudoku/rust_ffi/rust_matrix.dart';
+
+// HMI Size Config Class
+export 'package:sudoku/utils/size_config.dart';
+
+// Logging class
+export 'package:sudoku/utils/sudoku_logging.dart';
+
+// DataProvider class
+export 'package:sudoku/providers/data_provider.dart';
+
+// DataProvider class
+export 'package:sudoku/app.dart';
+
+// homepage
+export 'package:sudoku/home/home_page.dart';
+
+// App top bar hmi
+export 'package:sudoku/home/app_bar_actions.dart';
+
+// Sudoku Gridd widget
+export 'package:sudoku/sudoku/sudoku_grid.dart';
+
+// Sudoku Gridd widget
+export 'package:sudoku/sudoku/sudoku_block.dart';
+
+// Sudoku element widget
+export 'package:sudoku/sudoku/sudoku_element.dart';
+
+// Sudoku element widget
+export 'package:sudoku/sudoku/toggle_buttons.dart';
+
+
 
 // Copyright 2025, Mirko THULKE, Versailles

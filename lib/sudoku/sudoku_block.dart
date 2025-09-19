@@ -30,45 +30,41 @@
 */
 
 import 'package:flutter/material.dart'; // basics
-import 'package:provider/provider.dart'; // data excahnge between classes
 
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
-////// JAVA 1.19 used
+class SudokuBlock extends StatelessWidget {
+  final int block_id; // Unique ID of the block [0...8]
 
-/*
-Important Flutter commands:
-
-cmd> flutter run --profile --verbose // extended debug mode
-command paletet> Open DevTools  // open the devtools browser
-cmd> flutter upgrade
-cmd> flutter pub upgrade 
-cmd> flutter pub outdated
-cmd> flutter build apk
-cmd> flutter build apk --debug
-cmd> flutter pub get
-cmd> flutter clean
-cmd> flutter analyse 
-cmd> flutter clean build --refresh-dependencis
-cmd> gradlew clean
-cmd> gradlew cleanBuildCache
-cmd> gradlew build
-cmd> gradlew build --refresh-dependencies
-cmd> flutter pub add "Dart package name"
-cmd> flutter devices
-cmd> flutter emulators
-*/
-
-////////////////////////////////////////////////////////////
-// Main classe  -> root
-void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => DataProvider(),
-      child: const MyApp(),
-    ),
-  );
+  const SudokuBlock({super.key, required this.block_id});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GridView.count(
+        primary: true,
+        padding: const EdgeInsets.all(1),
+        crossAxisSpacing: 1,
+        mainAxisSpacing: 1,
+        crossAxisCount: 3,
+        // physics: const NeverScrollableScrollPhysics(), // no scrolling
+        childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
+        children: <Widget>[
+          // dyn. list since IDs not known at compile time.
+          // int element_id :  Unique ID of the element [0...80]
+          // int row : index ~/ 9;
+          // int col : index % 9;
+          SudokuElement(element_id: block_id * constSudokuNumRow + 0),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 1),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 2),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 3),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 4),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 5),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 6),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 7),
+          SudokuElement(element_id: block_id * constSudokuNumRow + 8),
+        ],
+      ),
+    );
+  }
 }
-
-// Copyright 2025, Mirko THULKE, Versailles

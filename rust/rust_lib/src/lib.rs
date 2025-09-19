@@ -14,9 +14,14 @@ Array lengths and indices are safely cast to usize internally.
 Allocations, updates, and deallocation all compile cleanly.
 */
 
+// for general tasks like FFI interface
 use std::alloc::{alloc, dealloc, Layout};
+
+// for JSON storage upon shutdown:
 use serde::{Serialize, Deserialize};
 use std::fs;
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
 
 pub const MAX_UINT: u8 = 255;
 pub const CONST_MATRIX_SIZE: u8 = 9;
