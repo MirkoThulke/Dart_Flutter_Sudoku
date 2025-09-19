@@ -14,6 +14,10 @@ Array lengths and indices are safely cast to usize internally.
 Allocations, updates, and deallocation all compile cleanly.
 */
 
+use std::alloc::{alloc, dealloc, Layout};
+use serde::{Serialize, Deserialize};
+use std::fs;
+
 pub const MAX_UINT: u8 = 255;
 pub const CONST_MATRIX_SIZE: u8 = 9;
 
@@ -29,7 +33,7 @@ impl PatternList {
     pub const USER: u8 = 4;
 }
 
-use std::alloc::{alloc, dealloc, Layout};
+
 
 // Sizes as u8 for FFI
 pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
@@ -168,3 +172,21 @@ pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx
 
 }
 
+
+/* Serialize Matrix data upon App shutdown. Deserialize upon App start. use JSON to store data.*/
+#[derive(Serialize, Deserialize)]
+struct AppData {
+    counter: i32,
+    name: String,
+}
+
+fn save_data(data: &AppData) -> std::io::Result<()> {
+    let json = serde_json::to_string(data).unwrap();
+    fs::write("app_data.json", json)
+}
+
+fn load_data() -> std::io::Result<AppData> {
+    let json = fs::read_to_string("app_data.json")?;
+    let data: AppData = serde_json::from_str(&json).unwrap();
+    Ok(data)
+}
