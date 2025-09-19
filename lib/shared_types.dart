@@ -100,7 +100,55 @@ const List<bool> constSelectedNumberList = [
 ];
 const List<bool> constSelectedCandList = constSelectedNumberList;
 
-const List<Widget> numberlist = <Widget>[
+enum constIntNumList {
+  ONE(1),
+  TWO(2),
+  THREE(3),
+  FOUR(4),
+  FIVE(5),
+  SIX(6),
+  SEVEN(7),
+  EIGHT(8),
+  NINE(9),
+  DEFAULT(255);
+
+  final int value;
+  const constIntNumList(this.value);
+}
+
+enum constIntCandList {
+  ONE(1),
+  TWO(2),
+  THREE(3),
+  FOUR(4),
+  FIVE(5),
+  SIX(6),
+  SEVEN(7),
+  EIGHT(8),
+  NINE(9),
+  DEFAULT(255);
+
+  final int value;
+  const constIntCandList(this.value);
+}
+
+enum constTextNumList {
+  ONE("1"),
+  TWO("2"),
+  THREE("3"),
+  FOUR("4"),
+  FIVE("5"),
+  SIX("6"),
+  SEVEN("7"),
+  EIGHT("8"),
+  NINE("9"),
+  DEFAULT("255");
+
+  final String text;
+  const constTextNumList(this.text);
+}
+
+const List<Widget> constTextNumberlist = <Widget>[
   Text('1'),
   Text('2'),
   Text('3'),

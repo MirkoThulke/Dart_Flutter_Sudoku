@@ -312,7 +312,7 @@ class DataProvider with ChangeNotifier {
   }
 
   // -------------------------------
-  // Read candidate pattern highlighting tyep from RUST
+  // Read candidate pattern highlighting type from RUST
   // -------------------------------
   int readRequestedCandHighLightTypeFromRust(
       int r, int c, int cand, int numRows, int numCols) {
@@ -946,8 +946,8 @@ class _SudokuElementState extends State<SudokuElement> {
     }
   }
 
-  Color _getNumberBackgroundColor() {
-    Color _color = Color(0xFFFFFFFF); // opac white
+  Color _getNumberBackgroundColor(int numCandCellToCheck) {
+    Color _color = Color.fromARGB(255, 255, 255, 255); // opac white
 
     int _numberHMI = _readNumberFromList(_selectedNumberListNewData);
 
@@ -961,7 +961,8 @@ class _SudokuElementState extends State<SudokuElement> {
         'PatternList.pairs exceeds maximum allowed size!');
 
     setState(() {
-      _color = const Color(0xFFFFFFFF); // keep white by default
+      _color =
+          const Color.fromARGB(255, 255, 255, 255); // keep white by default
 
       // Check PatternList.hiLightOn
       if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
@@ -975,8 +976,10 @@ class _SudokuElementState extends State<SudokuElement> {
       else if ((_selectedPatternListNewData[PatternList.hiLightOn] ==
               true) && // Highlighting is switched ON on HMI
           (_subelementChoiceState == false) && // Numner is NOT chosen in Grid
-          (_checkCandidate(_numberHMI) ==
-              true)) // Numner on HMI corresponds to Candidate Number in Grid
+          (_checkCandidate(numCandCellToCheck) ==
+              true) && // Cand is chosen in Cell
+          (numCandCellToCheck ==
+              _numberHMI)) // Numner on HMI corresponds to Candidate Number in Cell
       {
         _color = const Color.fromARGB(255, 5, 255, 243);
       } // green highlighting
@@ -1078,13 +1081,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[0] == true)
-                              ? Text("1",
+                              ? Text(constTextNumList.ONE.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.ONE.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("1",
+                              : Text(constTextNumList.ONE.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1097,13 +1101,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[1] == true)
-                              ? Text("2",
+                              ? Text(constTextNumList.TWO.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.TWO.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("2",
+                              : Text(constTextNumList.TWO.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1116,13 +1121,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[2] == true)
-                              ? Text("3",
+                              ? Text(constTextNumList.THREE.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.THREE.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("3",
+                              : Text(constTextNumList.THREE.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1135,13 +1141,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[3] == true)
-                              ? Text("4",
+                              ? Text(constTextNumList.FOUR.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.FOUR.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("4",
+                              : Text(constTextNumList.FOUR.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1154,13 +1161,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[4] == true)
-                              ? Text("5",
+                              ? Text(constTextNumList.FIVE.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.FIVE.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("5",
+                              : Text(constTextNumList.FIVE.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1173,13 +1181,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[5] == true)
-                              ? Text("6",
+                              ? Text(constTextNumList.SIX.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.SIX.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("6",
+                              : Text(constTextNumList.SIX.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1192,13 +1201,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[6] == true)
-                              ? Text("7",
+                              ? Text(constTextNumList.SEVEN.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.SEVEN.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("7",
+                              : Text(constTextNumList.SEVEN.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1211,13 +1221,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[7] == true)
-                              ? Text("8",
+                              ? Text(constTextNumList.EIGHT.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.EIGHT.value),
                                       fontWeight: FontWeight.bold))
-                              : Text("8",
+                              : Text(constTextNumList.EIGHT.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1230,13 +1241,14 @@ class _SudokuElementState extends State<SudokuElement> {
                           fit: BoxFit.scaleDown,
                           alignment: Alignment.center,
                           child: (_subelementlistCandidateChoice[8] == true)
-                              ? Text("9",
+                              ? Text(constTextNumList.NINE.text,
                                   style: TextStyle(
                                       color: Colors.black,
                                       backgroundColor:
-                                          _getNumberBackgroundColor(),
+                                          _getNumberBackgroundColor(
+                                              constIntCandList.NINE.value),
                                       fontWeight: FontWeight.w900))
-                              : Text("9",
+                              : Text(constTextNumList.NINE.text,
                                   style: TextStyle(
                                       color: Colors.black.withOpacity(0.2),
                                       fontWeight: FontWeight.bold))),
@@ -1253,7 +1265,8 @@ class _SudokuElementState extends State<SudokuElement> {
                       child: Text('$_subelementNumberChoice',
                           style: TextStyle(
                               color: Colors.black,
-                              backgroundColor: _getNumberBackgroundColor(),
+                              backgroundColor: _getNumberBackgroundColor(
+                                  constIntCandList.DEFAULT.value),
                               fontWeight: FontWeight.w900))),
                 ),
         ));
@@ -1450,7 +1463,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   maxWidth: selectedNumberListWidthMax,
                 ),
                 isSelected: _selectedNumberList,
-                children: numberlist,
+                children: constTextNumberlist,
               ),
             ],
           ),
