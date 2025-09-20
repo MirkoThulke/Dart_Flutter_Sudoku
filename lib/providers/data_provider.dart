@@ -32,10 +32,10 @@ import 'package:flutter/widgets.dart';
 
 import 'dart:io'; // to persist data on local storage
 
-import 'package:flutter/foundation.dart'; // provides ChangeNotifier
-
 // FFI (Foreign Function Interface) to connect to RUST backend
 import 'dart:ffi';
+
+import 'package:path_provider/path_provider.dart';
 
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
@@ -129,8 +129,15 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   // Backend section. Store matrix state  in backend.
   // only data is stored. The visual highlighting state is not stored in the backend
 
-  late final RustMatrix rustMatrix;
+  late RustMatrix rustMatrix;
   late List<List<DartToRustElement>> dartMatrix;
+
+  // RUST export path and filename to JSON file for data persistance
+  late String appJsonPath; // late because we’ll initialize it asynchronously
+
+  // Track whether initialization is complete
+  bool _initialized = false;
+  bool get initialized => _initialized;
 
   DataProvider() {
     // Register as observer to app lifecycle events
@@ -139,13 +146,25 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     // link the Rust library
     // create the Rust matrix
     // and create a Dart SnapShot .
-    _initMatrix();
+
+    // Start async initialization (non-blocking)
+    _initAsync();
   }
 
-  // -------------------------------
-  // Rust matrix initialization
-  // -------------------------------
-  void _initMatrix() {
+/*
+_initAsync() is async, called from the constructor without await.
+Constructor returns immediately.
+Async initialization continues in the background.
+Any UI or consumer of DataProvider should handle loading state until notifyListeners() fires.
+Avoid putting await directly in the constructor.
+*/
+
+  Future<void> _initAsync() async {
+    // Load documents directory
+    final dir = await getApplicationDocumentsDirectory();
+    appJsonPath = '${dir.path}/data.json';
+
+    // Load Rust library & create matrix
     final dylib = Platform.isAndroid
         ? DynamicLibrary.open('librust_backend.so')
         : Platform.isWindows
@@ -154,15 +173,28 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
                 ? DynamicLibrary.open('librust_backend.dylib')
                 : DynamicLibrary.open('librust_backend.so');
 
-    // Create Rust matrix interface class instance
     rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
-    // Read data from JSON file upon startup .
-    rustMatrix.loadFromJSON();
+    // Read local persisted data
+    rustMatrix.loadFromJSON(appJsonPath);
 
-    // Initialize a Dart-side matrix and write a snapshot
+    // Create Dart snapshot
     dartMatrix =
         rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
+
+    // Mark initialization complete
+    _initialized = true;
+
+    // Notify listeners that data is ready
+    notifyListeners();
+  }
+
+  // public Future to allow awaiting initialization
+  Future<void> get initializationDone async {
+    if (_initialized) return;
+    while (!_initialized) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
   }
 
   // -------------------------------
@@ -173,7 +205,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       // Save Rust data to JSON when app goes to background or is terminated
-      rustMatrix.saveToJSON();
+      rustMatrix.saveToJSON(appJsonPath);
     }
   }
 
@@ -275,7 +307,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   // is automatically called by ChangeNotifierProvider
   void dispose() {
     // 1. Save Rust data to JSON
-    rustMatrix.saveToJSON(); // call your Rust FFI save function
+    rustMatrix.saveToJSON(appJsonPath); // call your Rust FFI save function
 
     // 2. Free Rust memory
     rustMatrix.dispose(); // FFI memory cleanup
@@ -293,6 +325,5 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     rustMatrix.printRustAllElements();
   }
 }
-
 
 // Copyright 2025, Mirko THULKE, Versailles

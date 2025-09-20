@@ -33,6 +33,7 @@
 import 'package:sudoku/utils/export.dart';
 
 import 'dart:ffi';
+import 'package:ffi/ffi.dart'; // for toNativeUtf8()
 
 import 'package:logging/logging.dart';
 
@@ -179,25 +180,31 @@ typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
-typedef SaveDataNative = Void Function(
-    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
-// Dart-friendly version
-typedef SaveDataDart = void Function(
-    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
-
-// Matches the exact C/Rust function signature
-typedef LoadDataNative = Void Function(
-    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
-// Dart-friendly version
-typedef LoadDataDart = void Function(
-    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
-
-// Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
     Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
 typedef FreeMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
+typedef SaveDataNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr,
+    Uint8 numRows,
+    Uint8 numCols,
+    Pointer<Utf8> path); // use Pointer<Utf8> for strings
+// Dart-friendly version
+typedef SaveDataDart = void Function(Pointer<DartToRustElementFFI> ptr,
+    int numRows, int numCols, Pointer<Utf8> path);
+
+// Matches the exact C/Rust function signature
+typedef LoadDataNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr,
+    Uint8 numRows,
+    Uint8 numCols,
+    Pointer<Utf8> path); // use Pointer<Utf8> for strings
+// Dart-friendly version
+typedef LoadDataDart = void Function(Pointer<DartToRustElementFFI> ptr,
+    int numRows, int numCols, Pointer<Utf8> path);
 
 /*
 Helper to store matrix metadata for Finalizer
@@ -265,7 +272,7 @@ class RustMatrix {
   /// Factory: creates Rust matrix from dynamic library
   factory RustMatrix(DynamicLibrary dylib, int numRows, int numCols) {
     assert(CONST_MATRIX_ELEMENTS >= numRows * numCols,
-        'Matrix element size exceeds maximum allowed size ${CONST_MATRIX_ELEMENTS}!');
+        'Matrix element size exceeds maximum allowed size $CONST_MATRIX_ELEMENTS!');
 
     // --- Size checks ---
     if (numRows <= 0 || numRows > constSudokuNumRow) {
@@ -473,15 +480,21 @@ Creates a 2D Dart list of DartToRustElement.
   // -------------------------------
   // Save to JSON upon shutdown
   // -------------------------------
-  void saveToJSON() {
-    _saveData(ptr, numRows, numCols);
+  void saveToJSON(String appJsonPath) {
+    // Allocates native memory
+    final appJsonPathutf8 = appJsonPath.toNativeUtf8();
+
+    _saveData(ptr, numRows, numCols, appJsonPathutf8);
   }
 
   // -------------------------------
   // Load from JSON upon start
   // -------------------------------
-  void loadFromJSON() {
-    _loadData(ptr, numRows, numCols);
+  void loadFromJSON(String appJsonPath) {
+    // Allocates native memory
+    final appJsonPathutf8 = appJsonPath.toNativeUtf8();
+
+    _loadData(ptr, numRows, numCols, appJsonPathutf8);
   }
 
   // -------------------------------

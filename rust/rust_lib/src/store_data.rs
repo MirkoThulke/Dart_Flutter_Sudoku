@@ -44,6 +44,8 @@ Credits to ChatGPT !
 use serde::{Serialize, Deserialize};
 use std::fs;
 use std::os::raw::c_int;
+use std::ffi::CStr;
+use std::os::raw::c_char;
 
 
 // process_data.rs
@@ -123,10 +125,18 @@ pub unsafe extern "C" fn save_data(
     ptr: *const DartToRustElementFFI,
     rows: u8,
     cols: u8,
+    path: *const c_char, // <- new argument
 ) -> c_int {
-    if ptr.is_null() {
+    if ptr.is_null() || path.is_null() {
         return -1;
     }
+
+    // Convert C string to Rust &str
+    let c_str = CStr::from_ptr(path);
+    let path_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return -6, // invalid UTF-8
+    };
 
     let slice = std::slice::from_raw_parts(ptr, (rows as usize) * (cols as usize));
 
@@ -137,7 +147,7 @@ pub unsafe extern "C" fn save_data(
     };
 
     match serde_json::to_string(&data) {
-        Ok(json) => match fs::write("sudoku_app_data.json", json) {
+        Ok(json) => match fs::write(path_str, json) {
             Ok(_) => 0,
             Err(_) => -2,
         },
@@ -150,12 +160,19 @@ pub unsafe extern "C" fn load_data(
     ptr: *mut DartToRustElementFFI,
     rows: u8,
     cols: u8,
+    path: *const c_char, // <- new argument
 ) -> c_int {
-    if ptr.is_null() {
+    if ptr.is_null() || path.is_null() {
         return -1;
     }
 
-    match fs::read_to_string("sudoku_app_data.json") {
+    let c_str = CStr::from_ptr(path);
+    let path_str = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return -6, // invalid UTF-8
+    };
+
+    match fs::read_to_string(path_str) {
         Ok(json) => match serde_json::from_str::<AppData>(&json) {
             Ok(data) => {
                 if data.rows != rows || data.cols != cols {
