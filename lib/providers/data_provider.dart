@@ -28,6 +28,7 @@
 #
 # -----------------------------------------------------------------------------
 */
+import 'package:flutter/widgets.dart';
 
 import 'dart:io'; // to persist data on local storage
 
@@ -58,7 +59,7 @@ import 'package:sudoku/utils/export.dart';
 /// @enduml
 
 // Use Provider Class is used to exchange data between widgets :
-class DataProvider with ChangeNotifier {
+class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   // HMI Input section :
 
   // HMI Number selection input
@@ -132,6 +133,9 @@ class DataProvider with ChangeNotifier {
   late List<List<DartToRustElement>> dartMatrix;
 
   DataProvider() {
+    // Register as observer to app lifecycle events
+    WidgetsBinding.instance.addObserver(this);
+
     // link the Rust library
     // create the Rust matrix
     // and create a Dart SnapShot .
@@ -153,9 +157,24 @@ class DataProvider with ChangeNotifier {
     // Create Rust matrix interface class instance
     rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
+    // Read data from JSON file upon startup .
+    rustMatrix.loadFromJSON();
+
     // Initialize a Dart-side matrix and write a snapshot
     dartMatrix =
         rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
+  }
+
+  // -------------------------------
+  // App Lifecycle Handling
+  // -------------------------------
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      // Save Rust data to JSON when app goes to background or is terminated
+      rustMatrix.saveToJSON();
+    }
   }
 
   RequestedCandHighLightType _requestedCandHighLightType =
@@ -250,20 +269,28 @@ class DataProvider with ChangeNotifier {
   }
 
   // -------------------------------
-  // Debug print
-  // -------------------------------
-  void printDebug() {
-    rustMatrix.printRustAllElements();
-  }
-
-  // -------------------------------
   // Dispose / cleanup
   // -------------------------------
   @override
   // is automatically called by ChangeNotifierProvider
   void dispose() {
+    // 1. Save Rust data to JSON
+    rustMatrix.saveToJSON(); // call your Rust FFI save function
+
+    // 2. Free Rust memory
     rustMatrix.dispose(); // FFI memory cleanup
+
+    // Remove observer to avoid leaks
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  // -------------------------------
+  // Debug print
+  // -------------------------------
+  void printDebug() {
+    rustMatrix.printRustAllElements();
   }
 }
 
