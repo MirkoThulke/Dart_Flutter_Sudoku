@@ -66,7 +66,7 @@ void main() {
   runApp(
     ChangeNotifierProvider(
       create: (_) => DataProvider(),
-      child: const MyApp(),
+      child: MyApp(),
     ),
   );
 }
