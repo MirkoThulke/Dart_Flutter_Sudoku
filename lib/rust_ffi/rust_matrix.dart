@@ -179,6 +179,20 @@ typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
+typedef SaveDataNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
+// Dart-friendly version
+typedef SaveDataDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
+typedef LoadDataNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
+// Dart-friendly version
+typedef LoadDataDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
     Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
@@ -236,6 +250,8 @@ class RustMatrix {
   final int numCols;
 
   static late final UpdateMatrixDart _updateMatrix;
+  static late final SaveDataDart _saveData;
+  static late final LoadDataDart _loadData;
   static late final FreeMatrixDart _freeMatrix;
 
   // Finalizer to free Rust memory
@@ -264,8 +280,14 @@ class RustMatrix {
     // --- Lookup FFI functions ---
     final createMatrix = dylib
         .lookupFunction<CreateMatrixNative, CreateMatrixDart>('create_matrix');
+
     _updateMatrix = dylib
         .lookupFunction<UpdateMatrixNative, UpdateMatrixDart>('update_matrix');
+
+    _saveData = dylib.lookupFunction<SaveDataNative, SaveDataDart>('save_data');
+
+    _loadData = dylib.lookupFunction<LoadDataNative, LoadDataDart>('load_data');
+
     _freeMatrix =
         dylib.lookupFunction<FreeMatrixNative, FreeMatrixDart>('free_matrix');
 
@@ -449,6 +471,28 @@ Creates a 2D Dart list of DartToRustElement.
   }
 
   // -------------------------------
+  // Save to JSON upon shutdown
+  // -------------------------------
+  void saveToJSON() {
+    _saveData(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
+  // Load from JSON upon start
+  // -------------------------------
+  void loadFromJSON() {
+    _loadData(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
+  // Manual cleanup
+  // -------------------------------
+  void dispose() {
+    _finalizer.detach(this);
+    _freeMatrix(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
   // Optional debug print
   // -------------------------------
   void printRustAllElements() {
@@ -461,14 +505,6 @@ Creates a 2D Dart list of DartToRustElement.
       }
       _logger.fine(numRowstr); // use 'fine' for debug-level messages
     }
-  }
-
-  // -------------------------------
-  // Manual cleanup
-  // -------------------------------
-  void dispose() {
-    _finalizer.detach(this);
-    _freeMatrix(ptr, numRows, numCols);
   }
 }
 
