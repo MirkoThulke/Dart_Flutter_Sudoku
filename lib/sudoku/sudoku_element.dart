@@ -194,8 +194,6 @@ class _SudokuElementState extends State<SudokuElement> {
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false).writeCellToRust(
             _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
-
-        int i = 0;
       }
     });
   }
@@ -364,6 +362,12 @@ class _SudokuElementState extends State<SudokuElement> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if initialization is complete
+    if (!Provider.of<DataProvider>(context).initialized ||
+        Provider.of<DataProvider>(context).dartMatrix.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     // receive data from data provider triggered by HMI
     _selectedNumberListNewData =
         Provider.of<DataProvider>(context).selectedNumberList;
