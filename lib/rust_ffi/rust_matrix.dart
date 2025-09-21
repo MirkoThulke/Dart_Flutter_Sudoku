@@ -32,6 +32,8 @@
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
+import 'dart:io';
+
 import 'dart:ffi';
 import 'package:ffi/ffi.dart'; // for toNativeUtf8()
 
@@ -482,19 +484,40 @@ Creates a 2D Dart list of DartToRustElement.
   // -------------------------------
   void saveToJSON(String appJsonPath) {
     // Allocates native memory
-    final appJsonPathutf8 = appJsonPath.toNativeUtf8();
+    final appJsonPathUtf8 = appJsonPath.toNativeUtf8();
 
-    _saveData(ptr, numRows, numCols, appJsonPathutf8);
+    try {
+      _saveData(ptr, numRows, numCols, appJsonPathUtf8);
+    } finally {
+      malloc.free(appJsonPathUtf8);
+    }
   }
 
   // -------------------------------
   // Load from JSON upon start
   // -------------------------------
-  void loadFromJSON(String appJsonPath) {
-    // Allocates native memory
-    final appJsonPathutf8 = appJsonPath.toNativeUtf8();
+  Future<void> loadFromJSON(String appJsonPath) async {
+    // Convert path to native UTF-8 pointer for Rust
+    final appJsonPathUtf8 = appJsonPath.toNativeUtf8();
 
-    _loadData(ptr, numRows, numCols, appJsonPathutf8);
+    try {
+      // Call Rust function
+      _loadData(ptr, numRows, numCols, appJsonPathUtf8);
+
+      // Print path (debug)
+      print("Loading JSON from: ${appJsonPathUtf8.toDartString()}");
+
+      // Read file content in Dart
+      final file = File(appJsonPath);
+      if (await file.exists()) {
+        final contents = await file.readAsString();
+        print("JSON file contents:\n$contents");
+      } else {
+        print("JSON file does not exist!");
+      }
+    } finally {
+      malloc.free(appJsonPathUtf8);
+    }
   }
 
   // -------------------------------

@@ -37,6 +37,8 @@ import 'dart:ffi';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'dart:async';
+
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
@@ -159,17 +161,16 @@ Any UI or consumer of DataProvider should handle loading state until notifyListe
 Avoid putting await directly in the constructor.
 */
 
+  final Completer<void> _initCompleter = Completer<void>();
+
   Future<void> _initAsync() async {
-    // Load documents directory
-    final dir = await getApplicationDocumentsDirectory();
-    appJsonPath = '${dir.path}/sudoku_data.json';
-
-    final file = File(appJsonPath);
-
-    // Check if director and file need to be created. An empty JSON file is created.
-    if (!await file.exists()) {
-      await file.create(recursive: true);
-      await file.writeAsString('{}');
+    // Wait until the JSON file is ready
+    try {
+      await initJsonFile();
+    } catch (e, st) {
+      print('DataProvider initialization failed: $e\n$st');
+      _initialized = false;
+      _initCompleter.completeError(e);
     }
 
     // Load Rust library & create matrix
@@ -195,13 +196,25 @@ Avoid putting await directly in the constructor.
 
     // Notify listeners that data is ready
     notifyListeners();
+
+    _initCompleter.complete(); // signal that initialization is done
   }
 
-  // public Future to allow awaiting initialization
-  Future<void> get initializationDone async {
-    if (_initialized) return;
-    while (!_initialized) {
-      await Future.delayed(const Duration(milliseconds: 50));
+  Future<void> get initializationDone => _initCompleter.future;
+
+  Future<void> initJsonFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+
+    // Ensure the directory exists
+    if (!await dir.exists()) await dir.create(recursive: true);
+
+    appJsonPath = '${dir.path}/sudoku_data.json';
+    final file = File(appJsonPath);
+
+    // Ensure file exists
+    if (!await file.exists()) {
+      await file.create(recursive: true);
+      await file.writeAsString('{}');
     }
   }
 
