@@ -162,7 +162,15 @@ Avoid putting await directly in the constructor.
   Future<void> _initAsync() async {
     // Load documents directory
     final dir = await getApplicationDocumentsDirectory();
-    appJsonPath = '${dir.path}/data.json';
+    appJsonPath = '${dir.path}/sudoku_data.json';
+
+    final file = File(appJsonPath);
+
+    // Check if director and file need to be created. An empty JSON file is created.
+    if (!await file.exists()) {
+      await file.create(recursive: true);
+      await file.writeAsString('{}');
+    }
 
     // Load Rust library & create matrix
     final dylib = Platform.isAndroid
@@ -204,7 +212,7 @@ Avoid putting await directly in the constructor.
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      // Save Rust data to JSON when app goes to background or is terminated
+      // persist before app may be killed
       rustMatrix.saveToJSON(appJsonPath);
     }
   }
