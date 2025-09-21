@@ -59,6 +59,13 @@ import 'package:flutter/material.dart';
 // constants
 /////////////////////////////////////
 ///
+///
+///
+///
+// Acticate JSON file storage an external Device Memory .
+// Only allowed during debugging testing !
+const bool DEBUG_JSON = true;
+
 const int CONST_MATRIX_SIZE = 9;
 const int CONST_MATRIX_ELEMENTS = 81;
 const int MAX_UINT8 = 255;
