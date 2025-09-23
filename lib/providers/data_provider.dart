@@ -164,9 +164,12 @@ Avoid putting await directly in the constructor.
   final Completer<void> _initCompleter = Completer<void>();
 
   Future<void> _initAsync() async {
+    // Check if JSON file exists, if not create it
+    Future<bool> boolJSONfilePresent = false as Future<bool>;
+
     // Wait until the JSON file is ready
     try {
-      await initJsonFile();
+      boolJSONfilePresent = (await initJsonFile()) as Future<bool>;
     } catch (e, st) {
       print('DataProvider initialization failed: $e\n$st');
       _initialized = false;
@@ -185,11 +188,17 @@ Avoid putting await directly in the constructor.
     rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
     // Read local persisted data
-    rustMatrix.loadFromJSON(appJsonPath);
-
-    // Create Dart snapshot
-    dartMatrix =
-        rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
+    if (await boolJSONfilePresent) {
+      if (await rustMatrix.loadFromJSON(appJsonPath)) {
+        // JSON file exists and loaded successfully
+        // Create Dart snapshot
+        dartMatrix = rustMatrix.readMatrixFromRust(
+            rustMatrix.numRows, rustMatrix.numCols);
+      }
+    } else {
+      // JSON file does not exist or failed to load, initialize with default values
+      // Keep dedault values
+    }
 
     // Mark initialization complete
     _initialized = true;
@@ -202,20 +211,32 @@ Avoid putting await directly in the constructor.
 
   Future<void> get initializationDone => _initCompleter.future;
 
-  Future<void> initJsonFile() async {
+  Future<bool> initJsonFile() async {
+    // Check if JSON file exists, if not create it
+    Future<bool> _boolJSONfilePresent = false as Future<bool>;
+
     final dir = await getApplicationDocumentsDirectory();
 
     // Ensure the directory exists
-    if (!await dir.exists()) await dir.create(recursive: true);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
 
     appJsonPath = '${dir.path}/sudoku_data.json';
+
     final file = File(appJsonPath);
 
     // Ensure file exists
     if (!await file.exists()) {
+      // JSON file does not exist
       await file.create(recursive: true);
       await file.writeAsString('{}');
+    } else {
+      // JSON file already exists
+      _boolJSONfilePresent = true as Future<bool>;
     }
+
+    return _boolJSONfilePresent;
   }
 
   // -------------------------------
