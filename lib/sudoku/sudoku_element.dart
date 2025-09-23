@@ -89,21 +89,51 @@ class _SudokuElementState extends State<SudokuElement> {
   void initState() {
     super.initState();
 
+    _numberBackGroundColor = Color(0xFFFFFFFF); // optional: keep default
+
+    // initialise from JSON here ....
+    // Fetch the element data from DataProvider based on element_id
+    final DartToRustElement elementDataJSON =
+        returnCellFromDartMirror(widget.element_id);
+
+    // Initialize local state from JSON / DataProvider instead of constants
+    _subelementNumberChoice = elementDataJSON.selectedNumState;
+
+    _subelementlistCandidateChoice =
+        List<bool>.from(elementDataJSON.selectedCandList);
+
+    _requestedCandHighLightTypeNewData =
+        List<int>.from(elementDataJSON.requestedCandHighLightType);
+
+    // Modify your loadFromJSON to check existence and initialize a default grid if the file is missing:
+
     _subelementNumberChoice = 0;
     _numberBackGroundColor = Color(0xFFFFFFFF);
 
     // Initialize lists from constants
-    _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
+    // _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
     _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
     _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
     _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
-    _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
-    _requestedCandHighLightTypeNewData =
-        List<int>.from(constRequestedCandHighLightType);
+    //_subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
+    //_requestedCandHighLightTypeNewData = List<int>.from(constRequestedCandHighLightType);
 
     // Check which number is selected (corresponding bit is TRUE)
     assert(widget.element_id <= 80, 'element_id exceeds maximum allowed size!');
     assert(widget.element_id >= 0, 'element_id equals 0 or negative!');
+  }
+
+  // -------------------------------
+  // Return Cell element from Dart Mirror for Initialisation of the Cell upon App start
+  // -------------------------------
+  DartToRustElement returnCellFromDartMirror(int element_id) {
+    GridPosition _pos = getRowColFromId(element_id, constSudokuNumRow);
+
+    DartToRustElement cellElement =
+        Provider.of<DataProvider>(context, listen: false).dartMatrix[_pos.row]
+            [_pos.col];
+
+    return cellElement;
   }
 
 // return 0 : no number set

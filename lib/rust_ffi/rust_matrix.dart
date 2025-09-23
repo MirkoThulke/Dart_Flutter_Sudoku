@@ -496,24 +496,23 @@ Creates a 2D Dart list of DartToRustElement.
   // -------------------------------
   // Load from JSON upon start
   // -------------------------------
-  Future<void> loadFromJSON(String appJsonPath) async {
-    // Convert path to native UTF-8 pointer for Rust
+  Future<bool> loadFromJSON(String appJsonPath) async {
     final appJsonPathUtf8 = appJsonPath.toNativeUtf8();
 
     try {
       // Call Rust function
       _loadData(ptr, numRows, numCols, appJsonPathUtf8);
 
-      // Print path (debug)
       print("Loading JSON from: ${appJsonPathUtf8.toDartString()}");
 
-      // Read file content in Dart
       final file = File(appJsonPath);
       if (await file.exists()) {
         final contents = await file.readAsString();
         print("JSON file contents:\n$contents");
+        return true; // ✅ success
       } else {
         print("JSON file does not exist!");
+        return false; // ❌ failure
       }
     } finally {
       malloc.free(appJsonPathUtf8);
