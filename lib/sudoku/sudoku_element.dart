@@ -30,6 +30,7 @@
 */
 
 import 'package:flutter/material.dart'; // basics
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
 
@@ -642,18 +643,22 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                   ],
                 )
               : Container(
-                  //  padding: const EdgeInsets.all(1),
                   alignment: Alignment.center,
                   color: const Color.fromARGB(255, 235, 252, 250),
-                  child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.center,
-                      child: Text('$_subelementNumberChoice',
-                          style: TextStyle(
-                              color: Colors.black,
-                              backgroundColor: _getNumberBackgroundColor(
-                                  constIntCandList.DEFAULT.value),
-                              fontWeight: FontWeight.w900))),
+                  child: AutoSizeText(
+                    '$_subelementNumberChoice',
+                    style: TextStyle(
+                      fontSize: 40, // maximum size you want
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black,
+                      backgroundColor: _getNumberBackgroundColor(
+                        constIntCandList.DEFAULT.value,
+                      ),
+                    ),
+                    maxLines: 1, // keep on one line
+                    minFontSize: 16, // will shrink if space is tight
+                    textAlign: TextAlign.center,
+                  ),
                 ),
         ));
   }
