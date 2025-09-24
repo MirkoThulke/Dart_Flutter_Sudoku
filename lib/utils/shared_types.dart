@@ -70,6 +70,9 @@ const int CONST_MATRIX_SIZE = 9;
 const int CONST_MATRIX_ELEMENTS = 81;
 const int MAX_UINT8 = 255;
 
+// to handle app states
+enum DataStatus { loading, ready, error }
+
 const int constSudokuNumRow = CONST_MATRIX_SIZE;
 const int constSudokuNumCol = CONST_MATRIX_SIZE;
 
