@@ -439,228 +439,77 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         Provider.of<DataProvider>(context).requestedCandHighLightType;
 
     return InkWell(
-        onTap: () {
-          setState(() {
-            _updateElementState(
-                _selectedNumberListNewData, _selectedSetResetListNewData);
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.all(1.0),
-          color: Colors.blue[600],
-          alignment: Alignment.center,
-          child: !_subelementChoiceState // Result Number chosen ?
-              ? GridView.count(
-                  primary: true, // no scrolling
-                  padding: const EdgeInsets.all(0.5),
-                  crossAxisSpacing: 1,
-                  mainAxisSpacing: 1,
-                  crossAxisCount: 3,
-                  physics: const NeverScrollableScrollPhysics(), // no scrolling
-                  childAspectRatio:
-                      1.0, // horozontal verus vertical aspect ratio
-                  children: <Widget>[
-                    Container(
-                      // padding: const EdgeInsets.all(1),
+      onTap: () {
+        setState(() {
+          _updateElementState(
+              _selectedNumberListNewData, _selectedSetResetListNewData);
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(1.0),
+        color: Colors.blue[600],
+        alignment: Alignment.center,
+        child: !_subelementChoiceState
+            ? GridView.count(
+                primary: true, // no scrolling
+                padding: const EdgeInsets.all(0.5),
+                crossAxisSpacing: 1,
+                mainAxisSpacing: 1,
+                crossAxisCount: 3,
+                physics: const NeverScrollableScrollPhysics(), // no scrolling
+                childAspectRatio: 1.0, // horizontal vs vertical aspect ratio
+                children: List.generate(9, (index) {
+                  final candidateActive = _subelementlistCandidateChoice[index];
+                  final numberText = constTextNumList.values[index].text;
+                  final numberValue = constIntCandList.values[index].value;
+
+                  return Container(
+                    alignment: Alignment.center,
+                    color: const Color.fromARGB(255, 235, 252, 250),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
                       alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[0] == true)
-                              ? Text(constTextNumList.ONE.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.ONE.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.ONE.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
+                      child: candidateActive
+                          ? Text(
+                              numberText,
+                              style: TextStyle(
+                                color: Colors.black,
+                                backgroundColor:
+                                    _getNumberBackgroundColor(numberValue),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : Text(
+                              numberText,
+                              style: TextStyle(
+                                color: Colors.black.withOpacity(0.2),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[1] == true)
-                              ? Text(constTextNumList.TWO.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.TWO.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.TWO.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
+                  );
+                }),
+              )
+            : Container(
+                alignment: Alignment.center,
+                color: const Color.fromARGB(255, 235, 252, 250),
+                child: AutoSizeText(
+                  '$_subelementNumberChoice',
+                  style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                    backgroundColor: _getNumberBackgroundColor(
+                      constIntCandList.DEFAULT.value,
                     ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[2] == true)
-                              ? Text(constTextNumList.THREE.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.THREE.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.THREE.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[3] == true)
-                              ? Text(constTextNumList.FOUR.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.FOUR.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.FOUR.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[4] == true)
-                              ? Text(constTextNumList.FIVE.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.FIVE.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.FIVE.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[5] == true)
-                              ? Text(constTextNumList.SIX.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.SIX.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.SIX.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[6] == true)
-                              ? Text(constTextNumList.SEVEN.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.SEVEN.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.SEVEN.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[7] == true)
-                              ? Text(constTextNumList.EIGHT.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.EIGHT.value),
-                                      fontWeight: FontWeight.bold))
-                              : Text(constTextNumList.EIGHT.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                    Container(
-                      // padding: const EdgeInsets.all(1),
-                      alignment: Alignment.center,
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: (_subelementlistCandidateChoice[8] == true)
-                              ? Text(constTextNumList.NINE.text,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      backgroundColor:
-                                          _getNumberBackgroundColor(
-                                              constIntCandList.NINE.value),
-                                      fontWeight: FontWeight.w900))
-                              : Text(constTextNumList.NINE.text,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.2),
-                                      fontWeight: FontWeight.bold))),
-                    ),
-                  ],
-                )
-              : Container(
-                  alignment: Alignment.center,
-                  color: const Color.fromARGB(255, 235, 252, 250),
-                  child: AutoSizeText(
-                    '$_subelementNumberChoice',
-                    style: TextStyle(
-                      fontSize: 40, // maximum size you want
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                      backgroundColor: _getNumberBackgroundColor(
-                        constIntCandList.DEFAULT.value,
-                      ),
-                    ),
-                    maxLines: 1, // keep on one line
-                    minFontSize: 16, // will shrink if space is tight
-                    textAlign: TextAlign.center,
                   ),
+                  maxLines: 1,
+                  minFontSize: 16,
+                  textAlign: TextAlign.center,
                 ),
-        ));
+              ),
+      ),
+    );
   }
 }
 
