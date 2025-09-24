@@ -452,9 +452,9 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         child: !_subelementChoiceState
             ? GridView.count(
                 primary: true, // no scrolling
-                padding: const EdgeInsets.all(0.5),
-                crossAxisSpacing: 1,
-                mainAxisSpacing: 1,
+                padding: EdgeInsets.zero, //  const EdgeInsets.all(0.5),
+                crossAxisSpacing: 0,
+                mainAxisSpacing: 0,
                 crossAxisCount: 3,
                 physics: const NeverScrollableScrollPhysics(), // no scrolling
                 childAspectRatio: 1.0, // horizontal vs vertical aspect ratio

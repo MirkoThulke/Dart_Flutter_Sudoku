@@ -41,29 +41,29 @@ class SudokuBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GridView.count(
-        primary: true,
-        padding: const EdgeInsets.all(1),
-        crossAxisSpacing: 1,
-        mainAxisSpacing: 1,
-        crossAxisCount: 3,
-        // physics: const NeverScrollableScrollPhysics(), // no scrolling
-        childAspectRatio: 1.0, // horozontal verus vertical aspect ratio
-        children: <Widget>[
-          // dyn. list since IDs not known at compile time.
-          // int element_id :  Unique ID of the element [0...80]
-          // int row : index ~/ 9;
-          // int col : index % 9;
-          SudokuElement(element_id: block_id * constSudokuNumRow + 0),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 1),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 2),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 3),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 4),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 5),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 6),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 7),
-          SudokuElement(element_id: block_id * constSudokuNumRow + 8),
-        ],
+      body: Container(
+        margin: const EdgeInsets.all(1), // optional spacing outside the block
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.blue[
+                600]!, //  const Color.fromARGB(255, 107, 77, 243), // border color
+            width: 3, // outer line thickness
+          ),
+        ),
+        child: GridView.count(
+          primary: true,
+          padding: EdgeInsets.zero, // const EdgeInsets.all(1),
+          crossAxisSpacing: 0,
+          mainAxisSpacing: 0,
+          crossAxisCount: 3,
+          physics: const NeverScrollableScrollPhysics(), // prevents scrolling
+          childAspectRatio: 1.0,
+          children: List.generate(9, (i) {
+            return SudokuElement(
+              element_id: block_id * constSudokuNumRow + i,
+            );
+          }),
+        ),
       ),
     );
   }
