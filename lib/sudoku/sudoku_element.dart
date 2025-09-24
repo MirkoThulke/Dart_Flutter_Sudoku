@@ -89,6 +89,8 @@ class _SudokuElementState extends State<SudokuElement> {
   void initState() {
     super.initState();
 
+    // Keep initState() only for local constant initialization:
+
     // Check which number is selected (corresponding bit is TRUE)
     assert(widget.element_id <= 80, 'element_id exceeds maximum allowed size!');
     assert(widget.element_id >= 0, 'element_id equals 0 or negative!');
@@ -102,18 +104,26 @@ class _SudokuElementState extends State<SudokuElement> {
     _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
     _requestedCandHighLightTypeNewData =
         List<int>.from(constRequestedCandHighLightType);
+  }
 
-    // Use listen: false to safely access the provider in initState
-    final dataProvider = Provider.of<DataProvider>(context, listen: false);
-    if (dataProvider.status == DataStatus.ready) {
-      print("Data is already ready!");
+/* Initialize from provider in didChangeDependencies() :
+didChangeDependencies() is called after the widget is inserted into the widget tree.
+Provider.of(context) works here safely.
+_initialized ensures the widget doesn’t overwrite state repeatedly if didChangeDependencies() is called multiple times.
+setState() forces the widget to rebuild with the newly loaded JSON data.
+*/
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final dataProvider = Provider.of<DataProvider>(context);
+
+    if (dataProvider.status == DataStatus.ready && !_initialized) {
+      _initialized = true; // ensure we only initialize once
       initializeFromJSON();
-    } else if (dataProvider.status == DataStatus.loading) {
-      print("Data is still loading...");
-      // maybe start a callback when ready
-      // Add call back or listener if needed
-    } else if (dataProvider.status == DataStatus.error) {
-      print("Data initialization failed: ${dataProvider.errorMessage}");
+      setState(() {}); // update the UI after local state is set
     }
   }
 
@@ -121,6 +131,7 @@ class _SudokuElementState extends State<SudokuElement> {
     // safe to read data here
     // initialise from JSON here ....
     // Fetch the element data from DataProvider based on element_id
+
     final DartToRustElement elementDataJSON =
         returnCellFromDartMirror(widget.element_id);
 
@@ -165,7 +176,7 @@ class _SudokuElementState extends State<SudokuElement> {
 
     assert(number <= constSelectedCandListSize,
         'number exceeds maximum allowed size!');
-    assert(number > 0, 'number is 0!');
+    assert(number >= 0, 'number cannot be negative');
 
     return number;
   }
@@ -403,14 +414,13 @@ class _SudokuElementState extends State<SudokuElement> {
 
   @override
   Widget build(BuildContext context) {
-    // receive data from data provider triggered by HMI
+    // Update build() to show spinner until data is ready
     final dataProvider = Provider.of<DataProvider>(context);
 
-    // Show spinner while loading
-    if (dataProvider.status != DataStatus.ready) {
+    if (!_initialized || dataProvider.status != DataStatus.ready) {
       return const Center(child: CircularProgressIndicator());
     }
-
+    // receive data from data provider triggered by HMI
     _selectedNumberListNewData =
         Provider.of<DataProvider>(context).selectedNumberList;
     _selectedSetResetListNewData =
