@@ -138,6 +138,11 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     // Initialize local state from JSON / DataProvider instead of constants
     _subelementNumberChoice = elementDataJSON.selectedNumState;
 
+    if (_subelementNumberChoice > 0) {
+      _subelementChoiceState = true;
+    } else {
+      _subelementChoiceState = false;
+    }
     _subelementlistCandidateChoice =
         List<bool>.from(elementDataJSON.selectedCandList);
 
