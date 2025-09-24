@@ -469,23 +469,20 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.center,
-                      child: candidateActive
-                          ? Text(
-                              numberText,
-                              style: TextStyle(
-                                color: Colors.black,
-                                backgroundColor:
-                                    _getNumberBackgroundColor(numberValue),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          : Text(
-                              numberText,
-                              style: TextStyle(
-                                color: Colors.black.withOpacity(0.2),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      child: Text(
+                        numberText,
+                        style: TextStyle(
+                          color: candidateActive
+                              ? Colors.black
+                              : Colors.black.withOpacity(0.2),
+                          backgroundColor: candidateActive
+                              ? _getNumberBackgroundColor(numberValue)
+                              : null,
+                          fontWeight: candidateActive
+                              ? FontWeight.w900
+                              : FontWeight.normal,
+                        ),
+                      ),
                     ),
                   );
                 }),
