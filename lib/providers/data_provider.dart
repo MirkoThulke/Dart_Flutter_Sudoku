@@ -62,8 +62,14 @@ import 'package:sudoku/utils/export.dart';
 
 // Use Provider Class is used to exchange data between widgets :
 class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
-  // HMI Input section :
+  // to handle app states
+  DataStatus _status = DataStatus.loading;
+  DataStatus get status => _status;
 
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  // HMI Input section :
   // HMI Number selection input
   SelectedNumberList _selectedNumberList =
       List<bool>.from(constSelectedNumberList);
@@ -137,10 +143,6 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   // RUST export path and filename to JSON file for data persistance
   late String appJsonPath; // late because we’ll initialize it asynchronously
 
-  // Track whether initialization is complete
-  bool _initialized = false;
-  bool get initialized => _initialized;
-
   DataProvider() {
     // Register as observer to app lifecycle events
     WidgetsBinding.instance.addObserver(this);
@@ -161,82 +163,55 @@ Any UI or consumer of DataProvider should handle loading state until notifyListe
 Avoid putting await directly in the constructor.
 */
 
-  final Completer<void> _initCompleter = Completer<void>();
-
   Future<void> _initAsync() async {
-    // Check if JSON file exists, if not create it
-    Future<bool> boolJSONfilePresent = false as Future<bool>;
-
-    // Wait until the JSON file is ready
     try {
-      boolJSONfilePresent = (await initJsonFile()) as Future<bool>;
-    } catch (e, st) {
-      print('DataProvider initialization failed: $e\n$st');
-      _initialized = false;
-      _initCompleter.completeError(e);
-    }
+      final dylib = Platform.isAndroid
+          ? DynamicLibrary.open('librust_backend.so')
+          : Platform.isWindows
+              ? DynamicLibrary.open('rust_backend.dll')
+              : Platform.isMacOS
+                  ? DynamicLibrary.open('librust_backend.dylib')
+                  : DynamicLibrary.open('librust_backend.so');
 
-    // Load Rust library & create matrix
-    final dylib = Platform.isAndroid
-        ? DynamicLibrary.open('librust_backend.so')
-        : Platform.isWindows
-            ? DynamicLibrary.open('rust_backend.dll')
-            : Platform.isMacOS
-                ? DynamicLibrary.open('librust_backend.dylib')
-                : DynamicLibrary.open('librust_backend.so');
+      rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
 
-    rustMatrix = RustMatrix(dylib, constSudokuNumRow, constSudokuNumCol);
+      final bool jsonExists = await initJsonFile();
 
-    // Read local persisted data
-    if (await boolJSONfilePresent) {
-      if (await rustMatrix.loadFromJSON(appJsonPath)) {
-        // JSON file exists and loaded successfully
-        // Create Dart snapshot
-        dartMatrix = rustMatrix.readMatrixFromRust(
-            rustMatrix.numRows, rustMatrix.numCols);
+      if (jsonExists) {
+        final loaded = await rustMatrix.loadFromJSON(appJsonPath);
+        if (loaded) {
+          dartMatrix = rustMatrix.readMatrixFromRust(
+              rustMatrix.numRows, rustMatrix.numCols);
+        }
       }
-    } else {
-      // JSON file does not exist or failed to load, initialize with default values
-      // Keep dedault values
+
+      _status = DataStatus.ready;
+      notifyListeners();
+    } catch (e, st) {
+      _status = DataStatus.error;
+      _errorMessage = e.toString();
+      print('DataProvider initialization failed: $e\n$st');
+      notifyListeners();
     }
-
-    // Mark initialization complete
-    _initialized = true;
-
-    // Notify listeners that data is ready
-    notifyListeners();
-
-    _initCompleter.complete(); // signal that initialization is done
   }
 
-  Future<void> get initializationDone => _initCompleter.future;
-
   Future<bool> initJsonFile() async {
-    // Check if JSON file exists, if not create it
-    Future<bool> _boolJSONfilePresent = false as Future<bool>;
-
     final dir = await getApplicationDocumentsDirectory();
 
-    // Ensure the directory exists
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
 
     appJsonPath = '${dir.path}/sudoku_data.json';
-
     final file = File(appJsonPath);
 
-    // Ensure file exists
     if (!await file.exists()) {
-      // JSON file does not exist
       await file.create(recursive: true);
       await file.writeAsString('{}');
-    } else {
-      // JSON file already exists
-      _boolJSONfilePresent = true as Future<bool>;
+      return false;
     }
 
-    return _boolJSONfilePresent;
+    return true;
   }
 
   // -------------------------------

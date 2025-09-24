@@ -89,8 +89,36 @@ class _SudokuElementState extends State<SudokuElement> {
   void initState() {
     super.initState();
 
-    _numberBackGroundColor = Color(0xFFFFFFFF); // optional: keep default
+    // Check which number is selected (corresponding bit is TRUE)
+    assert(widget.element_id <= 80, 'element_id exceeds maximum allowed size!');
+    assert(widget.element_id >= 0, 'element_id equals 0 or negative!');
 
+    // Initialize lists from constants
+    _numberBackGroundColor = Color(0xFFFFFFFF); // optional: keep default
+    _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
+    _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
+    _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
+    _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
+    _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
+    _requestedCandHighLightTypeNewData =
+        List<int>.from(constRequestedCandHighLightType);
+
+    // Use listen: false to safely access the provider in initState
+    final dataProvider = Provider.of<DataProvider>(context, listen: false);
+    if (dataProvider.status == DataStatus.ready) {
+      print("Data is already ready!");
+      initializeFromJSON();
+    } else if (dataProvider.status == DataStatus.loading) {
+      print("Data is still loading...");
+      // maybe start a callback when ready
+      // Add call back or listener if needed
+    } else if (dataProvider.status == DataStatus.error) {
+      print("Data initialization failed: ${dataProvider.errorMessage}");
+    }
+  }
+
+  void initializeFromJSON() {
+    // safe to read data here
     // initialise from JSON here ....
     // Fetch the element data from DataProvider based on element_id
     final DartToRustElement elementDataJSON =
@@ -104,23 +132,6 @@ class _SudokuElementState extends State<SudokuElement> {
 
     _requestedCandHighLightTypeNewData =
         List<int>.from(elementDataJSON.requestedCandHighLightType);
-
-    // Modify your loadFromJSON to check existence and initialize a default grid if the file is missing:
-
-    _subelementNumberChoice = 0;
-    _numberBackGroundColor = Color(0xFFFFFFFF);
-
-    // Initialize lists from constants
-    // _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
-    _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
-    _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
-    _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
-    //_subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
-    //_requestedCandHighLightTypeNewData = List<int>.from(constRequestedCandHighLightType);
-
-    // Check which number is selected (corresponding bit is TRUE)
-    assert(widget.element_id <= 80, 'element_id exceeds maximum allowed size!');
-    assert(widget.element_id >= 0, 'element_id equals 0 or negative!');
   }
 
   // -------------------------------
@@ -392,13 +403,14 @@ class _SudokuElementState extends State<SudokuElement> {
 
   @override
   Widget build(BuildContext context) {
-    // Check if initialization is complete
-    if (!Provider.of<DataProvider>(context).initialized ||
-        Provider.of<DataProvider>(context).dartMatrix.isEmpty) {
+    // receive data from data provider triggered by HMI
+    final dataProvider = Provider.of<DataProvider>(context);
+
+    // Show spinner while loading
+    if (dataProvider.status != DataStatus.ready) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // receive data from data provider triggered by HMI
     _selectedNumberListNewData =
         Provider.of<DataProvider>(context).selectedNumberList;
     _selectedSetResetListNewData =
@@ -631,6 +643,5 @@ class _SudokuElementState extends State<SudokuElement> {
         ));
   }
 }
-
 
 // Copyright 2025, Mirko THULKE, Versailles

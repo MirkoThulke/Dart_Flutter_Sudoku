@@ -1,0 +1,8 @@
+@startuml
+class frontend
+class backend
+
+
+frontend --> backend
+backend --> frontend
+@enduml
