@@ -179,9 +179,20 @@ Avoid putting await directly in the constructor.
 
       if (jsonExists) {
         final loaded = await rustMatrix.loadFromJSON(appJsonPath);
+        print('Rust loadFromJSON returned: $loaded');
         if (loaded) {
           dartMatrix = rustMatrix.readMatrixFromRust(
               rustMatrix.numRows, rustMatrix.numCols);
+
+          final numRows = dartMatrix.length;
+          final numCols = dartMatrix.isNotEmpty ? dartMatrix[0].length : 0;
+          print('Number of rows: $numRows');
+          if (dartMatrix.isNotEmpty) {
+            final numCols = dartMatrix[0].length;
+            print('Number of columns: $numCols');
+          }
+        } else {
+          print('Rust JSON load failed');
         }
       }
 
