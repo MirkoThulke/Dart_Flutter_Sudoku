@@ -51,7 +51,7 @@ pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx
     let elem = &mut *ptr.add(idx);
 
     if elem.selectedNumState == 0 {
-        if elem.selectedCandList.iter().copied().sum::<u8>() == 2 {
+        if elem.selectedCandList.iter().filter(|&&x| x != 0).count() == 2 {
             for (cand, hl) in elem
                 .selectedCandList
                 .iter()
@@ -62,7 +62,8 @@ pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx
                 }
             }
         }
-    }    
+    }
+}
 
 }
 
