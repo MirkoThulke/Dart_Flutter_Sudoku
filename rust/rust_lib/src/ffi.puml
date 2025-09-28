@@ -1,0 +1,68 @@
+@startuml
+
+package ffi {
+
+  ' FFI struct representing a matrix element
+  class DartToRustElementFFI {
+    +row: u8
+    +col: u8
+    +selectedNumState: u8
+    +selectedCandList: [u8; 9]
+    +selectedPatternList: [u8; 5]
+    +requestedElementHighLightType: [u8; 5]
+    +requestedCandHighLightType: [u8; 9]
+  }
+
+  note right of DartToRustElementFFI
+    #[C Representation]
+    Used in FFI with Dart.
+    Unsafe operations wrapped in Rust functions.
+  end note
+
+  ' Constants
+  class Constants {
+    +MAX_UINT: u8 = 255
+    +CONST_MATRIX_SIZE: u8 = 9
+    +CONST_MATRIX_ELEMENTS: u8 = 81
+    +constSelectedNumberListSize: u8 = 9
+    +constSelectedPatternListSize: u8 = 5
+    +constRequestedElementHighLightTypeSize: u8 = 5
+    +constRequestedCandHighLightTypeSize: u8 = 9
+    +constPatternListOff: u8 = 255
+  }
+
+  ' PatternList enum-like constants
+  class PatternList {
+    +HI_LIGHT_ON: u8 = 0
+    +PAIRS: u8 = 1
+    +MATCH_PAIRS: u8 = 2
+    +TWINS: u8 = 3
+    +USER: u8 = 4
+  }
+
+  ' FFI functions
+  class MatrixFunctions {
+    +create_matrix(rows: u8, cols: u8): *mut DartToRustElementFFI
+    +update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
+    +free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
+  }
+
+  note right of MatrixFunctions::create_matrix
+    Unsafe extern "C" function.
+    Allocates memory for DartToRustElementFFI array.
+    Returns null on allocation failure.
+  end note
+
+  note right of MatrixFunctions::update_matrix
+    Unsafe extern "C" function.
+    Checks matrix elements and calls checkForElementPair.
+  end note
+
+  note right of MatrixFunctions::free_matrix
+    Unsafe extern "C" function.
+    Deallocates memory for DartToRustElementFFI array.
+  end note
+
+}
+
+@enduml
