@@ -36,9 +36,59 @@ use crate::ffi::{CONST_MATRIX_ELEMENTS};
 
 use crate::ffi::{PatternList};
 
+#[no_mangle]
+pub unsafe extern "C" fn check_for_all_pairs(ptr: *mut DartToRustElementFFI, len: usize) {
+    if ptr.is_null() {
+        return;
+    }
+
+    for i in 0..len {
+        let cell = &mut *ptr.add(i);
+        check_cell_for_pair(cell);
+    }
+}
 
 
+#[no_mangle]
+pub unsafe extern "C" fn check_for_element_pair(ptr: *mut DartToRustElementFFI, idx: usize) {
+    if ptr.is_null() {
+        return;
+    }
 
+    assert!(idx < CONST_MATRIX_ELEMENTS as usize);
+
+    let cell = &mut *ptr.add(idx);
+    check_cell_for_pair(cell);
+}
+
+unsafe fn check_cell_for_pair(cell: &mut DartToRustElementFFI) {
+    // Reset highlights first
+    for hl in cell.requestedCandHighLightType.iter_mut() {
+        *hl = 0;
+    }
+
+    if cell.selectedNumState == 0 {
+        let selected_count = cell
+            .selectedCandList
+            .iter()
+            .filter(|&&x| x != 0)
+            .count();
+
+        if selected_count == 2 {
+            for (cand, hl) in cell
+                .selectedCandList
+                .iter()
+                .zip(cell.requestedCandHighLightType.iter_mut())
+            {
+                if *cand != 0 {
+                    *hl = PatternList::PAIRS as u8;
+                }
+            }
+        }
+    }
+}
+
+/*
 // Check if element has exactly two candidates seletected
 #[no_mangle]
 pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx: usize) {
@@ -50,22 +100,39 @@ pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx
 
     let elem = &mut *ptr.add(idx);
 
+    // Reset highlights first
+    for hl in elem.requestedCandHighLightType.iter_mut() {
+        *hl = 0;
+    }
+
     if elem.selectedNumState == 0 {
-        if elem.selectedCandList.iter().filter(|&&x| x != 0).count() == 2 {
-            for (cand, hl) in elem
-                .selectedCandList
+       for cell in &mut elem.cells {
+            let selected_count = cell.selectedCandList
                 .iter()
-                .zip(elem.requestedCandHighLightType.iter_mut())
-            {
-                if *cand != 0 {
-                    *hl = PatternList::PAIRS as u8;
-                }
+                .filter(|&&x| x != 0)
+                .count();
+
+            if selected_count == 2 {
+
+
+                for (cand, hl) in cell
+                    .selectedCandList
+                    .iter()
+                    .zip(cell.requestedCandHighLightType.iter_mut())
+                {
+                    if *cand != 0 {
+                        *hl = PatternList::PAIRS as u8;
+                    }
+                }   
             }
+        }
+    } else {
+        // reset or leave highlights empty
+        for hl in cell.requestedCandHighLightType.iter_mut() {
+            *hl = 0;
         }
     }
 }
-
-}
-
+*/
 
 // Copyright 2025, Mirko THULKE, Versailles

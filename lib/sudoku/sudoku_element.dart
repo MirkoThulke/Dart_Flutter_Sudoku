@@ -207,6 +207,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
 
@@ -228,6 +232,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
@@ -252,6 +260,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false).writeCellToRust(
             _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+        // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+        Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
+            _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
       }
     });
   }
@@ -273,6 +285,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }

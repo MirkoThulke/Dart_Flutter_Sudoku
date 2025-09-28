@@ -329,6 +329,13 @@ Avoid putting await directly in the constructor.
   }
 
   // -------------------------------
+  // Call Rust Cell update function
+  // -------------------------------
+  void callRustCellUpdate(int r, int c, int numRows, int numCols) {
+    rustMatrix.updateCell(r, c, numRows, numCols);
+  }
+
+  // -------------------------------
   // Dispose / cleanup
   // -------------------------------
   @override

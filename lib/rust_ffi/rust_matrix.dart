@@ -182,6 +182,13 @@ typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
+typedef UpdateCellNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols, Uint8 idx);
+// Dart-friendly version
+typedef UpdateCellDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols, int idx);
+
+// Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
     Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
@@ -259,6 +266,7 @@ class RustMatrix {
   final int numCols;
 
   static late final UpdateMatrixDart _updateMatrix;
+  static late final UpdateCellDart _updateCell;
   static late final SaveDataDart _saveData;
   static late final LoadDataDart _loadData;
   static late final FreeMatrixDart _freeMatrix;
@@ -293,6 +301,9 @@ class RustMatrix {
     _updateMatrix = dylib
         .lookupFunction<UpdateMatrixNative, UpdateMatrixDart>('update_matrix');
 
+    _updateCell =
+        dylib.lookupFunction<UpdateCellNative, UpdateCellDart>('update_cell');
+
     _saveData = dylib.lookupFunction<SaveDataNative, SaveDataDart>('save_data');
 
     _loadData = dylib.lookupFunction<LoadDataNative, LoadDataDart>('load_data');
@@ -314,10 +325,23 @@ class RustMatrix {
   }
 
   // -------------------------------
-  // Call Rust update function
+  // Call Rust matrix update function
   // -------------------------------
   void update() {
     _updateMatrix(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
+  // Call Rust Cell update function
+  // -------------------------------
+  void updateCell(int row, int col, int numRows, int numCols) {
+    final idx = row * numCols + col;
+
+    assert(row < numRows, 'row exceeds maximum allowed size!');
+    assert(col < numCols, 'col exceeds maximum allowed size!');
+    assert(idx < CONST_MATRIX_ELEMENTS, 'idx exceeds maximum allowed size!');
+
+    _updateCell(ptr, numRows, numCols, idx);
   }
 
   void writeCellToRust(

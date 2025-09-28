@@ -49,7 +49,8 @@ Allocations, updates, and deallocation all compile cleanly.
 // for general tasks like FFI interface
 use std::alloc::{alloc, dealloc, Layout};
 
-use crate::process_data::checkForElementPair;
+use crate::process_data::check_for_element_pair;
+use crate::process_data::check_for_all_pairs;
 
 pub const MAX_UINT: u8 = 255;
 pub const CONST_MATRIX_SIZE: u8 = 9;
@@ -137,6 +138,29 @@ pub unsafe extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustEle
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn update_cell(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8, idx: u8) {
+    if ptr.is_null() {
+        return;
+    }
+
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+    let count = rows_usize * cols_usize;
+
+    // Check matrix size
+    assert!(count <= CONST_MATRIX_ELEMENTS as usize);
+
+    // check max. index
+    assert!((idx as usize) < count);
+
+    // Check if the element has only 2 candidates
+    check_for_element_pair(ptr, idx as usize)
+
+
+
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
@@ -157,10 +181,12 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
             assert!(idx < count);
 
             // Check if the element has only 2 candidates
-            checkForElementPair(ptr, idx)
+            check_for_all_pairs(ptr, idx)
         }
     }
 }
+
+// Add update cell function
 
 #[no_mangle]
 pub unsafe extern "C" fn free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {

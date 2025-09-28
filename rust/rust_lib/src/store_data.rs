@@ -113,8 +113,8 @@ impl From<&SerializableElement> for DartToRustElementFFI {
             .copy_from_slice(&e.selectedPatternList);
         s.requestedElementHighLightType[..e.requestedElementHighLightType.len().min(constRequestedElementHighLightTypeSize  as usize)]
             .copy_from_slice(&e.requestedElementHighLightType);
-        s.requestedCandHighLightType[..e.requestedCandHighLightType.len().min(constRequestedCandHighLightTypeSize  as usize)]
-            .copy_from_slice(&e.requestedCandHighLightType);
+        /* s.requestedCandHighLightType[..e.requestedCandHighLightType.len().min(constRequestedCandHighLightTypeSize  as usize)]
+            .copy_from_slice(&e.requestedCandHighLightType); */
 
         s
     }
@@ -188,7 +188,7 @@ pub unsafe extern "C" fn load_data(
 
                 for (dst, src) in slice.iter_mut().zip(data.elements.iter()) {
                     *dst = DartToRustElementFFI::from(src);
-                    print("RUST : Loading JSON from file.");
+                    print!("RUST : Loading JSON from file.");
                 }
 
                 0

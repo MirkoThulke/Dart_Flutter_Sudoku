@@ -1,0 +1,89 @@
+@startuml
+
+package ffi {
+
+  ' FFI struct representing a matrix element
+  class DartToRustElementFFI {
+    +row: u8
+    +col: u8
+    +selectedNumState: u8
+    +selectedCandList: [u8; 9]
+    +selectedPatternList: [u8; 5]
+    +requestedElementHighLightType: [u8; 5]
+    +requestedCandHighLightType: [u8; 9]
+    +cells: DartToRustElementFFI[]  ' nested elements for candidate checking
+  }
+
+  class Constants {
+    +MAX_UINT: u8 = 255
+    +CONST_MATRIX_SIZE: u8 = 9
+    +CONST_MATRIX_ELEMENTS: u8 = 81
+  }
+
+  class PatternList {
+    +HI_LIGHT_ON: u8 = 0
+    +PAIRS: u8 = 1
+    +MATCH_PAIRS: u8 = 2
+    +TWINS: u8 = 3
+    +USER: u8 = 4
+  }
+
+  class MatrixFunctions {
+    +create_matrix(rows: u8, cols: u8): *mut DartToRustElementFFI
+    +update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
+    +free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
+  }
+
+}
+
+package process_data {
+
+  class ProcessDataFunctions {
+    +checkForElementPair(ptr: *mut DartToRustElementFFI, idx: usize): void
+    +save_data(ptr: *const DartToRustElementFFI, rows: u8, cols: u8, path: *const c_char): c_int
+    +load_data(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8, path: *const c_char): c_int
+  }
+
+  note right of ProcessDataFunctions::checkForElementPair
+    Unsafe extern "C" function.
+    - Checks if element has exactly two candidates selected.
+    - Resets requestedCandHighLightType highlights.
+    - Uses PatternList::PAIRS for marking.
+  end note
+
+  note right of ProcessDataFunctions::save_data
+    Unsafe extern "C" function.
+    - Converts DartToRustElementFFI → SerializableElement → JSON → file.
+    - Returns integer status codes for error handling.
+  end note
+
+  note right of ProcessDataFunctions::load_data
+    Unsafe extern "C" function.
+    - Reads JSON file → SerializableElement → DartToRustElementFFI.
+    - Returns integer status codes for error handling.
+  end note
+
+  ' JSON-friendly Rust structs
+  class SerializableElement {
+    +row: u8
+    +col: u8
+    +selectedNumState: u8
+    +selectedCandList: Vec<u8>
+    +selectedPatternList: Vec<u8>
+    +requestedElementHighLightType: Vec<u8>
+    +requestedCandHighLightType: Vec<u8>
+  }
+
+  class AppData {
+    +rows: u8
+    +cols: u8
+    +elements: Vec<SerializableElement>
+  }
+
+  ' Relationships
+  ProcessDataFunctions --> DartToRustElementFFI : reads/writes
+  ProcessDataFunctions --> SerializableElement : converts
+  ProcessDataFunctions --> AppData : builds/parses JSON
+}
+
+@enduml

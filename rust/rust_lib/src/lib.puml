@@ -1,0 +1,23 @@
+@startuml
+
+package rust_lib_rs {
+  component Lib_rs
+  component StoreData_rs
+  component Ffi_rs
+  component ProcessData_rs
+}
+
+' Arrows (all references must match element names)
+Lib_rs --> Ffi_rs : uses & re-exports
+Lib_rs --> ProcessData_rs : uses
+Lib_rs --> StoreData_rs : uses
+ProcessData_rs ..> Ffi_rs : uses
+
+note right of Lib_rs
+  This module contains the FFI bindings
+  and is re-exported by lib.rs
+end note
+
+
+@enduml
+
