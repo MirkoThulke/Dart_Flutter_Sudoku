@@ -358,8 +358,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         'constIntPatternList.pairs.value exceeds maximum allowed size!');
 
     setState(() {
-      _color =
-          const Color.fromARGB(255, 255, 255, 255); // keep white by default
+      _color = const Color.fromARGB(255, 235, 252, 250); // keep  default
 
       ////////////////////////////////////////////////////////////
       // Check constIntPatternList.hiLightOn.value
@@ -394,7 +393,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           _checkCandidatePatternRequestType(
                   numCandCellToCheck, constIntPatternList.pairs.value) ==
               true) {
-        _color = const Color.fromARGB(255, 255, 251, 5);
+        _color = const Color.fromARGB(255, 118, 255, 5);
       } else {
         // do nothing, keep default color
       }
@@ -463,56 +462,58 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         });
       },
       child: Container(
-          color: Colors.blue[600],
-          alignment: Alignment.center,
-          child: !_subelementChoiceState
-              ?
-              // GridView branch
-              GridView.count(
-                  primary: true,
-                  padding: EdgeInsets.zero,
-                  crossAxisSpacing: 0,
-                  mainAxisSpacing: 0,
-                  crossAxisCount: 3,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: 1.0,
-                  children: List.generate(9, (index) {
-                    final candidateActive =
-                        _subelementlistCandidateChoice[index];
-                    final numberText = constTextNumList.values[index].text;
-                    final numberValue = constIntCandList.values[index].value;
+        color: Colors.blue[600],
+        alignment: Alignment.center,
+        child: !_subelementChoiceState
+            ?
+            // GridView branch
+            GridView.count(
+                primary: true,
+                padding: EdgeInsets.zero,
+                crossAxisSpacing: 0,
+                mainAxisSpacing: 0,
+                crossAxisCount: 3,
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.0,
+                children: List.generate(9, (index) {
+                  final candidateActive = _subelementlistCandidateChoice[index];
+                  final numberText = constTextNumList.values[index].text;
+                  final numberValue = constIntCandList.values[index].value;
 
-                    return Container(
-                      color: const Color.fromARGB(255, 235, 252, 250),
-                      alignment: Alignment.center,
-                      child: FittedBox(
-                        fit: BoxFit
-                            .fill, // fills the cell both vertically and horizontally
-                        child: Text(
-                          numberText,
-                          style: TextStyle(
-                            fontFamily: 'Impact',
-                            fontWeight: candidateActive
-                                ? FontWeight.w900
-                                : FontWeight.normal,
-                            color: candidateActive
-                                ? Colors.black
-                                : Colors.black.withOpacity(0.2),
-                            backgroundColor: candidateActive
-                                ? _getNumberBackgroundColor(numberValue)
-                                : null,
-                            fontSize: 200, // starting huge, FittedBox scales
-                            height: 1.0,
-                          ),
-                          textAlign: TextAlign.center,
+                  return Container(
+                    color: const Color.fromARGB(255, 235, 252, 250),
+                    alignment: Alignment.center,
+                    child: FittedBox(
+                      fit: BoxFit
+                          .fill, // fills the cell both vertically and horizontally
+                      child: Text(
+                        numberText,
+                        style: TextStyle(
+                          fontFamily: 'Impact',
+                          fontWeight: candidateActive
+                              ? FontWeight.w900
+                              : FontWeight.normal,
+                          color: candidateActive
+                              ? Colors.black
+                              : Colors.black.withOpacity(0.2),
+                          backgroundColor: candidateActive
+                              ? _getNumberBackgroundColor(numberValue)
+                              : null,
+                          fontSize: 200, // starting huge, FittedBox scales
+                          height: 1.0,
                         ),
+                        textAlign: TextAlign.center,
                       ),
-                    );
-                  }),
-                )
-              : Container(
-                  color: const Color.fromARGB(255, 235, 252, 250),
-                  alignment: Alignment.center,
+                    ),
+                  );
+                }),
+              )
+            : Container(
+                color: const Color.fromARGB(255, 235, 252, 250),
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      4.0), // adjust this value for more or less spacing
                   child: FittedBox(
                     fit: BoxFit.fill,
                     child: Text(
@@ -529,7 +530,9 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                       textAlign: TextAlign.center,
                     ),
                   ),
-                )),
+                ),
+              ),
+      ),
     );
   }
 }
