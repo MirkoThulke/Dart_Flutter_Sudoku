@@ -30,7 +30,6 @@
 */
 
 import 'package:flutter/material.dart'; // basics
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
 
@@ -458,78 +457,79 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       onTap: () {
         setState(() {
           _updateElementState(
-              _selectedNumberListNewData, _selectedSetResetListNewData);
+            _selectedNumberListNewData,
+            _selectedSetResetListNewData,
+          );
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(1.0),
-        color: Colors.blue[600],
-        alignment: Alignment.center,
-        child: !_subelementChoiceState
-            ? GridView.count(
-                primary: true, // no scrolling
-                padding: EdgeInsets.zero, //  const EdgeInsets.all(0.5),
-                crossAxisSpacing: 0,
-                mainAxisSpacing: 0,
-                crossAxisCount: 3,
-                physics: const NeverScrollableScrollPhysics(), // no scrolling
-                childAspectRatio: 1.0, // horizontal vs vertical aspect ratio
-                children: List.generate(9, (index) {
-                  final candidateActive = _subelementlistCandidateChoice[index];
-                  final numberText = constTextNumList.values[index].text;
-                  final numberValue = constIntCandList.values[index].value;
+          color: Colors.blue[600],
+          alignment: Alignment.center,
+          child: !_subelementChoiceState
+              ?
+              // GridView branch
+              GridView.count(
+                  primary: true,
+                  padding: EdgeInsets.zero,
+                  crossAxisSpacing: 0,
+                  mainAxisSpacing: 0,
+                  crossAxisCount: 3,
+                  physics: const NeverScrollableScrollPhysics(),
+                  childAspectRatio: 1.0,
+                  children: List.generate(9, (index) {
+                    final candidateActive =
+                        _subelementlistCandidateChoice[index];
+                    final numberText = constTextNumList.values[index].text;
+                    final numberValue = constIntCandList.values[index].value;
 
-                  return Container(
-                    alignment: Alignment.center,
-                    color: const Color.fromARGB(255, 235, 252, 250),
-                    child: FittedBox(
-                      fit: BoxFit
-                          .scaleDown, // ensures it only shrinks to fit, not stretch
-                      child: Text(
-                        numberText,
-                        textHeightBehavior: const TextHeightBehavior(
-                          applyHeightToFirstAscent: false,
-                          applyHeightToLastDescent: false,
-                        ),
-                        style: TextStyle(
-                          fontFamily: 'Impact',
-                          fontSize:
-                              1000, // deliberately HUGE; FittedBox will shrink it
-                          fontWeight: candidateActive
-                              ? FontWeight.w900
-                              : FontWeight.normal,
-                          color: candidateActive
-                              ? Colors.black
-                              : Colors.black.withOpacity(0.2),
-                          backgroundColor: candidateActive
-                              ? _getNumberBackgroundColor(numberValue)
-                              : null,
-                          height: 1.0,
+                    return Container(
+                      color: const Color.fromARGB(255, 235, 252, 250),
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit
+                            .fill, // fills the cell both vertically and horizontally
+                        child: Text(
+                          numberText,
+                          style: TextStyle(
+                            fontFamily: 'Impact',
+                            fontWeight: candidateActive
+                                ? FontWeight.w900
+                                : FontWeight.normal,
+                            color: candidateActive
+                                ? Colors.black
+                                : Colors.black.withOpacity(0.2),
+                            backgroundColor: candidateActive
+                                ? _getNumberBackgroundColor(numberValue)
+                                : null,
+                            fontSize: 200, // starting huge, FittedBox scales
+                            height: 1.0,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ),
-                  );
-                }),
-              )
-            : Container(
-                alignment: Alignment.center,
-                color: const Color.fromARGB(255, 235, 252, 250),
-                child: AutoSizeText(
-                  '$_subelementNumberChoice',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                    backgroundColor: _getNumberBackgroundColor(
-                      constIntCandList.DEFAULT.value,
+                    );
+                  }),
+                )
+              : Container(
+                  color: const Color.fromARGB(255, 235, 252, 250),
+                  alignment: Alignment.center,
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: Text(
+                      '$_subelementNumberChoice',
+                      style: TextStyle(
+                        fontFamily: 'Impact',
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        backgroundColor: _getNumberBackgroundColor(
+                            constIntCandList.DEFAULT.value),
+                        fontSize: 200,
+                        height: 1.0,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  maxLines: 1,
-                  minFontSize: 16,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-      ),
+                )),
     );
   }
 }
