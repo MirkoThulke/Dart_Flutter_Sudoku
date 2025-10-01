@@ -462,7 +462,9 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         });
       },
       child: Container(
-        color: Colors.blue[600],
+        color: const Color.fromARGB(255, 159, 203, 248),
+        width: 1, // outer line thickness
+        padding: const EdgeInsets.all(1),
         alignment: Alignment.center,
         child: !_subelementChoiceState
             ?
@@ -470,8 +472,8 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
             GridView.count(
                 primary: true,
                 padding: EdgeInsets.zero,
-                crossAxisSpacing: 0,
-                mainAxisSpacing: 0,
+                crossAxisSpacing: 0.0,
+                mainAxisSpacing: 0.0,
                 crossAxisCount: 3,
                 physics: const NeverScrollableScrollPhysics(),
                 childAspectRatio: 1.0,
