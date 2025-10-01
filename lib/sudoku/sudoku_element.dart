@@ -483,30 +483,28 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                     alignment: Alignment.center,
                     color: const Color.fromARGB(255, 235, 252, 250),
                     child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: Transform.scale(
-                        scaleY:
-                            1.05, // slightly stretch vertically to remove tiny gaps
-                        child: Text(
-                          numberText,
-                          textHeightBehavior: const TextHeightBehavior(
-                            applyHeightToFirstAscent: false,
-                            applyHeightToLastDescent: false,
-                          ),
-                          style: TextStyle(
-                            fontFamily: 'Impact',
-                            fontSize: 200,
-                            fontWeight: candidateActive
-                                ? FontWeight.w900
-                                : FontWeight.normal,
-                            color: candidateActive
-                                ? Colors.black
-                                : Colors.black.withOpacity(0.2),
-                            backgroundColor: candidateActive
-                                ? _getNumberBackgroundColor(numberValue)
-                                : null,
-                            height: 1.0,
-                          ),
+                      fit: BoxFit
+                          .scaleDown, // ensures it only shrinks to fit, not stretch
+                      child: Text(
+                        numberText,
+                        textHeightBehavior: const TextHeightBehavior(
+                          applyHeightToFirstAscent: false,
+                          applyHeightToLastDescent: false,
+                        ),
+                        style: TextStyle(
+                          fontFamily: 'Impact',
+                          fontSize:
+                              1000, // deliberately HUGE; FittedBox will shrink it
+                          fontWeight: candidateActive
+                              ? FontWeight.w900
+                              : FontWeight.normal,
+                          color: candidateActive
+                              ? Colors.black
+                              : Colors.black.withOpacity(0.2),
+                          backgroundColor: candidateActive
+                              ? _getNumberBackgroundColor(numberValue)
+                              : null,
+                          height: 1.0,
                         ),
                       ),
                     ),
