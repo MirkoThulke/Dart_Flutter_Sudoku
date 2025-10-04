@@ -84,7 +84,7 @@ typedef SelectedPatternList = List<bool>;
 typedef RequestedElementHighLightType = List<bool>;
 typedef RequestedCandHighLightType = List<int>;
 typedef SelectedUndoIconList = List<bool>;
-typedef SelectAddRemoveList = List<bool>;
+typedef SelectedAddRemoveList = List<bool>;
 
 // Hardcoded List sizes of above types
 const int constSelectedNumberListSize = CONST_MATRIX_SIZE;
@@ -94,7 +94,7 @@ const int constSelectedPatternListSize = 5;
 const int constRequestedElementHighLightTypeListSize = 5;
 const int constRequestedCandHighLightTypeListSize = CONST_MATRIX_SIZE;
 const int constSelectedUndoIconListSize = 2;
-const int constSelectAddRemoveListSize = 2;
+const int constSelectedAddRemoveListSize = 2;
 
 // constant arrays for initialisation
 const List<bool> constSelectedNumberList = [
@@ -257,7 +257,7 @@ const List<Widget> addRemoveList = <Widget>[
   Icon(Icons.remove_circle_outline),
 ];
 
-const List<bool> constSelectAddRemoveList = [false, false];
+const List<bool> constSelectedAddRemoveList = [false, false];
 
 class addRemoveListIndex {
   static const int add = 0;

@@ -83,15 +83,15 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedUndoIconList _selectedUndoIconList =
       List<bool>.from(constSelectedUndoIconList);
 
-  SelectAddRemoveList _selectAddRemoveList =
-      List<bool>.from(constSelectAddRemoveList);
+  SelectedAddRemoveList _selectedAddRemoveList =
+      List<bool>.from(constSelectedAddRemoveList);
 
   // Public getter
   SelectedNumberList get selectedNumberList => _selectedNumberList;
   SelectedSetResetList get selectedSetResetList => _selectedSetResetList;
   SelectedPatternList get selectedPatternList => _selectedPatternList;
   SelectedUndoIconList get selectedUndoIconList => _selectedUndoIconList;
-  SelectAddRemoveList get selectAddRemoveList => _selectAddRemoveList;
+  SelectedAddRemoveList get selectedAddRemoveList => _selectedAddRemoveList;
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
@@ -110,18 +110,28 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void updateDataselectAddRemoveList(
-      SelectAddRemoveList selectAddRemoveListNewData) {
-    _selectAddRemoveList = selectAddRemoveListNewData;
+  /// Updated method
+  Future<void> updateDataselectedAddRemoveList(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
 
-    if (_selectAddRemoveList[addRemoveListIndex.remove]) {
-      callRustErase();
-      readMatrixFromRust();
+    // Only do anything if the "erase" flag is set
+    if (_selectedAddRemoveList[addRemoveListIndex.remove]) {
+      // Optional: set a loading state to show spinner
+      _status = DataStatus.loading;
+      notifyListeners();
+
+      // ✅ Now async/await works
+      await callRustErase();
+      await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
     } else {
-      // do nothing
+      notifyListeners(); // still notify for other buttons
     }
-
-    notifyListeners();
   }
 
   void updateDataselectedPatternList(
@@ -323,7 +333,7 @@ Avoid putting await directly in the constructor.
   // -------------------------------
   // Full Rust → Dart update
   // -------------------------------
-  void readMatrixFromRust() {
+  Future<void> readMatrixFromRust() async {
     // Update full snapshot from Rust
     dartMatrix =
         rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
@@ -339,7 +349,7 @@ Avoid putting await directly in the constructor.
   // -------------------------------
   // Call Rust erase function
   // -------------------------------
-  void callRustErase() {
+  Future<void> callRustErase() async {
     rustMatrix.erase();
   }
 
