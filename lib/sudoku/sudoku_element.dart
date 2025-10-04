@@ -379,7 +379,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (numCandCellToCheck ==
               _numberHMI)) // Numner on HMI corresponds to Candidate Number in Cell
       {
-        _color = const Color.fromARGB(255, 5, 255, 243);
+        _color = const Color.fromARGB(255, 4, 252, 239);
       } // green highlighting
       else {
         // do nothing, keep default color
@@ -515,7 +515,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                 alignment: Alignment.center,
                 child: Padding(
                   padding: const EdgeInsets.all(
-                      4.0), // adjust this value for more or less spacing
+                      2.0), // adjust this value for more or less spacing
                   child: FittedBox(
                     fit: BoxFit.fill,
                     child: Text(

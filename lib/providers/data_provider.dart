@@ -113,6 +113,14 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   void updateDataselectAddRemoveList(
       SelectAddRemoveList selectAddRemoveListNewData) {
     _selectAddRemoveList = selectAddRemoveListNewData;
+
+    if (_selectAddRemoveList[addRemoveListIndex.remove]) {
+      callRustErase();
+      readMatrixFromRust();
+    } else {
+      // do nothing
+    }
+
     notifyListeners();
   }
 
@@ -326,6 +334,13 @@ Avoid putting await directly in the constructor.
   // -------------------------------
   void callRustUpdate() {
     rustMatrix.update();
+  }
+
+  // -------------------------------
+  // Call Rust erase function
+  // -------------------------------
+  void callRustErase() {
+    rustMatrix.erase();
   }
 
   // -------------------------------

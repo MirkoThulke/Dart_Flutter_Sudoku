@@ -42,12 +42,12 @@ class SudokuBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: const EdgeInsets.all(1), // optional spacing outside the block
+        margin: const EdgeInsets.all(0.1), // optional spacing outside the block
         decoration: BoxDecoration(
           border: Border.all(
             color: Colors.blue[
                 600]!, //  const Color.fromARGB(255, 107, 77, 243), // border color
-            width: 2, // outer line thickness
+            width: 1, // outer line thickness
           ),
         ),
         child: GridView.count(

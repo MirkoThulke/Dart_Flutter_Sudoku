@@ -30,9 +30,7 @@
 */
 
 import 'package:flutter/material.dart'; // basics
-
 import 'package:provider/provider.dart'; // data excahnge between classes
-
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
@@ -46,8 +44,50 @@ class appBarActions extends StatefulWidget {
   State<appBarActions> createState() => _appBarActions();
 }
 
+// A button with a confirmation dialog
+class SecureButton extends StatefulWidget {
+  final VoidCallback onConfirmed;
+
+  const SecureButton({super.key, required this.onConfirmed});
+
+  @override
+  State<SecureButton> createState() => _SecureButtonState();
+}
+
+class _SecureButtonState extends State<SecureButton> {
+  DateTime? _lastPressed;
+
+  void _handlePress() {
+    final now = DateTime.now();
+
+    if (_lastPressed != null &&
+        now.difference(_lastPressed!) < const Duration(milliseconds: 500)) {
+      // ✅ Second tap within 500ms → trigger secure action
+      widget.onConfirmed();
+    } else {
+      // First tap → just record the time
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tap again quickly to confirm")),
+      );
+    }
+
+    _lastPressed = now;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _handlePress,
+      child: const Text("Secure Action"),
+    );
+  }
+}
+// End of secure button
+
 class _appBarActions extends State<appBarActions> {
   SelectAddRemoveList _selectAddRemoveListNewData = <bool>[true, false];
+
+  DateTime? _lastPressed; // For secure button
 
   @override
   Widget build(BuildContext context) {
@@ -78,12 +118,27 @@ class _appBarActions extends State<appBarActions> {
           ToggleButtons(
             direction: Axis.horizontal,
             onPressed: (int index) {
-              // The button that is tapped is set to true, and the others to false.
-              for (int i = 0; i < _selectAddRemoveListNewData.length; i++) {
-                _selectAddRemoveListNewData[i] = i == index;
+              final now = DateTime.now();
+
+              // Check if second tap happened within 500ms
+              if (_lastPressed != null &&
+                  now.difference(_lastPressed!) <
+                      const Duration(milliseconds: 500)) {
+                // ✅ Perform action only after double-tap
+                for (int i = 0; i < _selectAddRemoveListNewData.length; i++) {
+                  _selectAddRemoveListNewData[i] = i == index;
+                }
+
+                Provider.of<DataProvider>(context, listen: false)
+                    .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
+              } else {
+                // First tap → just warn user
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Tap again quickly to confirm")),
+                );
               }
-              Provider.of<DataProvider>(context, listen: false)
-                  .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
+
+              _lastPressed = now;
             },
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             selectedBorderColor: Colors.blue[700],
@@ -93,8 +148,6 @@ class _appBarActions extends State<appBarActions> {
             constraints: const BoxConstraints(
               minHeight: 20.0,
               minWidth: 80.0,
-              // maxHeight: 60.0,
-              // maxWidth: SizeConfig.safeBlockHorizontal!,
             ),
             isSelected: _selectAddRemoveListNewData,
             children: addRemoveList,
