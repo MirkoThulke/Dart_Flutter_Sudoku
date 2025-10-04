@@ -85,9 +85,12 @@ class _SecureButtonState extends State<SecureButton> {
 // End of secure button
 
 class _appBarActions extends State<appBarActions> {
-  SelectAddRemoveList _selectAddRemoveListNewData = <bool>[true, false];
+  SelectedAddRemoveList _selectedAddRemoveListNewData = <bool>[true, false];
 
   DateTime? _lastPressed; // For secure button
+  Color? _iconBackgroundColorAddRemove = Colors.blue[200]; // initial color
+  bool _eraseJustConfirmed = false; // 👈 add this at class level
+  DateTime? _eraseConfirmedAt;
 
   @override
   Widget build(BuildContext context) {
@@ -117,24 +120,62 @@ class _appBarActions extends State<appBarActions> {
                   ]),
           ToggleButtons(
             direction: Axis.horizontal,
-            onPressed: (int index) {
+            onPressed: (int index) async {
               final now = DateTime.now();
 
-              // Check if second tap happened within 500ms
-              if (_lastPressed != null &&
-                  now.difference(_lastPressed!) <
-                      const Duration(milliseconds: 500)) {
-                // ✅ Perform action only after double-tap
-                for (int i = 0; i < _selectAddRemoveListNewData.length; i++) {
-                  _selectAddRemoveListNewData[i] = i == index;
+              setState(() {
+                for (int i = 0; i < _selectedAddRemoveListNewData.length; i++) {
+                  _selectedAddRemoveListNewData[i] = i == index;
                 }
+              });
 
-                Provider.of<DataProvider>(context, listen: false)
-                    .updateDataselectAddRemoveList(_selectAddRemoveListNewData);
-              } else {
-                // First tap → just warn user
+              final isRemoveSelected =
+                  _selectedAddRemoveListNewData[addRemoveListIndex.remove];
+              final isDoubleTap = _lastPressed != null &&
+                  now.difference(_lastPressed!) <
+                      const Duration(milliseconds: 500);
+
+              // 👇 prevent showing snackbar again within 2 seconds of erase
+              final recentlyErased = _eraseConfirmedAt != null &&
+                  now.difference(_eraseConfirmedAt!) <
+                      const Duration(seconds: 2);
+
+              if (isRemoveSelected && isDoubleTap && !_eraseJustConfirmed) {
+                _eraseJustConfirmed = true;
+                _eraseConfirmedAt = DateTime.now();
+
+                // Flash red
+                setState(() {
+                  _iconBackgroundColorAddRemove =
+                      const Color.fromARGB(255, 224, 15, 0);
+                });
+
+                // Perform erase
+                await Provider.of<DataProvider>(context, listen: false)
+                    .updateDataselectedAddRemoveList(
+                        _selectedAddRemoveListNewData);
+
+                // Reset to blue after 1 second (but keep cooldown)
+                Future.delayed(const Duration(seconds: 1), () {
+                  if (mounted) {
+                    setState(() {
+                      _iconBackgroundColorAddRemove = Colors.blue[200];
+                    });
+                  }
+                });
+
+                // Reset erase flag after cooldown (2s total)
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (mounted) {
+                    _eraseJustConfirmed = false;
+                  }
+                });
+              } else if (isRemoveSelected && !recentlyErased) {
+                // Show snackbar only if not recently erased
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Tap again quickly to confirm")),
+                  const SnackBar(
+                    content: Text("Tap twice quickly to confirm save / erase"),
+                  ),
                 );
               }
 
@@ -143,13 +184,13 @@ class _appBarActions extends State<appBarActions> {
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             selectedBorderColor: Colors.blue[700],
             selectedColor: Colors.white,
-            fillColor: Colors.blue[200],
+            fillColor: _iconBackgroundColorAddRemove,
             color: Colors.blue[400],
             constraints: const BoxConstraints(
               minHeight: 20.0,
               minWidth: 80.0,
             ),
-            isSelected: _selectAddRemoveListNewData,
+            isSelected: _selectedAddRemoveListNewData,
             children: addRemoveList,
           ),
           PopupMenuButton<SampleItem>(

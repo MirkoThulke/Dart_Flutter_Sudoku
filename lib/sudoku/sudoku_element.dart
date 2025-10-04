@@ -65,6 +65,9 @@ class _SudokuElementState extends State<SudokuElement> {
   SelectedUndoIconList _selectedUndoIconListNewData =
       List<bool>.from(constSelectedUndoIconList);
 
+  SelectedAddRemoveList _selectedAddRemoveListNewData =
+      List<bool>.from(constSelectedAddRemoveList);
+
   //  End HMI input variables////////////////////////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////////////////////
@@ -101,6 +104,7 @@ class _SudokuElementState extends State<SudokuElement> {
     _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
     _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
     _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
+    _selectedAddRemoveListNewData = List<bool>.from(constSelectedAddRemoveList);
     _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
     _requestedCandHighLightTypeNewData =
         List<int>.from(constRequestedCandHighLightType);
@@ -449,6 +453,8 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         Provider.of<DataProvider>(context).selectedPatternList;
     _selectedUndoIconListNewData =
         Provider.of<DataProvider>(context).selectedUndoIconList;
+    _selectedAddRemoveListNewData =
+        Provider.of<DataProvider>(context).selectedAddRemoveList;
     _requestedCandHighLightTypeNewData =
         Provider.of<DataProvider>(context).requestedCandHighLightType;
 
