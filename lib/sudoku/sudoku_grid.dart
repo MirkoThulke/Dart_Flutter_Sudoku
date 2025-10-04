@@ -117,9 +117,9 @@ class SudokuGrid extends StatelessWidget {
     return Scaffold(
       body: GridView.count(
         primary: true,
-        padding: const EdgeInsets.all(1),
-        crossAxisSpacing: 0.5,
-        mainAxisSpacing: 0.5,
+        padding: const EdgeInsets.all(0.1),
+        crossAxisSpacing: 0.1,
+        mainAxisSpacing: 0.1,
         crossAxisCount: 3,
         // physics: const NeverScrollableScrollPhysics(), // no scrolling
         childAspectRatio: 1.0, // horozontal verus vertical aspect ratio

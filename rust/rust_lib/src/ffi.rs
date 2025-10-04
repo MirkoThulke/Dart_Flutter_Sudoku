@@ -68,7 +68,6 @@ impl PatternList {
 }
 
 
-
 // Sizes as u8 for FFI
 pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
 pub const constSelectedPatternListSize: u8 = 5;
@@ -156,7 +155,40 @@ pub unsafe extern "C" fn update_cell(ptr: *mut DartToRustElementFFI, rows: u8, c
     // Check if the element has only 2 candidates
     check_for_element_pair(ptr, idx as usize)
 
+}
 
+#[no_mangle]
+pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
+    if ptr.is_null() {
+        return;
+    }
+
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+    let count = rows_usize * cols_usize;
+
+    // Check matrix size
+    assert!(count <= CONST_MATRIX_ELEMENTS as usize);
+
+    for r in 0..rows_usize {
+        for c in 0..cols_usize {
+            let idx = r * cols_usize + c;
+            
+            // check max. index
+            assert!(idx < count);
+
+            let cell = &mut *ptr.add(idx);
+            
+            // Unsafe block to write raw pointer data
+            unsafe {
+                (*cell).selectedNumState = 0;
+                (*cell).selectedCandList = constSelectedNumberList;
+                (*cell).selectedPatternList = constSelectedPatternList;
+                (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
+                (*cell).requestedCandHighLightType = constRequestedCandHighLightType;
+            }
+        }
+    }
 
 }
 
