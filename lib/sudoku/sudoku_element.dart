@@ -124,9 +124,17 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
     final dataProvider = Provider.of<DataProvider>(context);
 
+    // Initialize from JSON only once when data is ready
     if (dataProvider.status == DataStatus.ready && !_initialized) {
       _initialized = true; // ensure we only initialize once
       initializeFromJSON();
+      setState(() {}); // update the UI after local state is set
+    }
+
+    // Compare old vs new to prevent redundant rebuilds
+    if (_initialized &&
+        checkCellFromDartMirrorForNumberChange(widget.element_id)) {
+      initializeFromJSON(); // Read DartMirror
       setState(() {}); // update the UI after local state is set
     }
   }
@@ -165,6 +173,18 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
             [_pos.col];
 
     return cellElement;
+  }
+
+  // -------------------------------
+  // Return true if Cell element candidate or number from Dart Mirror has changed
+  // -------------------------------
+  bool checkCellFromDartMirrorForNumberChange(int element_id) {
+    GridPosition _pos = getRowColFromId(element_id, constSudokuNumRow);
+
+    final new_cell = returnCellFromDartMirror(widget.element_id);
+
+    return new_cell.selectedNumState != _subelementNumberChoice ||
+        new_cell.selectedCandList != _subelementlistCandidateChoice;
   }
 
 // return 0 : no number set
@@ -451,10 +471,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         Provider.of<DataProvider>(context).selectedSetResetList;
     _selectedPatternListNewData =
         Provider.of<DataProvider>(context).selectedPatternList;
-    _selectedUndoIconListNewData =
-        Provider.of<DataProvider>(context).selectedUndoIconList;
-    _selectedAddRemoveListNewData =
-        Provider.of<DataProvider>(context).selectedAddRemoveList;
+    /*_selectedUndoIconListNewData =
+        Provider.of<DataProvider>(context).selectedUndoIconList; */
+    /* _selectedAddRemoveListNewData =
+        Provider.of<DataProvider>(context).selectedAddRemoveList; */
     _requestedCandHighLightTypeNewData =
         Provider.of<DataProvider>(context).requestedCandHighLightType;
 
