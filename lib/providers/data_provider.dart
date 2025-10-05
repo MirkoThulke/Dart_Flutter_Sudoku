@@ -74,6 +74,9 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedNumberList _selectedNumberList =
       List<bool>.from(constSelectedNumberList);
 
+  SelectedNumStateList _selectedNumStateList =
+      List<bool>.from(constSelectedNumStateList);
+
   SelectedSetResetList _selectedSetResetList =
       List<bool>.from(constSelectedSetResetList);
 
@@ -88,6 +91,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
 
   // Public getter
   SelectedNumberList get selectedNumberList => _selectedNumberList;
+  SelectedNumStateList get selectedNumStateList => _selectedNumStateList;
   SelectedSetResetList get selectedSetResetList => _selectedSetResetList;
   SelectedPatternList get selectedPatternList => _selectedPatternList;
   SelectedUndoIconList get selectedUndoIconList => _selectedUndoIconList;
