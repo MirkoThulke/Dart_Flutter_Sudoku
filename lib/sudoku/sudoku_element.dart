@@ -80,6 +80,9 @@ class _SudokuElementState extends State<SudokuElement> {
 
   var _subelementNumberChoice = 0; // Init value 0
 
+  SelectedNumStateList _selectedNumStateListNewData =
+      List<bool>.from(constSelectedNumStateList);
+
   Color _numberBackGroundColor = Color(0xFFFFFFFF); // white number background
 
   SelectedCandList _subelementlistCandidateChoice =
@@ -101,6 +104,7 @@ class _SudokuElementState extends State<SudokuElement> {
     // Initialize lists from constants
     _numberBackGroundColor = Color(0xFFFFFFFF); // optional: keep default
     _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
+    _selectedNumStateListNewData = List<bool>.from(constSelectedNumStateList);
     _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
     _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
     _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
@@ -150,6 +154,9 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     // Initialize local state from JSON / DataProvider instead of constants
     _subelementNumberChoice = elementDataJSON.selectedNum;
 
+    _selectedNumStateListNewData =
+        List<bool>.from(elementDataJSON.selectedNumStateList);
+
     if (_subelementNumberChoice > 0) {
       _subelementChoiceState = true;
     } else {
@@ -184,7 +191,8 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     final new_cell = returnCellFromDartMirror(widget.element_id);
 
     return new_cell.selectedNum != _subelementNumberChoice ||
-        new_cell.selectedCandList != _subelementlistCandidateChoice;
+        new_cell.selectedCandList != _subelementlistCandidateChoice ||
+        new_cell.selectedNumStateList != _selectedNumStateListNewData;
   }
 
 // return 0 : no number set
@@ -241,26 +249,33 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     assert(number <= constSelectedCandListSize,
         'number exceeds maximum allowed size!');
 
-    setState(() {
-      _subelementChoiceState = false;
-      _subelementNumberChoice = 0;
+    // Extract col and row from unique ID
+    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
-      // Extract col and row from unique ID
-      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+    // Check if the number is a given number
+    final bool isGivenNumber = Provider.of<DataProvider>(context, listen: false)
+            .dartMatrix[_pos.row][_pos.col]
+            .selectedNumStateList[SelectedNumStateListIndex.Givens] ==
+        true;
 
-      // write into Dart Mirror
-      Provider.of<DataProvider>(context, listen: false)
-          .dartMatrix[_pos.row][_pos.col]
-          .selectedNum = 0;
+    // Only update if NOT a given number
+    if (!isGivenNumber) {
+      // Update UI-related widget state
+      setState(() {
+        _subelementChoiceState = false;
+        _subelementNumberChoice = 0;
+      });
 
-      // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+      // Update global data model (no need for setState)
+      final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      dataProvider.dartMatrix[_pos.row][_pos.col].selectedNum = 0;
+      dataProvider.writeCellToRust(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
-
-      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
-      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
+      dataProvider.callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
-    });
+    } else {
+      debugPrint('Skipped reset: cell is a given number.');
+    }
   }
 
   void _setCandidate(int number) {
@@ -427,6 +442,36 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     return _color;
   }
 
+  // Determine the color of the number based on its state, index is a optional parameter
+  Color _getNumberColor([int index = 0]) {
+    assert(
+        index >= 0 && index < 9, 'index must be between 0 and 8, got $index');
+
+    // Extract col and row from unique ID
+    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+    // Check if the number is a given number
+    final bool isGivenNumber = Provider.of<DataProvider>(context, listen: false)
+            .dartMatrix[_pos.row][_pos.col]
+            .selectedNumStateList[SelectedNumStateListIndex.Givens] ==
+        true;
+
+    // Check if the candidate is active
+    final bool candidateActive = _subelementlistCandidateChoice[index];
+
+    if (isGivenNumber)
+      return Colors.black.withOpacity(0.5); // given number = dark grey
+    // Number chosen
+    else if (_subelementChoiceState)
+      return Colors.black;
+    // Candidate chosen
+    else if (candidateActive)
+      return Colors.black;
+    // Candidate NOT chosen
+    else
+      return Colors.black.withOpacity(0.2);
+  }
+
   void _updateElementState(
       SelectedNumberList selectedNumberList, SelectedSetResetList actionlist) {
     setState(() {
@@ -467,6 +512,8 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     // receive data from data provider triggered by HMI
     _selectedNumberListNewData =
         Provider.of<DataProvider>(context).selectedNumberList;
+    _selectedNumStateListNewData =
+        Provider.of<DataProvider>(context).selectedNumStateList;
     _selectedSetResetListNewData =
         Provider.of<DataProvider>(context).selectedSetResetList;
     _selectedPatternListNewData =
@@ -521,9 +568,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                           fontWeight: candidateActive
                               ? FontWeight.w900
                               : FontWeight.normal,
-                          color: candidateActive
-                              ? Colors.black
-                              : Colors.black.withOpacity(0.2),
+                          color: _getNumberColor(index),
                           backgroundColor: candidateActive
                               ? _getNumberBackgroundColor(numberValue)
                               : null,
@@ -549,7 +594,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
                       style: TextStyle(
                         fontFamily: 'Impact',
                         fontWeight: FontWeight.w900,
-                        color: Colors.black,
+                        color: _getNumberColor(),
                         backgroundColor: _getNumberBackgroundColor(
                             constIntCandList.DEFAULT.value),
                         fontSize: 200,

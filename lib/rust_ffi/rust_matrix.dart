@@ -474,17 +474,9 @@ Scales better for larger matrices while keeping all logic in one loop.
         final cellPtr = ptr.elementAt(idx).ref;
         final dartCell = dartMatrix[r][c];
 
-        // Copy scalar values
-        cellPtr.row = dartCell.row;
-        cellPtr.col = dartCell.col;
-        cellPtr.selectedNum = dartCell.selectedNum;
-
-        // Copy arrays element by element
-        for (int i = 0; i < constSelectedNumStateListSize; i++) {
-          assert(i < constSelectedNumStateListSize,
-              'i  exceeds maximum allowed size!');
-          cellPtr.selectedNumStateList[i] =
-              boolToU8(dartCell.selectedNumStateList[i]); // Rust requirs uint8
+        if (dartCell.selectedNum > 0) {
+          cellPtr.selectedNum = dartCell.selectedNum;
+          cellPtr.selectedNumStateList[SelectedNumStateListIndex.Givens] = 1;
         }
       }
     }
@@ -542,6 +534,8 @@ Creates a 2D Dart list of DartToRustElement.
         final cellPtr = ptr.elementAt(r * numCols + c).ref;
         result[r][c] = DartToRustElement(cellPtr.row, cellPtr.col)
           ..selectedNum = cellPtr.selectedNum
+          ..selectedNumStateList = List.generate(constSelectedNumStateListSize,
+              (i) => u8ToBool(cellPtr.selectedNumStateList[i]))
           ..selectedCandList = List.generate(constSelectedCandListSize,
               (i) => u8ToBool(cellPtr.selectedCandList[i]))
           ..selectedPatternList = List.generate(constSelectedPatternListSize,
