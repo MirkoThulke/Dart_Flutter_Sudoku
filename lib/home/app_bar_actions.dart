@@ -150,7 +150,7 @@ class _appBarActions extends State<appBarActions> {
                       const Color.fromARGB(255, 224, 15, 0);
                 });
 
-                // Perform erase
+                // Perform erase via Provider Class
                 await Provider.of<DataProvider>(context, listen: false)
                     .updateDataselectedAddRemoveList(
                         _selectedAddRemoveListNewData);
