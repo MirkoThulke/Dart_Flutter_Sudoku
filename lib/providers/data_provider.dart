@@ -111,7 +111,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Updated method
-  Future<void> updateDataselectedAddRemoveList(
+  Future<void> updateDataselectedRemoveList(
       SelectedAddRemoveList selectedAddRemoveListNewData) async {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
@@ -124,6 +124,32 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       // ✅ Now async/await works
       await callRustErase();
       await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    } else {
+      notifyListeners(); // still notify for other buttons
+    }
+  }
+
+  /// Updated method
+  Future<void> updateDataselectedAddList(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    // Only do anything if the "erase" flag is set
+    if (_selectedAddRemoveList[addRemoveListIndex.add]) {
+      // Optional: set a loading state to show spinner
+      //  _status = DataStatus.loading;
+      //  notifyListeners();
+
+      writeFullMatrixToRust();
+      callRustUpdate();
+      readMatrixFromRust();
+      /* After the Rust processing update */
+      notifyListeners();
 
       // Done — update status
       _status = DataStatus.ready;

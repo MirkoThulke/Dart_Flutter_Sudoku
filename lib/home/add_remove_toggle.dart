@@ -47,6 +47,8 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
   DateTime? _lastPressed;
   DateTime? _eraseConfirmedAt;
   bool _eraseJustConfirmed = false;
+  DateTime? _savedConfirmedAt;
+  bool _savedJustConfirmed = false;
   Color? _iconColor = Colors.blue[200];
 
   @override
@@ -63,10 +65,15 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         });
 
         final isRemove = _selected[addRemoveListIndex.remove];
+        final isAdd = _selected[addRemoveListIndex.add];
+
         final isDoubleTap = _lastPressed != null &&
             now.difference(_lastPressed!) < const Duration(milliseconds: 500);
+
         final recentlyErased = _eraseConfirmedAt != null &&
             now.difference(_eraseConfirmedAt!) < const Duration(seconds: 2);
+        final recentlySaved = _savedConfirmedAt != null &&
+            now.difference(_savedConfirmedAt!) < const Duration(seconds: 2);
 
         if (isRemove && isDoubleTap && !_eraseJustConfirmed) {
           _eraseJustConfirmed = true;
@@ -75,7 +82,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
 
           await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedAddRemoveList(_selected);
+              .updateDataselectedRemoveList(_selected);
 
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) setState(() => _iconColor = Colors.blue[200]);
@@ -84,6 +91,27 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
             if (mounted) _eraseJustConfirmed = false;
           });
         } else if (isRemove && !recentlyErased) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Tap twice quickly to confirm save / erase"),
+            ),
+          );
+        } else if (isAdd && isDoubleTap && !_savedJustConfirmed) {
+          _savedJustConfirmed = true;
+          _savedConfirmedAt = DateTime.now();
+
+          setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
+
+          await Provider.of<DataProvider>(context, listen: false)
+              .updateDataselectedAddList(_selected);
+
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) setState(() => _iconColor = Colors.blue[200]);
+          });
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) _savedJustConfirmed = false;
+          });
+        } else if (isAdd && !recentlySaved) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Tap twice quickly to confirm save / erase"),
