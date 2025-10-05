@@ -148,7 +148,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         returnCellFromDartMirror(widget.element_id);
 
     // Initialize local state from JSON / DataProvider instead of constants
-    _subelementNumberChoice = elementDataJSON.selectedNumState;
+    _subelementNumberChoice = elementDataJSON.selectedNum;
 
     if (_subelementNumberChoice > 0) {
       _subelementChoiceState = true;
@@ -183,7 +183,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
     final new_cell = returnCellFromDartMirror(widget.element_id);
 
-    return new_cell.selectedNumState != _subelementNumberChoice ||
+    return new_cell.selectedNum != _subelementNumberChoice ||
         new_cell.selectedCandList != _subelementlistCandidateChoice;
   }
 
@@ -225,7 +225,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       // write into Dart Mirror
       Provider.of<DataProvider>(context, listen: false)
           .dartMatrix[_pos.row][_pos.col]
-          .selectedNumState = number;
+          .selectedNum = number;
 
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
@@ -251,7 +251,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       // write into Dart Mirror
       Provider.of<DataProvider>(context, listen: false)
           .dartMatrix[_pos.row][_pos.col]
-          .selectedNumState = 0;
+          .selectedNum = 0;
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(

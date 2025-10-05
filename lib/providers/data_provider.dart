@@ -145,7 +145,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       //  _status = DataStatus.loading;
       //  notifyListeners();
 
-      writeFullMatrixToRust();
+      writeGivensToRust();
       callRustUpdate();
       readMatrixFromRust();
       /* After the Rust processing update */
@@ -318,6 +318,15 @@ Avoid putting await directly in the constructor.
   void writeFullMatrixToRust() {
     // Write into FFI interface class
     rustMatrix.writeMatrixToRust(
+        rustMatrix.ptr, dartMatrix, rustMatrix.numRows, rustMatrix.numCols);
+  }
+
+  // -------------------------------
+  // Full Dart → Rust sync
+  // -------------------------------
+  void writeGivensToRust() {
+    // Write into FFI interface class
+    rustMatrix.writeGivensToRust(
         rustMatrix.ptr, dartMatrix, rustMatrix.numRows, rustMatrix.numCols);
   }
 
