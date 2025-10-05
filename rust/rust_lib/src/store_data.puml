@@ -6,7 +6,7 @@ package ffi {
   class DartToRustElementFFI {
     +row: u8
     +col: u8
-    +selectedNumState: u8
+    +selectedNum: u8
     +selectedCandList: [u8; 9]
     +selectedPatternList: [u8; 5]
     +requestedElementHighLightType: [u8; 5]
@@ -67,7 +67,7 @@ package process_data {
   class SerializableElement {
     +row: u8
     +col: u8
-    +selectedNumState: u8
+    +selectedNum: u8
     +selectedCandList: Vec<u8>
     +selectedPatternList: Vec<u8>
     +requestedElementHighLightType: Vec<u8>

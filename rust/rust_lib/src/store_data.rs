@@ -54,6 +54,7 @@ use crate::ffi::{DartToRustElementFFI};
 
 
 use crate::ffi::{constSelectedNumberListSize,
+constSelectedNumStateListSize,
 constSelectedPatternListSize,
 constRequestedElementHighLightTypeSize,
 constRequestedCandHighLightTypeSize};
@@ -64,7 +65,8 @@ constRequestedCandHighLightTypeSize};
 pub struct SerializableElement {
     row: u8,
     col: u8,
-    selectedNumState: u8,
+    selectedNum: u8,
+    selectedNumStateList: Vec<u8>,
     selectedCandList: Vec<u8>,
     selectedPatternList: Vec<u8>,
     requestedElementHighLightType: Vec<u8>,
@@ -86,7 +88,8 @@ impl From<&DartToRustElementFFI> for SerializableElement {
         SerializableElement {
             row: e.row,
             col: e.col,
-            selectedNumState: e.selectedNumState,
+            selectedNum: e.selectedNum,
+            selectedNumStateList: e.selectedNumStateList.to_vec(),
             selectedCandList: e.selectedCandList.to_vec(),
             selectedPatternList: e.selectedPatternList.to_vec(),
             requestedElementHighLightType: e.requestedElementHighLightType.to_vec(),
@@ -100,13 +103,15 @@ impl From<&SerializableElement> for DartToRustElementFFI {
         let mut s = DartToRustElementFFI {
             row: e.row,
             col: e.col,
-            selectedNumState: e.selectedNumState,
+            selectedNum: e.selectedNum,
+            selectedNumStateList: [0; constSelectedNumStateListSize as usize],
             selectedCandList: [0; constSelectedNumberListSize as usize],
             selectedPatternList: [0; constSelectedPatternListSize as usize],
             requestedElementHighLightType: [0; constRequestedElementHighLightTypeSize as usize],
             requestedCandHighLightType: [0; constRequestedCandHighLightTypeSize as usize ],
         };
-
+        s.selectedNumStateList[..e.selectedNumStateList.len().min(constSelectedNumStateListSize  as usize)]
+            .copy_from_slice(&e.selectedNumStateList);
         s.selectedCandList[..e.selectedCandList.len().min(constSelectedNumberListSize  as usize)]
             .copy_from_slice(&e.selectedCandList);
         s.selectedPatternList[..e.selectedPatternList.len().min(constSelectedPatternListSize  as usize)]

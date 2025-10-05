@@ -67,7 +67,7 @@ unsafe fn check_cell_for_pair(cell: &mut DartToRustElementFFI) {
         *hl = 0;
     }
 
-    if cell.selectedNumState == 0 {
+    if cell.selectedNum == 0 {
         let selected_count = cell
             .selectedCandList
             .iter()
@@ -105,7 +105,7 @@ pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx
         *hl = 0;
     }
 
-    if elem.selectedNumState == 0 {
+    if elem.selectedNum == 0 {
        for cell in &mut elem.cells {
             let selected_count = cell.selectedCandList
                 .iter()

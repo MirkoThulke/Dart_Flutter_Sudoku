@@ -70,6 +70,7 @@ impl PatternList {
 
 // Sizes as u8 for FFI
 pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
+pub const constSelectedNumStateListSize: u8 = 2;
 pub const constSelectedPatternListSize: u8 = 5;
 pub const constRequestedElementHighLightTypeSize: u8 = 5;
 pub const constRequestedCandHighLightTypeSize: u8 = CONST_MATRIX_SIZE;
@@ -80,6 +81,8 @@ pub const constPatternListOff: u8 = MAX_UINT;
 // Arrays as u8, cast length to usize for Rust
 pub const constSelectedNumberList: [u8; constSelectedNumberListSize as usize] =
     [0; constSelectedNumberListSize as usize];
+pub const constSelectedNumStateList: [u8; constSelectedNumStateListSize as usize] =
+    [0; constSelectedNumStateListSize as usize];
 pub const constSelectedPatternList: [u8; constSelectedPatternListSize as usize] =
     [0; constSelectedPatternListSize as usize];
 pub const constRequestedElementHighLightType: [u8; constRequestedElementHighLightTypeSize as usize] =
@@ -92,7 +95,8 @@ pub const constRequestedCandHighLightType: [u8; constRequestedCandHighLightTypeS
 pub struct DartToRustElementFFI {
     pub row: u8,
     pub col: u8,
-    pub selectedNumState: u8,
+    pub selectedNum: u8,
+    pub selectedNumStateList: [u8; constSelectedNumStateListSize as usize],
     pub selectedCandList: [u8; constSelectedNumberListSize as usize],
     pub selectedPatternList: [u8; constSelectedPatternListSize as usize],
     pub requestedElementHighLightType: [u8; constRequestedElementHighLightTypeSize as usize],
@@ -124,7 +128,8 @@ pub unsafe extern "C" fn create_matrix(rows: u8, cols: u8) -> *mut DartToRustEle
             unsafe {
                 (*cell).row = r as u8;
                 (*cell).col = c as u8;
-                (*cell).selectedNumState = 0;
+                (*cell).selectedNum = 0;
+                (*cell).selectedNumStateList = constSelectedNumStateList;
                 (*cell).selectedCandList = constSelectedNumberList;
                 (*cell).selectedPatternList = constSelectedPatternList;
                 (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
@@ -181,7 +186,8 @@ pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, 
             
             // Unsafe block to write raw pointer data
             unsafe {
-                (*cell).selectedNumState = 0;
+                (*cell).selectedNum = 0;
+                (*cell).selectedNumStateList = constSelectedNumStateList;
                 (*cell).selectedCandList = constSelectedNumberList;
                 (*cell).selectedPatternList = constSelectedPatternList;
                 (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
@@ -217,6 +223,7 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
         }
     }
 }
+
 
 // Add update cell function
 
