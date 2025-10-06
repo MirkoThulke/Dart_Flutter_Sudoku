@@ -160,17 +160,22 @@ enum constTextNumList {
   const constTextNumList(this.text);
 }
 
-const List<Widget> constTextNumberlist = <Widget>[
-  Text('1'),
-  Text('2'),
-  Text('3'),
-  Text('4'),
-  Text('5'),
-  Text('6'),
-  Text('7'),
-  Text('8'),
-  Text('9')
-];
+enum SudokuNumber {
+  one(1),
+  two(2),
+  three(3),
+  four(4),
+  five(5),
+  six(6),
+  seven(7),
+  eight(8),
+  nine(9);
+
+  final int value;
+  const SudokuNumber(this.value);
+
+  String get display => value.toString();
+}
 
 const List<Widget> setresetlist = <Widget>[
   Text('SetCand'),

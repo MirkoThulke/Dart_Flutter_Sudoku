@@ -407,7 +407,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (_subelementNumberChoice ==
               _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromARGB(255, 5, 255, 243);
+        _color = const Color.fromARGB(255, 4, 252, 239);
       } // highlighting on
       else if ((_selectedPatternListNewData[
                   constIntPatternList.hiLightOn.value] ==
@@ -460,10 +460,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     final bool candidateActive = _subelementlistCandidateChoice[index];
 
     if (isGivenNumber)
-      return Colors.black.withOpacity(0.5); // given number = dark grey
+      return Colors.black.withOpacity(1.0);
     // Number chosen
     else if (_subelementChoiceState)
-      return Colors.black;
+      return Colors.black.withOpacity(1.0);
     // Candidate chosen
     else if (candidateActive)
       return Colors.black;
