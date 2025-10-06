@@ -70,7 +70,7 @@ export 'package:sudoku/sudoku/sudoku_block.dart';
 export 'package:sudoku/sudoku/sudoku_element.dart';
 
 // Sudoku element widget
-export 'package:sudoku/sudoku/toggle_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons.dart';
 
 
 

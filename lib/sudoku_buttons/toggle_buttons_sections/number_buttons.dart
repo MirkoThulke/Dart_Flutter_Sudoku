@@ -30,31 +30,59 @@
 */
 
 import 'package:flutter/material.dart';
+import 'package:sudoku/utils/export.dart';
 
-import 'package:sudoku/home/selector_button.dart';
-import 'package:sudoku/home/add_remove_toggle.dart';
-import 'package:sudoku/home/sample_menu_button.dart';
-import 'package:sudoku/home/secure_button.dart';
+class NumberButtons extends StatelessWidget {
+  final bool isVertical;
+  final List<bool> selectedList;
+  final double maxWidth;
+  final ValueChanged<List<bool>> onUpdate;
 
-class AppBarActions extends StatelessWidget {
-  const AppBarActions({super.key});
+  const NumberButtons({
+    super.key,
+    required this.isVertical,
+    required this.selectedList,
+    required this.maxWidth,
+    required this.onUpdate,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // SudokuSelectorButton(),
-        //SizedBox(width: 8),
-        AddRemoveToggle(),
-        // SizedBox(width: 8),
-        // SampleMenuButton(),
-      ],
+    return ToggleButtons(
+      direction: isVertical ? Axis.vertical : Axis.horizontal,
+      onPressed: (index) {
+        final newList =
+            List<bool>.generate(selectedList.length, (i) => i == index);
+        onUpdate(newList);
+      },
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
+      selectedBorderColor: Colors.green[700],
+      selectedColor: Colors.white,
+      fillColor: Colors.green[200],
+      color: Colors.green[400],
+      constraints: BoxConstraints(
+        minHeight: maxWidth * 0.8,
+        maxHeight: maxWidth * 0.8,
+        minWidth: maxWidth,
+        maxWidth: maxWidth,
+      ),
+      isSelected: selectedList,
+      children: SudokuNumber.values
+          .map(
+            (n) => FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                n.display,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 26,
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
-
-  static void _onSecureConfirmed() {
-    // TODO: implement your action here (erase, save, etc.)
-    debugPrint("Secure button confirmed!");
-  }
 }
+
+// Copyright 2025, Mirko THULKE, Versailles
