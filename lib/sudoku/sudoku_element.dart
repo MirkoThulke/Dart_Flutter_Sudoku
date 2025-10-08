@@ -436,6 +436,19 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       } else {
         // do nothing, keep default color
       }
+
+      ////////////////////////////////////////////////////////////////////
+      // Check constIntPatternList.singles.value
+
+      if ((_selectedPatternListNewData[constIntPatternList.singles.value] ==
+              true) && // Highlighting is switched ON on HMI
+          _checkCandidatePatternRequestType(
+                  numCandCellToCheck, constIntPatternList.singles.value) ==
+              true) {
+        _color = const Color.fromARGB(175, 5, 197, 255);
+      } else {
+        // do nothing, keep default color
+      }
     });
 
     // Add FFI RUST interface call here to read data from RUST FFI (Display / Highlight color)
