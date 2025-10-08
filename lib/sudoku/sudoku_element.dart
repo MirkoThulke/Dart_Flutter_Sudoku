@@ -351,7 +351,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
             (cand_number == constIntCandList.DEFAULT.value),
         'cand_number exceeds maximum allowed size! $cand_number');
     assert(
-        (patternCandRequest <= constIntPatternList.user.value) ||
+        (patternCandRequest <= constIntPatternList.givens.value) ||
             (patternCandRequest == constIntPatternList.DEFAULT.value),
         'patternCandRequest exceeds maximum allowed size! $patternCandRequest');
     assert(widget.element_id <= 80,
@@ -407,7 +407,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (_subelementNumberChoice ==
               _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromARGB(255, 4, 252, 239);
+        _color = const Color.fromARGB(255, 4, 252, 58);
       } // highlighting on
       else if ((_selectedPatternListNewData[
                   constIntPatternList.hiLightOn.value] ==
@@ -418,7 +418,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (numCandCellToCheck ==
               _numberHMI)) // Numner on HMI corresponds to Candidate Number in Cell
       {
-        _color = const Color.fromARGB(255, 4, 252, 239);
+        _color = const Color.fromARGB(255, 4, 252, 58);
       } // green highlighting
       else {
         // do nothing, keep default color
@@ -432,7 +432,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           _checkCandidatePatternRequestType(
                   numCandCellToCheck, constIntPatternList.pairs.value) ==
               true) {
-        _color = const Color.fromARGB(255, 118, 255, 5);
+        _color = const Color.fromARGB(176, 255, 155, 5);
       } else {
         // do nothing, keep default color
       }

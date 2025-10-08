@@ -120,7 +120,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
     // Only do anything if the "erase" flag is set
-    if (_selectedAddRemoveList[addRemoveListIndex.remove]) {
+    if (_selectedAddRemoveList[addRemoveListIndex.eraseAll]) {
       // Optional: set a loading state to show spinner
       _status = DataStatus.loading;
       notifyListeners();
@@ -144,7 +144,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
     // Only do anything if the "erase" flag is set
-    if (_selectedAddRemoveList[addRemoveListIndex.add]) {
+    if (_selectedAddRemoveList[addRemoveListIndex.saveGivens]) {
       // Optional: set a loading state to show spinner
       //  _status = DataStatus.loading;
       //  notifyListeners();
@@ -359,7 +359,7 @@ Avoid putting await directly in the constructor.
           dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
       assert(
-          _patternRequest_int <= constIntPatternList.user.value ||
+          _patternRequest_int <= constIntPatternList.givens.value ||
               _patternRequest_int == constIntPatternList.DEFAULT.value,
           '_patternRequest_int exceeds maximum allowed size!');
 
