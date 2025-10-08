@@ -43,7 +43,7 @@ class AddRemoveToggle extends StatefulWidget {
 }
 
 class _AddRemoveToggleState extends State<AddRemoveToggle> {
-  SelectedAddRemoveList _selected = <bool>[true, false];
+  SelectedAddRemoveList _selected = <bool>[true, false, false, false];
   DateTime? _lastPressed;
   DateTime? _eraseConfirmedAt;
   bool _eraseJustConfirmed = false;
@@ -64,8 +64,8 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           }
         });
 
-        final isRemove = _selected[addRemoveListIndex.remove];
-        final isAdd = _selected[addRemoveListIndex.add];
+        final isEraseAll = _selected[addRemoveListIndex.eraseAll];
+        final isSaveGivens = _selected[addRemoveListIndex.saveGivens];
 
         final isDoubleTap = _lastPressed != null &&
             now.difference(_lastPressed!) < const Duration(milliseconds: 500);
@@ -75,7 +75,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         final recentlySaved = _savedConfirmedAt != null &&
             now.difference(_savedConfirmedAt!) < const Duration(seconds: 2);
 
-        if (isRemove && isDoubleTap && !_eraseJustConfirmed) {
+        if (isEraseAll && isDoubleTap && !_eraseJustConfirmed) {
           _eraseJustConfirmed = true;
           _eraseConfirmedAt = DateTime.now();
 
@@ -90,13 +90,13 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) _eraseJustConfirmed = false;
           });
-        } else if (isRemove && !recentlyErased) {
+        } else if (isEraseAll && !recentlyErased) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Tap twice quickly to confirm save / erase"),
             ),
           );
-        } else if (isAdd && isDoubleTap && !_savedJustConfirmed) {
+        } else if (isSaveGivens && isDoubleTap && !_savedJustConfirmed) {
           _savedJustConfirmed = true;
           _savedConfirmedAt = DateTime.now();
 
@@ -111,7 +111,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           Future.delayed(const Duration(seconds: 2), () {
             if (mounted) _savedJustConfirmed = false;
           });
-        } else if (isAdd && !recentlySaved) {
+        } else if (isSaveGivens && !recentlySaved) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Tap twice quickly to confirm save / erase"),

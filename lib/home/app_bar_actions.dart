@@ -31,10 +31,10 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:sudoku/home/selector_button.dart';
+//import 'package:sudoku/home/selector_button.dart';
 import 'package:sudoku/home/add_remove_toggle.dart';
-import 'package:sudoku/home/sample_menu_button.dart';
-import 'package:sudoku/home/secure_button.dart';
+//import 'package:sudoku/home/sample_menu_button.dart';
+//import 'package:sudoku/home/secure_button.dart';
 
 class AppBarActions extends StatelessWidget {
   const AppBarActions({super.key});

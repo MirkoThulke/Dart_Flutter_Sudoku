@@ -49,8 +49,8 @@ Allocations, updates, and deallocation all compile cleanly.
 // for general tasks like FFI interface
 use std::alloc::{alloc, dealloc, Layout};
 
-use crate::process_data::check_for_element_pair;
-use crate::process_data::check_for_all_pairs;
+use crate::process_data::check_one_element;
+use crate::process_data::check_all_elements;
 
 pub const MAX_UINT: u8 = 255;
 pub const CONST_MATRIX_SIZE: u8 = 9;
@@ -62,16 +62,16 @@ pub struct PatternList;
 impl PatternList {
     pub const HI_LIGHT_ON: u8 = 0;
     pub const PAIRS: u8 = 1;
-    pub const MATCH_PAIRS: u8 = 2;
-    pub const TWINS: u8 = 3;
-    pub const USER: u8 = 4;
+    pub const SINGLES: u8 = 2;
+    pub const GIVENS: u8 = 3;
+
 }
 
 
 // Sizes as u8 for FFI
 pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
 pub const constSelectedNumStateListSize: u8 = 2;
-pub const constSelectedPatternListSize: u8 = 5;
+pub const constSelectedPatternListSize: u8 = 4;
 pub const constRequestedElementHighLightTypeSize: u8 = 5;
 pub const constRequestedCandHighLightTypeSize: u8 = CONST_MATRIX_SIZE;
 
@@ -158,7 +158,7 @@ pub unsafe extern "C" fn update_cell(ptr: *mut DartToRustElementFFI, rows: u8, c
     assert!((idx as usize) < count);
 
     // Check if the element has only 2 candidates
-    check_for_element_pair(ptr, idx as usize)
+    check_one_element(ptr, idx as usize)
 
 }
 
@@ -211,18 +211,11 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
     // Check matrix size
     assert!(count <= CONST_MATRIX_ELEMENTS as usize);
 
-    for r in 0..rows_usize {
-        for c in 0..cols_usize {
-            let idx = r * cols_usize + c;
+    // ✅ Just do all elements at once
+    check_all_elements(ptr, count);
 
-            // check max. index
-            assert!(idx < count);
-
-            // Check if the element has only 2 candidates
-            check_for_all_pairs(ptr, idx)
-        }
-    }
 }
+
 
 
 // Add update cell function

@@ -23,9 +23,7 @@ package ffi {
   class PatternList {
     +HI_LIGHT_ON: u8 = 0
     +PAIRS: u8 = 1
-    +MATCH_PAIRS: u8 = 2
-    +TWINS: u8 = 3
-    +USER: u8 = 4
+    +SINGLES: u8 = 2
   }
 
   class MatrixFunctions {

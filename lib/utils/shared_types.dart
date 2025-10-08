@@ -92,11 +92,11 @@ const int constSelectedNumberListSize = CONST_MATRIX_SIZE;
 const int constSelectedNumStateListSize = 2;
 const int constSelectedCandListSize = CONST_MATRIX_SIZE;
 const int constSelectedSetResetListSize = 4;
-const int constSelectedPatternListSize = 5;
+const int constSelectedPatternListSize = 4;
 const int constRequestedElementHighLightTypeListSize = 5;
 const int constRequestedCandHighLightTypeListSize = CONST_MATRIX_SIZE;
 const int constSelectedUndoIconListSize = 2;
-const int constSelectedAddRemoveListSize = 2;
+const int constSelectedAddRemoveListSize = 4;
 
 // constant arrays for initialisation
 const List<bool> constSelectedNumberList = [
@@ -189,13 +189,11 @@ const List<bool> constSelectedSetResetList = [true, false, false, false];
 const List<Widget> patternlistButtonList = <Widget>[
   Text('HiLightOn'),
   Text('Pairs'),
-  Text('MatchPairs'),
-  Text('Twins'),
-  Text('User'),
+  Text('Singles'),
+  Text('Givens'),
 ];
 
 const List<bool> constSelectedPatternList = [
-  false,
   false,
   false,
   false,
@@ -205,24 +203,22 @@ const List<bool> constSelectedPatternList = [
 class PatternList {
   static const int hiLightOn = 0;
   static const int pairs = 1;
-  static const int matchPairs = 2;
-  static const int twins = 3;
-  static const int user = 4;
+  static const int singles = 2;
+  static const int givens = 3;
 }
 
 enum constIntPatternList {
   hiLightOn(0),
   pairs(1),
-  matchPairs(2),
-  twins(3),
-  user(4),
+  singles(2),
+  givens(3),
   DEFAULT(255);
 
   final int value;
   const constIntPatternList(this.value);
 }
 
-const int constPatternListMaxIndex = PatternList.user;
+const int constPatternListMaxIndex = PatternList.givens;
 
 // Special derived/off state
 const int constPatternListOff = MAX_UINT8;
@@ -267,31 +263,44 @@ class SelectedNumStateListIndex {
 }
 
 const List<Widget> addRemoveList = <Widget>[
+  Text('SaveGivens'),
+  Text('EraseAll'),
+  Text('ResetToGivens'),
+  Text('SelectAllCand'),
+];
+
+/*
+const List<Widget> addRemoveList = <Widget>[
   Icon(Icons.add_box_outlined),
   Icon(Icons.remove_circle_outline),
 ];
+*/
 
-const List<bool> constSelectedAddRemoveList = [false, false];
+const List<bool> constSelectedAddRemoveList = [false, false, false, false];
 
 class addRemoveListIndex {
-  static const int add = 0;
-  static const int remove = 1;
+  static const int saveGivens = 0;
+  static const int eraseAll = 1;
+  static const int resetToGivens = 2;
+  static const int selectAllCand = 3;
 }
 
 // This is the type used by the popup menu below.
 enum SudokuItem { itemOne, itemTwo, itemThree }
 
 class SudokuItemIndex {
-  static const int add = 0;
-  static const int remove = 1;
+  static const int itemOne = 0;
+  static const int itemTwo = 1;
+  static const int itemThree = 2;
 }
 
 // This is the type used by the popup menu below.
 enum SampleItem { itemOne, itemTwo, itemThree }
 
 class SampleItemIndex {
-  static const int add = 0;
-  static const int remove = 1;
+  static const int itemOne = 0;
+  static const int itemTwo = 1;
+  static const int itemThree = 2;
 }
 
 /*
