@@ -33,27 +33,30 @@ import 'package:flutter/material.dart';
 
 import 'package:sudoku/utils/shared_types.dart';
 
-class SudokuSelectorButton extends StatefulWidget {
-  const SudokuSelectorButton({super.key});
+class SampleMenuButton extends StatefulWidget {
+  const SampleMenuButton({super.key});
 
   @override
-  State<SudokuSelectorButton> createState() => _SudokuSelectorButtonState();
+  State<SampleMenuButton> createState() => _SampleMenuButtonState();
 }
 
-class _SudokuSelectorButtonState extends State<SudokuSelectorButton> {
-  SudokuItem? _selectedSudoku;
+class _SampleMenuButtonState extends State<SampleMenuButton> {
+  SampleItem? _selectedItem;
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<SudokuItem>(
-      icon: const Icon(Icons.grid_view_rounded),
-      initialValue: _selectedSudoku,
-      onSelected: (item) => setState(() => _selectedSudoku = item),
+    return PopupMenuButton<SampleItem>(
+      icon: const Icon(Icons.list_alt_rounded),
+      initialValue: _selectedItem,
+      onSelected: (item) => setState(() => _selectedItem = item),
       itemBuilder: (context) => const [
-        PopupMenuItem(value: SudokuItem.itemOne, child: Text('Sudoku 1')),
-        PopupMenuItem(value: SudokuItem.itemTwo, child: Text('Sudoku 2')),
-        PopupMenuItem(value: SudokuItem.itemThree, child: Text('Sudoku 3')),
+        PopupMenuItem(value: SampleItem.itemOne, child: Text('Item 1')),
+        PopupMenuItem(value: SampleItem.itemTwo, child: Text('Item 2')),
+        PopupMenuItem(value: SampleItem.itemThree, child: Text('Item 3')),
       ],
     );
   }
 }
+
+
+// Copyright 2025, Mirko THULKE, Versailles

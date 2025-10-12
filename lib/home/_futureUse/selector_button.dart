@@ -31,40 +31,32 @@
 
 import 'package:flutter/material.dart';
 
-class SecureButton extends StatefulWidget {
-  final VoidCallback onConfirmed;
+import 'package:sudoku/utils/shared_types.dart';
 
-  const SecureButton({super.key, required this.onConfirmed});
+class SudokuSelectorButton extends StatefulWidget {
+  const SudokuSelectorButton({super.key});
 
   @override
-  State<SecureButton> createState() => _SecureButtonState();
+  State<SudokuSelectorButton> createState() => _SudokuSelectorButtonState();
 }
 
-class _SecureButtonState extends State<SecureButton> {
-  DateTime? _lastPressed;
-
-  void _handlePress() {
-    final now = DateTime.now();
-
-    if (_lastPressed != null &&
-        now.difference(_lastPressed!) < const Duration(milliseconds: 500)) {
-      widget.onConfirmed();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tap again quickly to confirm")),
-      );
-    }
-
-    _lastPressed = now;
-  }
+class _SudokuSelectorButtonState extends State<SudokuSelectorButton> {
+  SudokuItem? _selectedSudoku;
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: _handlePress,
-      child: const Text("Secure Action"),
+    return PopupMenuButton<SudokuItem>(
+      icon: const Icon(Icons.grid_view_rounded),
+      initialValue: _selectedSudoku,
+      onSelected: (item) => setState(() => _selectedSudoku = item),
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: SudokuItem.itemOne, child: Text('Sudoku 1')),
+        PopupMenuItem(value: SudokuItem.itemTwo, child: Text('Sudoku 2')),
+        PopupMenuItem(value: SudokuItem.itemThree, child: Text('Sudoku 3')),
+      ],
     );
   }
 }
+
 
 // Copyright 2025, Mirko THULKE, Versailles

@@ -29,31 +29,52 @@
 # -----------------------------------------------------------------------------
 */
 
+// lib/widgets/top_action_buttons.dart
 import 'package:flutter/material.dart';
 
-import 'package:sudoku/utils/shared_types.dart';
-
-class SampleMenuButton extends StatefulWidget {
-  const SampleMenuButton({super.key});
-
-  @override
-  State<SampleMenuButton> createState() => _SampleMenuButtonState();
-}
-
-class _SampleMenuButtonState extends State<SampleMenuButton> {
-  SampleItem? _selectedItem;
+class TopActionButtons extends StatelessWidget {
+  const TopActionButtons({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<SampleItem>(
-      icon: const Icon(Icons.list_alt_rounded),
-      initialValue: _selectedItem,
-      onSelected: (item) => setState(() => _selectedItem = item),
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: SampleItem.itemOne, child: Text('Item 1')),
-        PopupMenuItem(value: SampleItem.itemTwo, child: Text('Item 2')),
-        PopupMenuItem(value: SampleItem.itemThree, child: Text('Item 3')),
-      ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.amber),
+              tooltip: 'App Info',
+              onPressed: () {
+                showAboutDialog(
+                  context: context,
+                  applicationName: 'Tulli Sudoku',
+                  applicationVersion: '1.0.0',
+                  children: const [Text('Created by Mirko')],
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.help_outline, color: Colors.blue),
+              tooltip: 'Help',
+              onPressed: () {
+                // Help logic
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.power_settings_new, color: Colors.red),
+              tooltip: 'Exit',
+              onPressed: () {
+                // Shutdown logic
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
+// Copyright 2025, Mirko THULKE, Versailles

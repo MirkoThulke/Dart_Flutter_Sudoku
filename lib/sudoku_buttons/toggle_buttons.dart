@@ -53,67 +53,103 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
       List<bool>.from(constSelectedSetResetList);
   SelectedPatternList _selectedPatternList =
       List<bool>.from(constSelectedPatternList);
-  SelectedUndoIconList _selectedUndoIconList =
-      List<bool>.from(constSelectedUndoIconList);
 
-  double selectedNumberListWidthMax = 0.0;
   final bool _vertical = false;
 
   @override
   Widget build(BuildContext context) {
-    selectedNumberListWidthMax = SizeConfig.safeBlockHorizontal! *
-        0.9 /
-        max(1, _selectedNumberList.length);
-    Logger.root.level = Level.ALL;
-    log.info('selectedNumberListWidthMax: $selectedNumberListWidthMax');
+    SizeConfig().init(context);
+
+    // Total HMI area height
+    final double appHmiHeightTotal =
+        SizeConfig.safeBlockHMIGridVertical ?? 180.0;
+
+    // Spacing between rows
+    final double topSpacing = max((appHmiHeightTotal * 0.15), 12.0);
+    final double spacing = max((appHmiHeightTotal * 0.1), 8.0);
+    final double bottomSpacing = max((appHmiHeightTotal * 0.2), 16.0);
+
+    // Number of rows
+    const int rowCount = 3;
+
+    // Calculate each row's height, accounting for spacing
+    final double rowHeightAdjusted = (appHmiHeightTotal -
+            spacing * (rowCount - 1) -
+            bottomSpacing -
+            topSpacing) /
+        rowCount;
+
+    // Max width per number button
+    final double selectedNumberListWidthMax =
+        (SizeConfig.safeBlockHorizontal ?? 400.0) *
+            0.9 /
+            max(1, _selectedNumberList.length);
 
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 40),
-              SetResetButtons(
-                isVertical: _vertical,
-                selectedList: _selectedSetResetList,
-                onUpdate: (list) {
-                  setState(() => _selectedSetResetList = list);
-                  Provider.of<DataProvider>(context, listen: false)
-                      .updateDataselectedSetResetList(list);
-                },
+              SizedBox(height: topSpacing),
+              // Set / Reset Buttons
+              SizedBox(
+                width: double.infinity, // full width to allow centering
+                height: rowHeightAdjusted,
+                child: Center(
+                  child: SetResetButtons(
+                    isVertical: _vertical,
+                    selectedList: _selectedSetResetList,
+                    onUpdate: (list) {
+                      setState(() => _selectedSetResetList = list);
+                      Provider.of<DataProvider>(context, listen: false)
+                          .updateDataselectedSetResetList(list);
+                    },
+                  ),
+                ),
               ),
-              /* const SizedBox(height: 5),
-              UndoIconButtons(
-                isVertical: _vertical,
-                selectedList: _selectedUndoIconList,
-                onUpdate: (list) {
-                  setState(() => _selectedUndoIconList = list);
-                  Provider.of<DataProvider>(context, listen: false)
-                      .updateDataselectedUndoIconList(list);
-                },
-              ),*/
-              const SizedBox(height: 40),
-              NumberButtons(
-                isVertical: _vertical,
-                selectedList: _selectedNumberList,
-                maxWidth: selectedNumberListWidthMax,
-                onUpdate: (list) {
-                  setState(() => _selectedNumberList = list);
-                  Provider.of<DataProvider>(context, listen: false)
-                      .updateDataNumberlist(list);
-                },
+
+              SizedBox(height: spacing),
+
+              // Number Buttons
+              SizedBox(
+                width: double.infinity, // full width to allow centering
+                height: rowHeightAdjusted,
+                child: Center(
+                  child: NumberButtons(
+                    isVertical: _vertical,
+                    selectedList: _selectedNumberList,
+                    maxWidth: selectedNumberListWidthMax,
+                    onUpdate: (list) {
+                      setState(() => _selectedNumberList = list);
+                      Provider.of<DataProvider>(context, listen: false)
+                          .updateDataNumberlist(list);
+                    },
+                  ),
+                ),
               ),
-              const SizedBox(height: 40),
-              PatternButtons(
-                isVertical: _vertical,
-                selectedList: _selectedPatternList,
-                onUpdate: (list) {
-                  setState(() => _selectedPatternList = list);
-                  Provider.of<DataProvider>(context, listen: false)
-                      .updateDataselectedPatternList(list);
-                },
+
+              SizedBox(height: spacing),
+
+              // Pattern Buttons
+              SizedBox(
+                width: double.infinity, // full width to allow centering
+                height: rowHeightAdjusted,
+                child: Center(
+                  child: PatternButtons(
+                    isVertical: _vertical,
+                    selectedList: _selectedPatternList,
+                    onUpdate: (list) {
+                      setState(() => _selectedPatternList = list);
+                      Provider.of<DataProvider>(context, listen: false)
+                          .updateDataselectedPatternList(list);
+                    },
+                  ),
+                ),
               ),
+              SizedBox(height: spacing),
             ],
           ),
         ),

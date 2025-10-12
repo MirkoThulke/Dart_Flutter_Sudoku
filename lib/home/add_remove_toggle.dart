@@ -124,9 +124,9 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
       borderRadius: const BorderRadius.all(Radius.circular(8)),
       selectedBorderColor: Colors.blue[700],
       selectedColor: Colors.white,
+      constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
       fillColor: _iconColor,
       color: Colors.blue[400],
-      constraints: const BoxConstraints(minHeight: 20.0, minWidth: 80.0),
       isSelected: _selected,
       children: addRemoveList,
     );

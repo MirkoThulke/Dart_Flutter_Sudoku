@@ -30,31 +30,50 @@
 */
 
 import 'package:flutter/material.dart';
-
-//import 'package:sudoku/home/selector_button.dart';
 import 'package:sudoku/home/add_remove_toggle.dart';
-//import 'package:sudoku/home/sample_menu_button.dart';
-//import 'package:sudoku/home/secure_button.dart';
+import 'package:sudoku/home/top_action_buttons.dart';
+import 'package:sudoku/utils/size_config.dart';
 
-class AppBarActions extends StatelessWidget {
-  const AppBarActions({super.key});
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CustomAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // SudokuSelectorButton(),
-        //SizedBox(width: 8),
-        AddRemoveToggle(),
-        // SizedBox(width: 8),
-        // SampleMenuButton(),
-      ],
+    // ✅ Fallback height if SizeConfig hasn't initialized yet
+    final appBarHeight = SizeConfig.safeBlockAppBarGridVertical ?? 56.0;
+    final appBarWidth = SizeConfig.safeBlockAppBarGridHorizontal ?? 56.0;
+
+    return Material(
+      color: Colors.white, // AppBar background
+      elevation: 4,
+      child: SafeArea(
+        bottom: false, // avoids extra bottom padding inside AppBar
+        child: SizedBox(
+          height: appBarHeight,
+          width: appBarWidth,
+          // ✅ Center everything horizontally
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              TopActionButtons(),
+              SizedBox(height: 4),
+              AddRemoveToggle(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  static void _onSecureConfirmed() {
-    // TODO: implement your action here (erase, save, etc.)
-    debugPrint("Secure button confirmed!");
+  @override
+  Size get preferredSize {
+    final double height = (SizeConfig.safeBlockAppBarGridVertical != null &&
+            SizeConfig.safeBlockAppBarGridVertical!.isFinite)
+        ? SizeConfig.safeBlockAppBarGridVertical!
+        : 56.0;
+
+    return Size.fromHeight(height);
   }
 }

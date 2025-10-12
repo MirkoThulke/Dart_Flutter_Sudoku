@@ -73,31 +73,18 @@ class SizeConfig {
     safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
     safeBlockVertical = (screenHeight! - _safeAreaVertical!);
 
-// App screen space repartition in pixel :
-
-// 5 percent height for AppBar, but not smaller than 20 logical pixel but smaller than aprox. 1 cm .
-    safeBlockAppBarGridVertical = max(min(safeBlockVertical! * 0.05, 20.0), 40);
+    safeBlockAppBarGridVertical = safeBlockVertical! * 0.2;
 
 // Sudokugrid shall extend to the minimum of screen width / height,
 // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
-// Height not smaller than aprox. 2cm
-
-    if (safeBlockVertical! > safeBlockHorizontal!) {
-      safeBlockSudokuGridVertical =
-          min(safeBlockHorizontal!, safeBlockVertical! * 0.75);
-    } else {
-      safeBlockSudokuGridVertical = safeBlockVertical! * 0.75;
-    }
 
     safeBlockSudokuGridVertical =
         min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
 
 // HMI height shall take the remaining space
-    safeBlockHMIGridVertical = min(
-        (safeBlockVertical! -
-            safeBlockSudokuGridVertical! -
-            safeBlockAppBarGridVertical!),
-        80.0); // Not smaller than aprox. 2cm
+    safeBlockHMIGridVertical = (safeBlockVertical! -
+        safeBlockSudokuGridVertical! -
+        safeBlockAppBarGridVertical!);
 
     safeBlockAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
     safeBlockHMIGridHorizontal = safeBlockHorizontal!; // width of screen
