@@ -472,8 +472,16 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     // Check if the candidate is active
     final bool candidateActive = _subelementlistCandidateChoice[index];
 
-    if (isGivenNumber)
-      return Colors.black.withOpacity(1.0);
+    if (isGivenNumber) {
+      if (_selectedPatternListNewData[constIntPatternList.givens.value] ==
+          true) {
+        // highlighting on for given numbers
+        return Color.fromARGB(255, 96, 41, 248);
+      } else {
+        // do nothing, keep default color
+        return Colors.black.withOpacity(1.0);
+      }
+    }
     // Number chosen
     else if (_subelementChoiceState)
       return Colors.black.withOpacity(1.0);
