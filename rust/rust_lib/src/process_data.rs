@@ -36,34 +36,68 @@ use crate::ffi::{CONST_MATRIX_ELEMENTS};
 
 use crate::ffi::{PatternList};
 
-
-
-
-// Check if element has exactly two candidates seletected
 #[no_mangle]
-pub unsafe extern "C" fn checkForElementPair(ptr: *mut DartToRustElementFFI, idx: usize) {
+pub unsafe extern "C" fn check_all_elements(ptr: *mut DartToRustElementFFI, len: usize) {
+    if ptr.is_null() {
+        return;
+    }
+
+    for i in 0..len {
+        let cell = &mut *ptr.add(i);
+        check_cell_for_patterns(cell);
+    }
+}
+
+
+#[no_mangle]
+pub unsafe extern "C" fn check_one_element(ptr: *mut DartToRustElementFFI, idx: usize) {
     if ptr.is_null() {
         return;
     }
 
     assert!(idx < CONST_MATRIX_ELEMENTS as usize);
 
-    let elem = &mut *ptr.add(idx);
+    let cell = &mut *ptr.add(idx);
+    check_cell_for_patterns(cell);
+}
 
-    if elem.selectedNumState == 0 {
-        if elem.selectedCandList.iter().copied().sum::<u8>() == 2 {
-            for (cand, hl) in elem
+unsafe fn check_cell_for_patterns(cell: &mut DartToRustElementFFI) {
+    // Reset highlights first
+    for hl in cell.requestedCandHighLightType.iter_mut() {
+        *hl = 0;
+    }
+
+    if cell.selectedNum == 0 {
+        let selected_count = cell
+            .selectedCandList
+            .iter()
+            .filter(|&&x| x != 0)
+            .count();
+
+        if selected_count == 2 {
+            for (cand, hl) in cell
                 .selectedCandList
                 .iter()
-                .zip(elem.requestedCandHighLightType.iter_mut())
+                .zip(cell.requestedCandHighLightType.iter_mut())
             {
                 if *cand != 0 {
                     *hl = PatternList::PAIRS as u8;
                 }
             }
         }
-    }    
+        else if selected_count == 1 {
+            for (cand, hl) in cell
+                .selectedCandList
+                .iter()
+                .zip(cell.requestedCandHighLightType.iter_mut())
+            {
+                if *cand != 0 {
+                    *hl = PatternList::SINGLES as u8;
+                }
+            }
 
+        }
+    }
 }
 
 

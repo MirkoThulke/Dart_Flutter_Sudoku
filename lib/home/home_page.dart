@@ -33,6 +33,7 @@ import 'package:flutter/material.dart'; // basics
 
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
+import 'package:sudoku/home/app_bar_actions.dart';
 
 ////////////////////////////////////////////////////////////
 // Homepage screen . This is the overall root screen
@@ -48,7 +49,7 @@ class MyHomePage extends StatelessWidget {
           toolbarHeight: SizeConfig.safeBlockAppBarGridVertical!, // 5 percent
           title: const Text('Tulli Sudoku'),
           // Top bar button list is defined is seperate class
-          actions: [appBarActions()]),
+          actions: [AppBarActions()]),
       // _appBarActions
       body: Column(
         mainAxisAlignment:

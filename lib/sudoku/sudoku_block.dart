@@ -42,19 +42,19 @@ class SudokuBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: const EdgeInsets.all(1), // optional spacing outside the block
+        margin: const EdgeInsets.all(0.1), // optional spacing outside the block
         decoration: BoxDecoration(
           border: Border.all(
             color: Colors.blue[
                 600]!, //  const Color.fromARGB(255, 107, 77, 243), // border color
-            width: 3, // outer line thickness
+            width: 1, // outer line thickness
           ),
         ),
         child: GridView.count(
           primary: true,
           padding: EdgeInsets.zero, // const EdgeInsets.all(1),
-          crossAxisSpacing: 0,
-          mainAxisSpacing: 0,
+          crossAxisSpacing: 0.5,
+          mainAxisSpacing: 0.5,
           crossAxisCount: 3,
           physics: const NeverScrollableScrollPhysics(), // prevents scrolling
           childAspectRatio: 1.0,
