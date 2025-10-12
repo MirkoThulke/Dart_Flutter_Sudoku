@@ -74,6 +74,9 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedNumberList _selectedNumberList =
       List<bool>.from(constSelectedNumberList);
 
+  SelectedNumStateList _selectedNumStateList =
+      List<bool>.from(constSelectedNumStateList);
+
   SelectedSetResetList _selectedSetResetList =
       List<bool>.from(constSelectedSetResetList);
 
@@ -83,15 +86,16 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedUndoIconList _selectedUndoIconList =
       List<bool>.from(constSelectedUndoIconList);
 
-  SelectAddRemoveList _selectAddRemoveList =
-      List<bool>.from(constSelectAddRemoveList);
+  SelectedAddRemoveList _selectedAddRemoveList =
+      List<bool>.from(constSelectedAddRemoveList);
 
   // Public getter
   SelectedNumberList get selectedNumberList => _selectedNumberList;
+  SelectedNumStateList get selectedNumStateList => _selectedNumStateList;
   SelectedSetResetList get selectedSetResetList => _selectedSetResetList;
   SelectedPatternList get selectedPatternList => _selectedPatternList;
   SelectedUndoIconList get selectedUndoIconList => _selectedUndoIconList;
-  SelectAddRemoveList get selectAddRemoveList => _selectAddRemoveList;
+  SelectedAddRemoveList get selectedAddRemoveList => _selectedAddRemoveList;
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;
@@ -110,10 +114,54 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
-  void updateDataselectAddRemoveList(
-      SelectAddRemoveList selectAddRemoveListNewData) {
-    _selectAddRemoveList = selectAddRemoveListNewData;
-    notifyListeners();
+  /// Updated method
+  Future<void> updateDataselectedRemoveList(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    // Only do anything if the "erase" flag is set
+    if (_selectedAddRemoveList[addRemoveListIndex.eraseAll]) {
+      // Optional: set a loading state to show spinner
+      _status = DataStatus.loading;
+      notifyListeners();
+
+      // ✅ Now async/await works
+      await callRustErase();
+      await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    } else {
+      notifyListeners(); // still notify for other buttons
+    }
+  }
+
+  /// Updated method
+  Future<void> updateDataselectedAddList(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    // Only do anything if the "erase" flag is set
+    if (_selectedAddRemoveList[addRemoveListIndex.saveGivens]) {
+      // Optional: set a loading state to show spinner
+      //  _status = DataStatus.loading;
+      //  notifyListeners();
+
+      writeGivensToRust();
+      callRustUpdate();
+      readMatrixFromRust();
+      /* After the Rust processing update */
+      notifyListeners();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    } else {
+      notifyListeners(); // still notify for other buttons
+    }
   }
 
   void updateDataselectedPatternList(
@@ -278,6 +326,15 @@ Avoid putting await directly in the constructor.
   }
 
   // -------------------------------
+  // Full Dart → Rust sync
+  // -------------------------------
+  void writeGivensToRust() {
+    // Write into FFI interface class
+    rustMatrix.writeGivensToRust(
+        rustMatrix.ptr, dartMatrix, rustMatrix.numRows, rustMatrix.numCols);
+  }
+
+  // -------------------------------
   // Single-cell Rust → Dart update
   // -------------------------------
   void readCellFromRust(int r, int c, int numRows, int numCols) {
@@ -302,7 +359,7 @@ Avoid putting await directly in the constructor.
           dartMatrix[r][c].requestedCandHighLightType[cand - 1];
 
       assert(
-          _patternRequest_int <= constIntPatternList.user.value ||
+          _patternRequest_int <= constIntPatternList.givens.value ||
               _patternRequest_int == constIntPatternList.DEFAULT.value,
           '_patternRequest_int exceeds maximum allowed size!');
 
@@ -315,7 +372,7 @@ Avoid putting await directly in the constructor.
   // -------------------------------
   // Full Rust → Dart update
   // -------------------------------
-  void readMatrixFromRust() {
+  Future<void> readMatrixFromRust() async {
     // Update full snapshot from Rust
     dartMatrix =
         rustMatrix.readMatrixFromRust(rustMatrix.numRows, rustMatrix.numCols);
@@ -326,6 +383,20 @@ Avoid putting await directly in the constructor.
   // -------------------------------
   void callRustUpdate() {
     rustMatrix.update();
+  }
+
+  // -------------------------------
+  // Call Rust erase function
+  // -------------------------------
+  Future<void> callRustErase() async {
+    rustMatrix.erase();
+  }
+
+  // -------------------------------
+  // Call Rust Cell update function
+  // -------------------------------
+  void callRustCellUpdate(int r, int c, int numRows, int numCols) {
+    rustMatrix.updateCell(r, c, numRows, numCols);
   }
 
   // -------------------------------

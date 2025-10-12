@@ -31,30 +31,29 @@
 
 import 'package:flutter/material.dart';
 
-//import 'package:sudoku/home/selector_button.dart';
-import 'package:sudoku/home/add_remove_toggle.dart';
-//import 'package:sudoku/home/sample_menu_button.dart';
-//import 'package:sudoku/home/secure_button.dart';
+import 'package:sudoku/utils/shared_types.dart';
 
-class AppBarActions extends StatelessWidget {
-  const AppBarActions({super.key});
+class SampleMenuButton extends StatefulWidget {
+  const SampleMenuButton({super.key});
+
+  @override
+  State<SampleMenuButton> createState() => _SampleMenuButtonState();
+}
+
+class _SampleMenuButtonState extends State<SampleMenuButton> {
+  SampleItem? _selectedItem;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // SudokuSelectorButton(),
-        //SizedBox(width: 8),
-        AddRemoveToggle(),
-        // SizedBox(width: 8),
-        // SampleMenuButton(),
+    return PopupMenuButton<SampleItem>(
+      icon: const Icon(Icons.list_alt_rounded),
+      initialValue: _selectedItem,
+      onSelected: (item) => setState(() => _selectedItem = item),
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: SampleItem.itemOne, child: Text('Item 1')),
+        PopupMenuItem(value: SampleItem.itemTwo, child: Text('Item 2')),
+        PopupMenuItem(value: SampleItem.itemThree, child: Text('Item 3')),
       ],
     );
-  }
-
-  static void _onSecureConfirmed() {
-    // TODO: implement your action here (erase, save, etc.)
-    debugPrint("Secure button confirmed!");
   }
 }

@@ -67,7 +67,7 @@ final Logger _logger = Logger('RustMatrixLogger');
 /// class Cell {
 /// + int row
 /// + int col
-/// + int selectedNumState
+/// + int selectedNum
 /// + selectedCandState : bool[9]
 /// + highLightCandRequest: bool[9]
 /// + highLightTypeRequest: bool[constSelectedPatternListSize]
@@ -79,7 +79,7 @@ final Logger _logger = Logger('RustMatrixLogger');
 /// note right of Cell::col
 ///   collumn number
 /// end note
-/// note right of Cell::selectedNumState
+/// note right of Cell::selectedNum
 ///   selected final number choice for this cell: [1...9]
 ///   [0] : no number set
 /// end note
@@ -106,7 +106,10 @@ final class DartToRustElementFFI extends Struct {
   external int col;
 
   @Uint8()
-  external int selectedNumState;
+  external int selectedNum;
+
+  @Array(constSelectedNumStateListSize)
+  external Array<Uint8> selectedNumStateList;
 
   @Array(constSelectedNumberListSize)
   external Array<Uint8> selectedCandList;
@@ -132,7 +135,10 @@ class DartToRustElement {
   final int col;
 
   // Final element number chosen
-  int selectedNumState = 0; // no number set
+  int selectedNum = 0; // no number set
+  // Given numbers are stored
+  SelectedNumStateList selectedNumStateList =
+      List.from(constSelectedNumStateList);
   // Candidates which are chosen
   SelectedCandList selectedCandList = List.from(constSelectedCandList);
   // User pattern display request
@@ -153,7 +159,8 @@ class DartToRustElement {
     return 'DartToRustElement('
         'row=$row, '
         'col=$col, '
-        'selectedNumState=$selectedNumState, '
+        'selectedNum=$selectedNum, '
+        'selectedNumStateList=$selectedNumStateList, '
         'selectedCandList=$selectedCandList, '
         'selectedPatternList=$selectedPatternList, '
         'requestedElementHighLightType=$requestedElementHighLightType'
@@ -180,6 +187,20 @@ typedef UpdateMatrixNative = Void Function(
 // Dart-friendly version
 typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
+typedef EraseMatrixNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
+// Dart-friendly version
+typedef EraseMatrixDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
+typedef UpdateCellNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols, Uint8 idx);
+// Dart-friendly version
+typedef UpdateCellDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols, int idx);
 
 // Matches the exact C/Rust function signature
 typedef FreeMatrixNative = Void Function(
@@ -259,6 +280,8 @@ class RustMatrix {
   final int numCols;
 
   static late final UpdateMatrixDart _updateMatrix;
+  static late final EraseMatrixDart _eraseMatrix;
+  static late final UpdateCellDart _updateCell;
   static late final SaveDataDart _saveData;
   static late final LoadDataDart _loadData;
   static late final FreeMatrixDart _freeMatrix;
@@ -293,6 +316,12 @@ class RustMatrix {
     _updateMatrix = dylib
         .lookupFunction<UpdateMatrixNative, UpdateMatrixDart>('update_matrix');
 
+    _eraseMatrix = dylib
+        .lookupFunction<EraseMatrixNative, EraseMatrixDart>('erase_matrix');
+
+    _updateCell =
+        dylib.lookupFunction<UpdateCellNative, UpdateCellDart>('update_cell');
+
     _saveData = dylib.lookupFunction<SaveDataNative, SaveDataDart>('save_data');
 
     _loadData = dylib.lookupFunction<LoadDataNative, LoadDataDart>('load_data');
@@ -314,10 +343,30 @@ class RustMatrix {
   }
 
   // -------------------------------
-  // Call Rust update function
+  // Call Rust matrix update function
   // -------------------------------
   void update() {
     _updateMatrix(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
+  // Call Rust matrix erase function
+  // -------------------------------
+  void erase() {
+    _eraseMatrix(ptr, numRows, numCols);
+  }
+
+  // -------------------------------
+  // Call Rust Cell update function
+  // -------------------------------
+  void updateCell(int row, int col, int numRows, int numCols) {
+    final idx = row * numCols + col;
+
+    assert(row < numRows, 'row exceeds maximum allowed size!');
+    assert(col < numCols, 'col exceeds maximum allowed size!');
+    assert(idx < CONST_MATRIX_ELEMENTS, 'idx exceeds maximum allowed size!');
+
+    _updateCell(ptr, numRows, numCols, idx);
   }
 
   void writeCellToRust(
@@ -339,7 +388,7 @@ class RustMatrix {
     // Copy scalar values
     cellPtr.row = dartCell.row;
     cellPtr.col = dartCell.col;
-    cellPtr.selectedNumState = dartCell.selectedNumState;
+    cellPtr.selectedNum = dartCell.selectedNum;
 
     // Copy arrays element by element
     for (int i = 0; i < constSelectedCandListSize; i++) {
@@ -387,7 +436,7 @@ Scales better for larger matrices while keeping all logic in one loop.
         // Copy scalar values
         cellPtr.row = dartCell.row;
         cellPtr.col = dartCell.col;
-        cellPtr.selectedNumState = dartCell.selectedNumState;
+        cellPtr.selectedNum = dartCell.selectedNum;
 
         // Copy arrays element by element
         for (int i = 0; i < constSelectedCandListSize; i++) {
@@ -411,6 +460,28 @@ Scales better for larger matrices while keeping all logic in one loop.
     }
   }
 
+  // Write the intial Givens numbers into Rust. The numbers that come with the sudokku quiz
+  void writeGivensToRust(
+    Pointer<DartToRustElementFFI> ptr,
+    List<List<DartToRustElement>> dartMatrix,
+    int numRows,
+    int numCols,
+  ) {
+    // Flatten the matrix for direct pointer indexing
+    for (int r = 0; r < numRows; r++) {
+      for (int c = 0; c < numCols; c++) {
+        final idx = r * numCols + c;
+        final cellPtr = ptr.elementAt(idx).ref;
+        final dartCell = dartMatrix[r][c];
+
+        if (dartCell.selectedNum > 0) {
+          cellPtr.selectedNum = dartCell.selectedNum;
+          cellPtr.selectedNumStateList[SelectedNumStateListIndex.Givens] = 1;
+        }
+      }
+    }
+  }
+
   // -------------------------------
   // Read a single cell from Rust into Dart
   // -------------------------------
@@ -422,7 +493,7 @@ Scales better for larger matrices while keeping all logic in one loop.
 
     final cellPtr = ptr.elementAt(idx).ref;
     return DartToRustElement(cellPtr.row, cellPtr.col)
-      ..selectedNumState = cellPtr.selectedNumState
+      ..selectedNum = cellPtr.selectedNum
       ..selectedCandList = List.generate(constSelectedCandListSize,
           (i) => u8ToBool(cellPtr.selectedCandList[i]))
       ..selectedPatternList = List.generate(constSelectedPatternListSize,
@@ -462,7 +533,9 @@ Creates a 2D Dart list of DartToRustElement.
       for (int c = 0; c < numCols; c++) {
         final cellPtr = ptr.elementAt(r * numCols + c).ref;
         result[r][c] = DartToRustElement(cellPtr.row, cellPtr.col)
-          ..selectedNumState = cellPtr.selectedNumState
+          ..selectedNum = cellPtr.selectedNum
+          ..selectedNumStateList = List.generate(constSelectedNumStateListSize,
+              (i) => u8ToBool(cellPtr.selectedNumStateList[i]))
           ..selectedCandList = List.generate(constSelectedCandListSize,
               (i) => u8ToBool(cellPtr.selectedCandList[i]))
           ..selectedPatternList = List.generate(constSelectedPatternListSize,
@@ -536,12 +609,11 @@ Creates a 2D Dart list of DartToRustElement.
       for (int c = 0; c < numCols; c++) {
         final cell = readCellFromRust(
             r, c, numRows, numCols); // returns DartToRustElement
-        numRowstr += '(${cell.row},${cell.col}=${cell.selectedNumState}) ';
+        numRowstr += '(${cell.row},${cell.col}=${cell.selectedNum}) ';
       }
       _logger.fine(numRowstr); // use 'fine' for debug-level messages
     }
   }
 }
-
 
 // Copyright 2025, Mirko THULKE, Versailles

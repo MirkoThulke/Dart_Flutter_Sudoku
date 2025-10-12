@@ -30,7 +30,6 @@
 */
 
 import 'package:flutter/material.dart'; // basics
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
 
@@ -66,6 +65,9 @@ class _SudokuElementState extends State<SudokuElement> {
   SelectedUndoIconList _selectedUndoIconListNewData =
       List<bool>.from(constSelectedUndoIconList);
 
+  SelectedAddRemoveList _selectedAddRemoveListNewData =
+      List<bool>.from(constSelectedAddRemoveList);
+
   //  End HMI input variables////////////////////////////////////////////////////////////////////////
 
   /////////////////////////////////////////////////////////////////////
@@ -77,6 +79,9 @@ class _SudokuElementState extends State<SudokuElement> {
   bool _subelementChoiceState = false; // No choice made
 
   var _subelementNumberChoice = 0; // Init value 0
+
+  SelectedNumStateList _selectedNumStateListNewData =
+      List<bool>.from(constSelectedNumStateList);
 
   Color _numberBackGroundColor = Color(0xFFFFFFFF); // white number background
 
@@ -99,9 +104,11 @@ class _SudokuElementState extends State<SudokuElement> {
     // Initialize lists from constants
     _numberBackGroundColor = Color(0xFFFFFFFF); // optional: keep default
     _selectedNumberListNewData = List<bool>.from(constSelectedNumberList);
+    _selectedNumStateListNewData = List<bool>.from(constSelectedNumStateList);
     _selectedSetResetListNewData = List<bool>.from(constSelectedSetResetList);
     _selectedPatternListNewData = List<bool>.from(constSelectedPatternList);
     _selectedUndoIconListNewData = List<bool>.from(constSelectedUndoIconList);
+    _selectedAddRemoveListNewData = List<bool>.from(constSelectedAddRemoveList);
     _subelementlistCandidateChoice = List<bool>.from(constSelectedCandList);
     _requestedCandHighLightTypeNewData =
         List<int>.from(constRequestedCandHighLightType);
@@ -121,9 +128,17 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
     final dataProvider = Provider.of<DataProvider>(context);
 
+    // Initialize from JSON only once when data is ready
     if (dataProvider.status == DataStatus.ready && !_initialized) {
       _initialized = true; // ensure we only initialize once
       initializeFromJSON();
+      setState(() {}); // update the UI after local state is set
+    }
+
+    // Compare old vs new to prevent redundant rebuilds
+    if (_initialized &&
+        checkCellFromDartMirrorForNumberChange(widget.element_id)) {
+      initializeFromJSON(); // Read DartMirror
       setState(() {}); // update the UI after local state is set
     }
   }
@@ -137,7 +152,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         returnCellFromDartMirror(widget.element_id);
 
     // Initialize local state from JSON / DataProvider instead of constants
-    _subelementNumberChoice = elementDataJSON.selectedNumState;
+    _subelementNumberChoice = elementDataJSON.selectedNum;
+
+    _selectedNumStateListNewData =
+        List<bool>.from(elementDataJSON.selectedNumStateList);
 
     if (_subelementNumberChoice > 0) {
       _subelementChoiceState = true;
@@ -162,6 +180,19 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
             [_pos.col];
 
     return cellElement;
+  }
+
+  // -------------------------------
+  // Return true if Cell element candidate or number from Dart Mirror has changed
+  // -------------------------------
+  bool checkCellFromDartMirrorForNumberChange(int element_id) {
+    GridPosition _pos = getRowColFromId(element_id, constSudokuNumRow);
+
+    final new_cell = returnCellFromDartMirror(widget.element_id);
+
+    return new_cell.selectedNum != _subelementNumberChoice ||
+        new_cell.selectedCandList != _subelementlistCandidateChoice ||
+        new_cell.selectedNumStateList != _selectedNumStateListNewData;
   }
 
 // return 0 : no number set
@@ -202,10 +233,14 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       // write into Dart Mirror
       Provider.of<DataProvider>(context, listen: false)
           .dartMatrix[_pos.row][_pos.col]
-          .selectedNumState = number;
+          .selectedNum = number;
 
       // FFI RUST interface call  to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
@@ -214,22 +249,33 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     assert(number <= constSelectedCandListSize,
         'number exceeds maximum allowed size!');
 
-    setState(() {
-      _subelementChoiceState = false;
-      _subelementNumberChoice = 0;
+    // Extract col and row from unique ID
+    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
 
-      // Extract col and row from unique ID
-      GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+    // Check if the number is a given number
+    final bool isGivenNumber = Provider.of<DataProvider>(context, listen: false)
+            .dartMatrix[_pos.row][_pos.col]
+            .selectedNumStateList[SelectedNumStateListIndex.Givens] ==
+        true;
 
-      // write into Dart Mirror
-      Provider.of<DataProvider>(context, listen: false)
-          .dartMatrix[_pos.row][_pos.col]
-          .selectedNumState = 0;
+    // Only update if NOT a given number
+    if (!isGivenNumber) {
+      // Update UI-related widget state
+      setState(() {
+        _subelementChoiceState = false;
+        _subelementNumberChoice = 0;
+      });
 
-      // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
-      Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+      // Update global data model (no need for setState)
+      final dataProvider = Provider.of<DataProvider>(context, listen: false);
+      dataProvider.dartMatrix[_pos.row][_pos.col].selectedNum = 0;
+      dataProvider.writeCellToRust(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
-    });
+      dataProvider.callRustCellUpdate(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+    } else {
+      debugPrint('Skipped reset: cell is a given number.');
+    }
   }
 
   void _setCandidate(int number) {
@@ -252,6 +298,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         //  FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
         Provider.of<DataProvider>(context, listen: false).writeCellToRust(
             _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+        // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+        Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
+            _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
       }
     });
   }
@@ -273,6 +323,10 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
       // FFI RUST interface call to write data to RUST FFI (Number and candidate choices)
       Provider.of<DataProvider>(context, listen: false).writeCellToRust(
+          _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
+
+      // FFI RUST interface Cell update call to update the highlight patterns in the Rust memory
+      Provider.of<DataProvider>(context, listen: false).callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     });
   }
@@ -297,7 +351,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
             (cand_number == constIntCandList.DEFAULT.value),
         'cand_number exceeds maximum allowed size! $cand_number');
     assert(
-        (patternCandRequest <= constIntPatternList.user.value) ||
+        (patternCandRequest <= constIntPatternList.givens.value) ||
             (patternCandRequest == constIntPatternList.DEFAULT.value),
         'patternCandRequest exceeds maximum allowed size! $patternCandRequest');
     assert(widget.element_id <= 80,
@@ -343,8 +397,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         'constIntPatternList.pairs.value exceeds maximum allowed size!');
 
     setState(() {
-      _color =
-          const Color.fromARGB(255, 255, 255, 255); // keep white by default
+      _color = const Color.fromARGB(255, 235, 252, 250); // keep  default
 
       ////////////////////////////////////////////////////////////
       // Check constIntPatternList.hiLightOn.value
@@ -354,7 +407,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (_subelementNumberChoice ==
               _numberHMI)) // Numner on HMI corresponds to Number in Grid
       {
-        _color = const Color.fromARGB(255, 5, 255, 243);
+        _color = const Color.fromARGB(255, 4, 252, 58);
       } // highlighting on
       else if ((_selectedPatternListNewData[
                   constIntPatternList.hiLightOn.value] ==
@@ -365,7 +418,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           (numCandCellToCheck ==
               _numberHMI)) // Numner on HMI corresponds to Candidate Number in Cell
       {
-        _color = const Color.fromARGB(255, 5, 255, 243);
+        _color = const Color.fromARGB(255, 4, 252, 58);
       } // green highlighting
       else {
         // do nothing, keep default color
@@ -379,7 +432,20 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
           _checkCandidatePatternRequestType(
                   numCandCellToCheck, constIntPatternList.pairs.value) ==
               true) {
-        _color = const Color.fromARGB(255, 255, 251, 5);
+        _color = const Color.fromARGB(176, 255, 155, 5);
+      } else {
+        // do nothing, keep default color
+      }
+
+      ////////////////////////////////////////////////////////////////////
+      // Check constIntPatternList.singles.value
+
+      if ((_selectedPatternListNewData[constIntPatternList.singles.value] ==
+              true) && // Highlighting is switched ON on HMI
+          _checkCandidatePatternRequestType(
+                  numCandCellToCheck, constIntPatternList.singles.value) ==
+              true) {
+        _color = const Color.fromARGB(175, 5, 197, 255);
       } else {
         // do nothing, keep default color
       }
@@ -387,6 +453,36 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
 
     // Add FFI RUST interface call here to read data from RUST FFI (Display / Highlight color)
     return _color;
+  }
+
+  // Determine the color of the number based on its state, index is a optional parameter
+  Color _getNumberColor([int index = 0]) {
+    assert(
+        index >= 0 && index < 9, 'index must be between 0 and 8, got $index');
+
+    // Extract col and row from unique ID
+    GridPosition _pos = getRowColFromId(widget.element_id, constSudokuNumRow);
+
+    // Check if the number is a given number
+    final bool isGivenNumber = Provider.of<DataProvider>(context, listen: false)
+            .dartMatrix[_pos.row][_pos.col]
+            .selectedNumStateList[SelectedNumStateListIndex.Givens] ==
+        true;
+
+    // Check if the candidate is active
+    final bool candidateActive = _subelementlistCandidateChoice[index];
+
+    if (isGivenNumber)
+      return Colors.black.withOpacity(1.0);
+    // Number chosen
+    else if (_subelementChoiceState)
+      return Colors.black.withOpacity(1.0);
+    // Candidate chosen
+    else if (candidateActive)
+      return Colors.black;
+    // Candidate NOT chosen
+    else
+      return Colors.black.withOpacity(0.2);
   }
 
   void _updateElementState(
@@ -429,12 +525,16 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
     // receive data from data provider triggered by HMI
     _selectedNumberListNewData =
         Provider.of<DataProvider>(context).selectedNumberList;
+    _selectedNumStateListNewData =
+        Provider.of<DataProvider>(context).selectedNumStateList;
     _selectedSetResetListNewData =
         Provider.of<DataProvider>(context).selectedSetResetList;
     _selectedPatternListNewData =
         Provider.of<DataProvider>(context).selectedPatternList;
-    _selectedUndoIconListNewData =
-        Provider.of<DataProvider>(context).selectedUndoIconList;
+    /*_selectedUndoIconListNewData =
+        Provider.of<DataProvider>(context).selectedUndoIconList; */
+    /* _selectedAddRemoveListNewData =
+        Provider.of<DataProvider>(context).selectedAddRemoveList; */
     _requestedCandHighLightTypeNewData =
         Provider.of<DataProvider>(context).requestedCandHighLightType;
 
@@ -442,67 +542,80 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       onTap: () {
         setState(() {
           _updateElementState(
-              _selectedNumberListNewData, _selectedSetResetListNewData);
+            _selectedNumberListNewData,
+            _selectedSetResetListNewData,
+          );
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(1.0),
-        color: Colors.blue[600],
+        color: const Color.fromARGB(255, 159, 203, 248),
+        width: 1, // outer line thickness
+        padding: const EdgeInsets.all(1),
         alignment: Alignment.center,
         child: !_subelementChoiceState
-            ? GridView.count(
-                primary: true, // no scrolling
-                padding: EdgeInsets.zero, //  const EdgeInsets.all(0.5),
-                crossAxisSpacing: 0,
-                mainAxisSpacing: 0,
+            ?
+            // GridView branch
+            GridView.count(
+                primary: true,
+                padding: EdgeInsets.zero,
+                crossAxisSpacing: 0.0,
+                mainAxisSpacing: 0.0,
                 crossAxisCount: 3,
-                physics: const NeverScrollableScrollPhysics(), // no scrolling
-                childAspectRatio: 1.0, // horizontal vs vertical aspect ratio
+                physics: const NeverScrollableScrollPhysics(),
+                childAspectRatio: 1.0,
                 children: List.generate(9, (index) {
                   final candidateActive = _subelementlistCandidateChoice[index];
                   final numberText = constTextNumList.values[index].text;
                   final numberValue = constIntCandList.values[index].value;
 
                   return Container(
-                    alignment: Alignment.center,
                     color: const Color.fromARGB(255, 235, 252, 250),
+                    alignment: Alignment.center,
                     child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.center,
+                      fit: BoxFit
+                          .fill, // fills the cell both vertically and horizontally
                       child: Text(
                         numberText,
                         style: TextStyle(
-                          color: candidateActive
-                              ? Colors.black
-                              : Colors.black.withOpacity(0.2),
-                          backgroundColor: candidateActive
-                              ? _getNumberBackgroundColor(numberValue)
-                              : null,
+                          fontFamily: 'Impact',
                           fontWeight: candidateActive
                               ? FontWeight.w900
                               : FontWeight.normal,
+                          color: _getNumberColor(index),
+                          backgroundColor: candidateActive
+                              ? _getNumberBackgroundColor(numberValue)
+                              : null,
+                          fontSize: 200, // starting huge, FittedBox scales
+                          height: 1.0,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   );
                 }),
               )
             : Container(
-                alignment: Alignment.center,
                 color: const Color.fromARGB(255, 235, 252, 250),
-                child: AutoSizeText(
-                  '$_subelementNumberChoice',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                    backgroundColor: _getNumberBackgroundColor(
-                      constIntCandList.DEFAULT.value,
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(
+                      2.0), // adjust this value for more or less spacing
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: Text(
+                      '$_subelementNumberChoice',
+                      style: TextStyle(
+                        fontFamily: 'Impact',
+                        fontWeight: FontWeight.w900,
+                        color: _getNumberColor(),
+                        backgroundColor: _getNumberBackgroundColor(
+                            constIntCandList.DEFAULT.value),
+                        fontSize: 200,
+                        height: 1.0,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                  maxLines: 1,
-                  minFontSize: 16,
-                  textAlign: TextAlign.center,
                 ),
               ),
       ),
