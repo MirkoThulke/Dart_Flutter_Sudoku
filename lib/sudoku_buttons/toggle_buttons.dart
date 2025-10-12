@@ -83,16 +83,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                       .updateDataselectedSetResetList(list);
                 },
               ),
-              const SizedBox(height: 40),
-              PatternButtons(
-                isVertical: _vertical,
-                selectedList: _selectedPatternList,
-                onUpdate: (list) {
-                  setState(() => _selectedPatternList = list);
-                  Provider.of<DataProvider>(context, listen: false)
-                      .updateDataselectedPatternList(list);
-                },
-              ),
               /* const SizedBox(height: 5),
               UndoIconButtons(
                 isVertical: _vertical,
@@ -112,6 +102,16 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   setState(() => _selectedNumberList = list);
                   Provider.of<DataProvider>(context, listen: false)
                       .updateDataNumberlist(list);
+                },
+              ),
+              const SizedBox(height: 40),
+              PatternButtons(
+                isVertical: _vertical,
+                selectedList: _selectedPatternList,
+                onUpdate: (list) {
+                  setState(() => _selectedPatternList = list);
+                  Provider.of<DataProvider>(context, listen: false)
+                      .updateDataselectedPatternList(list);
                 },
               ),
             ],
