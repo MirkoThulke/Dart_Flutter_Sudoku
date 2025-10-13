@@ -36,8 +36,30 @@ import 'package:sudoku/utils/export.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-
+import 'dart:io';
 import 'package:flutter/services.dart';
+
+Future<void> shutdownApp(BuildContext context) async {
+  final dataProvider = Provider.of<DataProvider>(context, listen: false);
+
+  try {
+    // 🧹 Perform full cleanup and save synchronously or awaited
+    await dataProvider.shutdown(); // make sure it's async-safe
+  } catch (e) {
+    // Optional: handle save error safely
+    print('Error during shutdown: $e');
+  }
+
+  // 🕑 Give a small delay to ensure FFI writes finish
+  await Future.delayed(const Duration(milliseconds: 300));
+
+  // 🚪 Close the app properly
+  if (Platform.isAndroid) {
+    SystemNavigator.pop(); // gracefully close
+  } else {
+    exit(0); // for desktop/debug
+  }
+}
 
 class TopActionButtons extends StatelessWidget {
   const TopActionButtons({super.key});
@@ -83,15 +105,8 @@ class TopActionButtons extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.power_settings_new, color: Colors.red),
               tooltip: 'Exit',
-              onPressed: () {
-                // Shutdown logic
-                final dataProvider =
-                    Provider.of<DataProvider>(context, listen: false);
-
-                dataProvider.shutdown(); // manually trigger cleanup
-                // THEN close the app:
-                SystemNavigator.pop(); // for Android
-                // or exit(0); // for desktop/debug only — not recommended for production
+              onPressed: () async {
+                await shutdownApp(context);
               },
             ),
           ],

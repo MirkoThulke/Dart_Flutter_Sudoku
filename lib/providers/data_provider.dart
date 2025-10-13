@@ -400,7 +400,7 @@ Avoid putting await directly in the constructor.
     rustMatrix.updateCell(r, c, numRows, numCols);
   }
 
-  void shutdown() {
+  Future<void> shutdown() async {
     // 1. Save Rust data to JSON
     rustMatrix.saveToJSON(appJsonPath); // call your Rust FFI save function
 
