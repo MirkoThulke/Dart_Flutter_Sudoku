@@ -32,12 +32,12 @@
 /////////////////////////////////////
 // Use this class to handle the overall dimension of the app content depending on the actual screen size
 
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
+
 import 'package:flutter/material.dart'; // basics
 import 'dart:math'; // basics
 import 'package:logging/logging.dart'; // logging
-
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
 
 class SizeConfig {
   static MediaQueryData? _mediaQueryData;

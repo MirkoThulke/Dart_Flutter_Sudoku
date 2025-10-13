@@ -56,9 +56,10 @@ export 'package:sudoku/app.dart';
 
 // homepage
 export 'package:sudoku/home/home_page.dart';
-
-// App top bar hmi
+export 'package:sudoku/home/add_remove_toggle.dart';
 export 'package:sudoku/home/app_bar_actions.dart';
+export 'package:sudoku/home/secure_button.dart';
+export 'package:sudoku/home/top_action_buttons.dart';
 
 // Sudoku Gridd widget
 export 'package:sudoku/sudoku/sudoku_grid.dart';
@@ -71,6 +72,10 @@ export 'package:sudoku/sudoku/sudoku_element.dart';
 
 // Sudoku element widget
 export 'package:sudoku/sudoku_buttons/toggle_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/number_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/pattern_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/set_reset_buttons.dart';
+
 
 
 

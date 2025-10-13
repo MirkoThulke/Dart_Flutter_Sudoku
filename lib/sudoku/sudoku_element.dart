@@ -28,13 +28,12 @@
 #
 # -----------------------------------------------------------------------------
 */
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
 
 import 'package:flutter/material.dart'; // basics
 import 'package:provider/provider.dart'; // data excahnge between classes
 import 'package:logging/logging.dart'; // logging
-
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
 
 //////////////////////////////////////////////////////////////////////////
 /// Sudoku grid element

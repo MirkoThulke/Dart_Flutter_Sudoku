@@ -28,12 +28,12 @@
 #
 # -----------------------------------------------------------------------------
 */
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
 
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:sudoku/providers/data_provider.dart';
-import 'package:sudoku/utils/shared_types.dart';
+import 'package:flutter/material.dart';
 
 class AddRemoveToggle extends StatefulWidget {
   const AddRemoveToggle({super.key});

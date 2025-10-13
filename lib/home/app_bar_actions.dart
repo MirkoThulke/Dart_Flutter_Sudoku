@@ -29,10 +29,10 @@
 # -----------------------------------------------------------------------------
 */
 
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
+
 import 'package:flutter/material.dart';
-import 'package:sudoku/home/add_remove_toggle.dart';
-import 'package:sudoku/home/top_action_buttons.dart';
-import 'package:sudoku/utils/size_config.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({super.key});

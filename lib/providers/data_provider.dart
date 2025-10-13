@@ -28,6 +28,10 @@
 #
 # -----------------------------------------------------------------------------
 */
+
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
+
 import 'package:flutter/widgets.dart';
 
 import 'dart:io'; // to persist data on local storage
@@ -38,9 +42,6 @@ import 'dart:ffi';
 import 'package:path_provider/path_provider.dart';
 
 import 'dart:async';
-
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
 
 /// @startuml
 /// class DataProvider {
@@ -399,12 +400,7 @@ Avoid putting await directly in the constructor.
     rustMatrix.updateCell(r, c, numRows, numCols);
   }
 
-  // -------------------------------
-  // Dispose / cleanup
-  // -------------------------------
-  @override
-  // is automatically called by ChangeNotifierProvider
-  void dispose() {
+  void shutdown() {
     // 1. Save Rust data to JSON
     rustMatrix.saveToJSON(appJsonPath); // call your Rust FFI save function
 
@@ -413,6 +409,15 @@ Avoid putting await directly in the constructor.
 
     // Remove observer to avoid leaks
     WidgetsBinding.instance.removeObserver(this);
+  }
+
+  // -------------------------------
+  // Dispose / cleanup
+  // -------------------------------
+  @override
+  // is automatically called by ChangeNotifierProvider
+  void dispose() {
+    shutdown(); // ensures it’s also done on normal widget disposal
 
     super.dispose();
   }

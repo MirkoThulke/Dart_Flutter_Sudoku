@@ -28,9 +28,10 @@
 #
 # -----------------------------------------------------------------------------
 */
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
 
 import 'package:flutter/material.dart';
-import 'package:sudoku/utils/export.dart';
 
 class SetResetButtons extends StatelessWidget {
   final bool isVertical;

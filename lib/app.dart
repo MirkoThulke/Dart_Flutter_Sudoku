@@ -29,10 +29,10 @@
 # -----------------------------------------------------------------------------
 */
 
-import 'package:flutter/material.dart'; // basics
-
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
+
+import 'package:flutter/material.dart'; // basics
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
