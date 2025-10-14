@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: ryu-af34e3ab11eef914.d
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\x86_64-linux-android\release\deps\ryu-af34e3ab11eef914.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\buffer\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\common.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s_full_table.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s_intrinsics.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\digit_table.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\f2s.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\f2s_intrinsics.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\exponent.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\mantissa.rs
 
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\x86_64-linux-android\release\deps\libryu-af34e3ab11eef914.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\buffer\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\common.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s_full_table.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\d2s_intrinsics.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\digit_table.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\f2s.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\f2s_intrinsics.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\exponent.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ryu-1.0.20\src\pretty\mantissa.rs

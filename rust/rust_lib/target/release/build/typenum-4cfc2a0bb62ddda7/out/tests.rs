@@ -1,3 +1,12 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: tests.rs
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
 
 use typenum::*;
 use core::ops::*;

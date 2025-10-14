@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: lib.rs
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 /*
 # -----------------------------------------------------------------------------
 # Author: MIRKO THULKE 
@@ -38,4 +48,5 @@ mod store_data;
 pub use ffi::*;
 
 
-// Copyright 2025, Mirko THULKE, Versailles
+// Copyright (c) 2025, MIRKO THULKE. All rights reserved.
+// See LICENSE file in the project root for details.

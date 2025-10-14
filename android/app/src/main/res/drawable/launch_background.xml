@@ -1,3 +1,13 @@
+<!-- 
+ This is the default license template.
+ 
+ File: launch_background.xml
+ Author: M
+ Copyright (c) 2024-2025 M
+ 
+ To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ -->
+
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Modify this file to customize your launch splash screen -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">

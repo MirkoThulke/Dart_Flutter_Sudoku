@@ -1,3 +1,13 @@
+<!-- 
+ This is the default license template.
+ 
+ File: styles.xml
+ Author: M
+ Copyright (c) 2024-2025 M
+ 
+ To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ -->
+
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is on -->

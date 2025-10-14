@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: quote-a15298fbe576d3c6.d
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\release\deps\quote-a15298fbe576d3c6.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\ext.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\format.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\ident_fragment.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\to_tokens.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\runtime.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\spanned.rs
 
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\release\deps\libquote-a15298fbe576d3c6.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\ext.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\format.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\ident_fragment.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\to_tokens.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\runtime.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\quote-1.0.40\src\spanned.rs

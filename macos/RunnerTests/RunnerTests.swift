@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: RunnerTests.swift
+ *  Author: M
+ *  Copyright (c) 2024-2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 import Cocoa
 import FlutterMacOS
 import XCTest

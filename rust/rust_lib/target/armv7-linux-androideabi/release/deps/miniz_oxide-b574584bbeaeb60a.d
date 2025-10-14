@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: miniz_oxide-b574584bbeaeb60a.d
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\miniz_oxide-b574584bbeaeb60a.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\core.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\output_buffer.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\stream.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\shared.rs
 
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\libminiz_oxide-b574584bbeaeb60a.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\core.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\output_buffer.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\inflate\stream.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\miniz_oxide-0.8.9\src\shared.rs

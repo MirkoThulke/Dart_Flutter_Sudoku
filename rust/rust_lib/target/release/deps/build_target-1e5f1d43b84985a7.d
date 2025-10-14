@@ -1,3 +1,13 @@
+/* 
+ *  This is the default license template.
+ *  
+ *  File: build_target-1e5f1d43b84985a7.d
+ *  Author: M
+ *  Copyright (c) 2025 M
+ *  
+ *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
+ */
+
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\release\deps\build_target-1e5f1d43b84985a7.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\arch.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\env.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\os.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\family.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\target.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\profile.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\utils.rs
 
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\release\deps\libbuild_target-1e5f1d43b84985a7.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\arch.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\env.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\os.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\family.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\target.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\profile.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\build-target-0.4.0\src\utils.rs
