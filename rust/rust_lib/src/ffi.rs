@@ -65,6 +65,12 @@ impl PatternList {
 
 }
 
+pub struct NumStateListIndex;
+
+impl NumStateListIndex {
+    pub const GIVENS: u8 = 0;
+    pub const FUTUREUSE: u8 = 1;
+}
 
 // Sizes as u8 for FFI
 pub const constSelectedNumberListSize: u8 = CONST_MATRIX_SIZE;
@@ -161,7 +167,7 @@ pub unsafe extern "C" fn update_cell(ptr: *mut DartToRustElementFFI, rows: u8, c
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
+pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8, erase_givens: u8) {
     if ptr.is_null() {
         return;
     }
@@ -184,17 +190,40 @@ pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, 
             
             // Unsafe block to write raw pointer data
             unsafe {
-                (*cell).selectedNum = 0;
-                (*cell).selectedNumStateList = constSelectedNumStateList;
-                (*cell).selectedCandList = constSelectedNumberList;
-                (*cell).selectedPatternList = constSelectedPatternList;
-                (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
-                (*cell).requestedCandHighLightType = constRequestedCandHighLightType;
+                if erase_givens > 0  {
+                    // erase givens
+                    (*cell).selectedNum = 0;
+                    (*cell).selectedNumStateList = constSelectedNumStateList;
+                    (*cell).selectedCandList = constSelectedNumberList;
+                    (*cell).selectedPatternList = constSelectedPatternList;
+                    (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
+                    (*cell).requestedCandHighLightType = constRequestedCandHighLightType;
+                }
+                else if erase_givens == 0{
+                    // do not erase givens
+                    if (*cell).selectedNumStateList[NumStateListIndex::GIVENS] == 0 {
+                        // Not a given, erase
+                        (*cell).selectedNum = 0;
+                        (*cell).selectedNumStateList = constSelectedNumStateList;
+                        
+                    }
+
+                    // Always erase candidates and highlights
+                    (*cell).selectedCandList = constSelectedNumberList;
+                    (*cell).selectedPatternList = constSelectedPatternList;
+                    (*cell).requestedElementHighLightType = constRequestedElementHighLightType;
+                    (*cell).requestedCandHighLightType = constRequestedCandHighLightType;
+
+                }
+                else {
+                    // do nothing
+                }
             }
         }
     }
 
 }
+
 
 #[no_mangle]
 pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {

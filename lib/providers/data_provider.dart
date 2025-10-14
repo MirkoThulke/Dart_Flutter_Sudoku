@@ -125,7 +125,19 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
 
       // ✅ Now async/await works
-      await callRustErase();
+      await callRustEraseAll();
+      await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    } else if (_selectedAddRemoveList[addRemoveListIndex.resetToGivens]) {
+      // Optional: set a loading state to show spinner
+      _status = DataStatus.loading;
+      notifyListeners();
+
+      await callRustResetToGivens();
       await readMatrixFromRust();
 
       // Done — update status
@@ -385,10 +397,17 @@ Avoid putting await directly in the constructor.
   }
 
   // -------------------------------
-  // Call Rust erase function
+  // Call Rust erase function to erase all cells
   // -------------------------------
-  Future<void> callRustErase() async {
-    rustMatrix.erase();
+  Future<void> callRustEraseAll() async {
+    rustMatrix.erase(true);
+  }
+
+  // -------------------------------
+  // Call Rust erase function to erase all except givens
+  // -------------------------------
+  Future<void> callRustResetToGivens() async {
+    rustMatrix.erase(false);
   }
 
   // -------------------------------

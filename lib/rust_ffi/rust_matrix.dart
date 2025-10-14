@@ -187,11 +187,11 @@ typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
-typedef EraseMatrixNative = Void Function(
-    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
+typedef EraseMatrixNative = Void Function(Pointer<DartToRustElementFFI> ptr,
+    Uint8 numRows, Uint8 numCols, Uint8 eraseGivens);
 // Dart-friendly version
-typedef EraseMatrixDart = void Function(
-    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+typedef EraseMatrixDart = void Function(Pointer<DartToRustElementFFI> ptr,
+    int numRows, int numCols, int eraseGivens);
 
 // Matches the exact C/Rust function signature
 typedef UpdateCellNative = Void Function(
@@ -350,8 +350,10 @@ class RustMatrix {
   // -------------------------------
   // Call Rust matrix erase function
   // -------------------------------
-  void erase() {
-    _eraseMatrix(ptr, numRows, numCols);
+
+  void erase(bool eraseGivens) {
+    final int eraseGivensU8 = boolToU8(eraseGivens);
+    _eraseMatrix(ptr, numRows, numCols, eraseGivensU8);
   }
 
   // -------------------------------
