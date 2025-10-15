@@ -194,6 +194,13 @@ typedef EraseMatrixDart = void Function(Pointer<DartToRustElementFFI> ptr,
     int numRows, int numCols, int eraseGivens);
 
 // Matches the exact C/Rust function signature
+typedef SetAllCandidatesNative = Void Function(
+    Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
+// Dart-friendly version
+typedef SetAllCandidatesDart = void Function(
+    Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
+
+// Matches the exact C/Rust function signature
 typedef UpdateCellNative = Void Function(
     Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols, Uint8 idx);
 // Dart-friendly version
@@ -279,6 +286,7 @@ class RustMatrix {
 
   static late final UpdateMatrixDart _updateMatrix;
   static late final EraseMatrixDart _eraseMatrix;
+  static late final SetAllCandidatesDart _setAllCandidates;
   static late final UpdateCellDart _updateCell;
   static late final SaveDataDart _saveData;
   static late final LoadDataDart _loadData;
@@ -317,6 +325,10 @@ class RustMatrix {
     _eraseMatrix = dylib
         .lookupFunction<EraseMatrixNative, EraseMatrixDart>('erase_matrix');
 
+    _setAllCandidates =
+        dylib.lookupFunction<SetAllCandidatesNative, SetAllCandidatesDart>(
+            'set_all_candidates');
+
     _updateCell =
         dylib.lookupFunction<UpdateCellNative, UpdateCellDart>('update_cell');
 
@@ -350,10 +362,16 @@ class RustMatrix {
   // -------------------------------
   // Call Rust matrix erase function
   // -------------------------------
-
   void erase(bool eraseGivens) {
     final int eraseGivensU8 = boolToU8(eraseGivens);
     _eraseMatrix(ptr, numRows, numCols, eraseGivensU8);
+  }
+
+  // -------------------------------
+  // Call Rust matrix erase function
+  // -------------------------------
+  void setAllCandidates() {
+    _setAllCandidates(ptr, numRows, numCols);
   }
 
   // -------------------------------

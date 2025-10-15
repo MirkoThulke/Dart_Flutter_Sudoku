@@ -1,13 +1,3 @@
-<!-- 
- This is the default license template.
- 
- File: AndroidManifest.xml
- Author: M
- Copyright (c) 2024-2025 M
- 
- To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
- -->
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- The INTERNET permission is required for development. Specifically,
          the Flutter tool needs it to communicate with the running application

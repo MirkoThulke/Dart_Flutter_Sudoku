@@ -94,6 +94,10 @@ pub const constRequestedElementHighLightType: [u8; constRequestedElementHighLigh
 pub const constRequestedCandHighLightType: [u8; constRequestedCandHighLightTypeSize as usize] =
     [constPatternListOff; constRequestedCandHighLightTypeSize as usize];
 
+// All selected numbers
+pub const constSelectedNumberListAllSelected: [u8; constSelectedNumberListSize as usize] =
+    [1; constSelectedNumberListSize as usize];
+
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct DartToRustElementFFI {
@@ -226,6 +230,43 @@ pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, 
 
 
 #[no_mangle]
+pub unsafe extern "C" fn set_all_candidates(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
+    if ptr.is_null() {
+        return;
+    }
+
+    let rows_usize = rows as usize;
+    let cols_usize = cols as usize;
+    let count = rows_usize * cols_usize;
+
+    // Check matrix size
+    assert!(count <= CONST_MATRIX_ELEMENTS as usize);
+
+    for r in 0..rows_usize {
+        for c in 0..cols_usize {
+            let idx = r * cols_usize + c;
+            
+            // check max. index
+            assert!(idx < count);
+
+            let cell = &mut *ptr.add(idx);
+            
+            // Unsafe block to write raw pointer data
+            unsafe {
+                if (*cell).selectedNumStateList[NumStateListIndex::GIVENS] == 0 {
+                    // set all candidates only if not a given
+                    (*cell).selectedCandList = constSelectedNumberListAllSelected;
+                }
+                else {
+                    // do nothing
+                }
+            }
+        }
+    }
+
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8) {
     if ptr.is_null() {
         return;
@@ -242,6 +283,8 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
     check_all_elements(ptr, count);
 
 }
+
+
 
 
 
