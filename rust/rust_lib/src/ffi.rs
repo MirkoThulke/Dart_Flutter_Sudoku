@@ -253,10 +253,14 @@ pub unsafe extern "C" fn set_all_candidates(ptr: *mut DartToRustElementFFI, rows
             
             // Unsafe block to write raw pointer data
             unsafe {
-                if (*cell).selectedNumStateList[NumStateListIndex::GIVENS as usize] == 0 {
+                // only if no number is selected
+                if (*cell).selectedNum == 0 {
                     // set all candidates only if not a given
-                    (*cell).selectedCandList = constSelectedNumberListAllSelected;
-                }
+                    if (*cell).selectedNumStateList[NumStateListIndex::GIVENS as usize] == 0 {
+                        // set all candidates only if not a given
+                            (*cell).selectedCandList = constSelectedNumberListAllSelected;
+                        }
+                    }
                 else {
                     // do nothing
                 }
