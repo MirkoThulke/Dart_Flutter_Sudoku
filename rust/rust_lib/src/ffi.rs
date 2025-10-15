@@ -205,7 +205,7 @@ pub unsafe extern "C" fn erase_matrix(ptr: *mut DartToRustElementFFI, rows: u8, 
                 }
                 else if erase_givens == 0{
                     // do not erase givens
-                    if (*cell).selectedNumStateList[NumStateListIndex::GIVENS] == 0 {
+                    if (*cell).selectedNumStateList[NumStateListIndex::GIVENS as usize] == 0 {
                         // Not a given, erase
                         (*cell).selectedNum = 0;
                         (*cell).selectedNumStateList = constSelectedNumStateList;
@@ -253,7 +253,7 @@ pub unsafe extern "C" fn set_all_candidates(ptr: *mut DartToRustElementFFI, rows
             
             // Unsafe block to write raw pointer data
             unsafe {
-                if (*cell).selectedNumStateList[NumStateListIndex::GIVENS] == 0 {
+                if (*cell).selectedNumStateList[NumStateListIndex::GIVENS as usize] == 0 {
                     // set all candidates only if not a given
                     (*cell).selectedCandList = constSelectedNumberListAllSelected;
                 }

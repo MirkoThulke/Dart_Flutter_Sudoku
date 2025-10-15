@@ -1,13 +1,3 @@
-/* 
- *  This is the default license template.
- *  
- *  File: serde-1f3be350aa43e669.d
- *  Author: M
- *  Copyright (c) 2025 M
- *  
- *  To edit this license information: Press Ctrl+Shift+P and press 'Create new License Template...'.
- */
-
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\serde-1f3be350aa43e669.d: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\integer128.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\de.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\ser.rs C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\build\serde-9604c26cff30286e\out/private.rs
 
 C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\deps\libserde-1f3be350aa43e669.rlib: C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\lib.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\integer128.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\mod.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\de.rs C:\Users\M\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.225\src\private\ser.rs C:\Programming\Apps_Mirko\sudoku\rust\rust_lib\target\armv7-linux-androideabi\release\build\serde-9604c26cff30286e\out/private.rs
