@@ -114,7 +114,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Updated method
-  Future<void> updateDataselectedRemoveList(
+  Future<void> updateDataselectedEraseAll(
       SelectedAddRemoveList selectedAddRemoveListNewData) async {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
@@ -132,7 +132,14 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       _status = DataStatus.ready;
 
       notifyListeners(); // signals UI rebuild if needed
-    } else if (_selectedAddRemoveList[addRemoveListIndex.resetToGivens]) {
+    }
+  }
+
+  Future<void> updateDataselectedResetToGivens(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    if (_selectedAddRemoveList[addRemoveListIndex.resetToGivens]) {
       // Optional: set a loading state to show spinner
       _status = DataStatus.loading;
       notifyListeners();
@@ -144,7 +151,14 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       _status = DataStatus.ready;
 
       notifyListeners(); // signals UI rebuild if needed
-    } else if (_selectedAddRemoveList[addRemoveListIndex.selectAllCand]) {
+    }
+  }
+
+  Future<void> updateDataselectedSetAllCandidates(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    if (_selectedAddRemoveList[addRemoveListIndex.selectAllCand]) {
       // Optional: set a loading state to show spinner
       _status = DataStatus.loading;
       notifyListeners();
@@ -162,7 +176,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Updated method
-  Future<void> updateDataselectedAddList(
+  Future<void> updateDataselectedwriteGivensToRust(
       SelectedAddRemoveList selectedAddRemoveListNewData) async {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 

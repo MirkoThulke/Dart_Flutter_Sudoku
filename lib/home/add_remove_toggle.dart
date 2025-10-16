@@ -103,7 +103,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
 
           await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedRemoveList(_selected);
+              .updateDataselectedEraseAll(_selected);
 
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) setState(() => _iconColor = Colors.blue[200]);
@@ -125,7 +125,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
 
           await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedAddList(_selected);
+              .updateDataselectedwriteGivensToRust(_selected);
 
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) setState(() => _iconColor = Colors.blue[200]);
@@ -145,16 +145,16 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           _isResetToGivensJustConfirmed = true;
           _isResetToGivensConfirmedAt = DateTime.now();
 
-          setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
+          setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
 
           await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedAddList(_selected);
+              .updateDataselectedResetToGivens(_selected);
 
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) setState(() => _iconColor = Colors.blue[200]);
           });
           Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) _savedGivensJustConfirmed = false;
+            if (mounted) _isResetToGivensJustConfirmed = false;
           });
         } else if (isResetToGivens && !recentlyResetToGivens) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -171,7 +171,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
           setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
 
           await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedAddList(_selected);
+              .updateDataselectedSetAllCandidates(_selected);
 
           Future.delayed(const Duration(seconds: 1), () {
             if (mounted) setState(() => _iconColor = Colors.blue[200]);

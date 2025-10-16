@@ -250,17 +250,18 @@ pub unsafe extern "C" fn set_all_candidates(ptr: *mut DartToRustElementFFI, rows
             assert!(idx < count);
 
             let cell = &mut *ptr.add(idx);
+
+
             
             // Unsafe block to write raw pointer data
             unsafe {
                 // only if no number is selected
                 if (*cell).selectedNum == 0 {
-                    // set all candidates only if not a given
-                    if (*cell).selectedNumStateList[NumStateListIndex::GIVENS as usize] == 0 {
-                        // set all candidates only if not a given
-                            (*cell).selectedCandList = constSelectedNumberListAllSelected;
-                        }
-                    }
+
+                    // Set all candidates
+                    (*cell).selectedCandList = constSelectedNumberListAllSelected;
+                    
+                }
                 else {
                     // do nothing
                 }
@@ -287,8 +288,6 @@ pub unsafe extern "C" fn update_matrix(ptr: *mut DartToRustElementFFI, rows: u8,
     check_all_elements(ptr, count);
 
 }
-
-
 
 
 
