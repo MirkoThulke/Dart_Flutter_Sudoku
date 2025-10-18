@@ -54,11 +54,11 @@ class PatternButtons extends StatelessWidget {
         onUpdate(newList);
       },
       borderRadius: const BorderRadius.all(Radius.circular(8)),
-      selectedBorderColor: Colors.green[700],
+      selectedBorderColor: Colors.blue[700],
       selectedColor: Colors.white,
-      fillColor: Colors.green[200],
-      color: Colors.green[400],
-      constraints: const BoxConstraints(minHeight: 30.0, minWidth: 75.0),
+      fillColor: Colors.blue[200],
+      color: Colors.blue[400],
+      constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
       isSelected: selectedList,
       children: patternlistButtonList,
     );

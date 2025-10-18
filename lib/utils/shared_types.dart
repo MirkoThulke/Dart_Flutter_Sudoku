@@ -260,11 +260,18 @@ class SelectedNumStateListIndex {
   static const int FutureUse = 1;
 }
 
-const List<Widget> addRemoveList = <Widget>[
-  Text('SaveGivens'),
-  Text('EraseAll'),
-  Text('ResetToGivens'),
-  Text('SelectAllCand'),
+const List<String> addRemoveLabels = <String>[
+  'Save Givens',
+  'Erase All',
+  'Reset To Givens',
+  'Add All Candidates',
+];
+
+final List<IconData> addRemoveIcons = [
+  Icons.save, // SaveGivens
+  Icons.delete, // EraseAll
+  Icons.refresh, // ResetToGivens
+  Icons.checklist, // SelectAllCand
 ];
 
 /*

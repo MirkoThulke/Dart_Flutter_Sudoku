@@ -42,7 +42,7 @@ class AddRemoveToggle extends StatefulWidget {
 }
 
 class _AddRemoveToggleState extends State<AddRemoveToggle> {
-  SelectedAddRemoveList _selected = <bool>[true, false, false, false];
+  List<bool> _selected = [true, false, false, false];
   DateTime? _lastPressed;
 
   DateTime? _eraseAllConfirmedAt;
@@ -57,149 +57,267 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
   DateTime? _isSelectAllCandConfirmedAt;
   bool _isSelectAllCandJustConfirmed = false;
 
-  Color? _iconColor = Colors.blue[200];
+  Color _iconColor = Colors.blue[200]!;
 
   @override
   Widget build(BuildContext context) {
-    return ToggleButtons(
-      direction: Axis.horizontal,
-      onPressed: (index) async {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+          horizontal: 16.0), // add left & right padding
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                  child: buildElevatedToggle(addRemoveListIndex.saveGivens)),
+              const SizedBox(width: 4),
+              Expanded(
+                  child: buildElevatedToggle(addRemoveListIndex.resetToGivens)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                  child: buildElevatedToggle(addRemoveListIndex.selectAllCand)),
+              const SizedBox(width: 4),
+              Expanded(child: buildElevatedToggle(addRemoveListIndex.eraseAll)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildElevatedToggle(int index) {
+    final selected = _selected[index];
+
+    // Child content: icon/image above text
+    Widget childContent;
+    switch (index) {
+      case addRemoveListIndex.saveGivens:
+        // First button: custom image
+        childContent = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.save,
+                size: 28, color: selected ? Colors.white : Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              addRemoveLabels[addRemoveListIndex.saveGivens],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: selected ? Colors.white : Colors.blue[400],
+              ),
+            ),
+          ],
+        );
+        break;
+      case addRemoveListIndex.selectAllCand:
+        childContent = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.checklist,
+                size: 28, color: selected ? Colors.white : Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              addRemoveLabels[addRemoveListIndex.selectAllCand],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 14,
+                  color: selected ? Colors.white : Colors.blue[400]),
+            ),
+          ],
+        );
+        break;
+      case addRemoveListIndex.resetToGivens:
+        childContent = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.refresh,
+                size: 28, color: selected ? Colors.white : Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              addRemoveLabels[addRemoveListIndex.resetToGivens],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: selected ? Colors.white : Colors.blue[400]),
+            ),
+          ],
+        );
+        break;
+      case addRemoveListIndex.eraseAll:
+      default:
+        childContent = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete,
+                size: 28, color: selected ? Colors.white : Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              addRemoveLabels[addRemoveListIndex.eraseAll],
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 12,
+                  color: selected ? Colors.white : Colors.blue[400]),
+            ),
+          ],
+        );
+    }
+
+    return ElevatedButton(
+      onPressed: () async {
         final now = DateTime.now();
 
+        // Update selection
         setState(() {
           for (int i = 0; i < _selected.length; i++) {
             _selected[i] = i == index;
           }
         });
 
-        final isEraseAll = _selected[addRemoveListIndex.eraseAll];
-        final isSaveGivens = _selected[addRemoveListIndex.saveGivens];
-        final isResetToGivens = _selected[addRemoveListIndex.resetToGivens];
-        final isSelectAllCand = _selected[addRemoveListIndex.selectAllCand];
-
         final isDoubleTap = _lastPressed != null &&
             now.difference(_lastPressed!) < const Duration(milliseconds: 500);
 
-        final recentlyErased = _eraseAllConfirmedAt != null &&
-            now.difference(_eraseAllConfirmedAt!) < const Duration(seconds: 2);
-
-        final recentlySaved = _savedGivensConfirmedAt != null &&
-            now.difference(_savedGivensConfirmedAt!) <
-                const Duration(seconds: 2);
-
-        final recentlyResetToGivens = _isResetToGivensConfirmedAt != null &&
-            now.difference(_isResetToGivensConfirmedAt!) <
-                const Duration(seconds: 2);
-
-        final recentlySelectAllCand = _isSelectAllCandConfirmedAt != null &&
-            now.difference(_isSelectAllCandConfirmedAt!) <
-                const Duration(seconds: 2);
-
-        // eraseALL Logic
-        if (isEraseAll && isDoubleTap && !_eraseAllJustConfirmed) {
-          _eraseAllJustConfirmed = true;
-          _eraseAllConfirmedAt = DateTime.now();
-
-          setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
-
-          await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedEraseAll(_selected);
-
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) setState(() => _iconColor = Colors.blue[200]);
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) _eraseAllJustConfirmed = false;
-          });
-        } else if (isEraseAll && !recentlyErased) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tap twice quickly to confirm save / erase"),
-            ),
-          );
-          // SaveGivens Logic
-        } else if (isSaveGivens && isDoubleTap && !_savedGivensJustConfirmed) {
-          _savedGivensJustConfirmed = true;
-          _savedGivensConfirmedAt = DateTime.now();
-
-          setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
-
-          await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedwriteGivensToRust(_selected);
-
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) setState(() => _iconColor = Colors.blue[200]);
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) _savedGivensJustConfirmed = false;
-          });
-        } else if (isSaveGivens && !recentlySaved) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tap twice quickly to confirm save / erase"),
-            ),
-          );
-        } else if (isResetToGivens &&
-            isDoubleTap &&
-            !_isResetToGivensJustConfirmed) {
-          _isResetToGivensJustConfirmed = true;
-          _isResetToGivensConfirmedAt = DateTime.now();
-
-          setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
-
-          await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedResetToGivens(_selected);
-
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) setState(() => _iconColor = Colors.blue[200]);
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) _isResetToGivensJustConfirmed = false;
-          });
-        } else if (isResetToGivens && !recentlyResetToGivens) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tap twice quickly to confirm reset to givens"),
-            ),
-          );
-        } else if (isSelectAllCand &&
-            isDoubleTap &&
-            !_isSelectAllCandJustConfirmed) {
-          _isSelectAllCandJustConfirmed = true;
-          _isSelectAllCandConfirmedAt = DateTime.now();
-
-          setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
-
-          await Provider.of<DataProvider>(context, listen: false)
-              .updateDataselectedSetAllCandidates(_selected);
-
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) setState(() => _iconColor = Colors.blue[200]);
-          });
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) _isSelectAllCandJustConfirmed = false;
-          });
-        } else if (isSelectAllCand && !recentlySelectAllCand) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text("Tap twice quickly to confirm select all candidates"),
-            ),
-          );
-        }
         _lastPressed = now;
+
+        // Handle button logic
+        if (index == addRemoveListIndex.eraseAll) {
+          await _handleEraseAll(isDoubleTap);
+        } else if (index == addRemoveListIndex.saveGivens) {
+          await _handleSaveGivens(isDoubleTap);
+        } else if (index == addRemoveListIndex.resetToGivens) {
+          await _handleResetToGivens(isDoubleTap);
+        } else if (index == addRemoveListIndex.selectAllCand) {
+          await _handleSelectAllCand(isDoubleTap);
+        }
       },
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      selectedBorderColor: Colors.blue[700],
-      selectedColor: Colors.white,
-      constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
-      fillColor: _iconColor,
-      color: Colors.blue[400],
-      isSelected: _selected,
-      children: addRemoveList,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: selected ? _iconColor : Colors.white,
+        foregroundColor: Colors.blue[400],
+        side: BorderSide(color: Colors.blue[400]!),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+        elevation: selected ? 4 : 0,
+      ),
+      child: childContent,
     );
   }
+
+  // --- Button Logic Methods ---
+  Future<void> _handleEraseAll(bool isDoubleTap) async {
+    final now = DateTime.now();
+    final recently = _eraseAllConfirmedAt != null &&
+        now.difference(_eraseAllConfirmedAt!) < const Duration(seconds: 2);
+
+    if (isDoubleTap && !_eraseAllJustConfirmed) {
+      _eraseAllJustConfirmed = true;
+      _eraseAllConfirmedAt = DateTime.now();
+      setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
+
+      await Provider.of<DataProvider>(context, listen: false)
+          .updateDataselectedEraseAll(_selected);
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) setState(() => _iconColor = Colors.blue[200]!);
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) _eraseAllJustConfirmed = false;
+      });
+    } else if (!recently) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tap twice quickly to confirm erase")),
+      );
+    }
+  }
+
+  Future<void> _handleSaveGivens(bool isDoubleTap) async {
+    final now = DateTime.now();
+    final recently = _savedGivensConfirmedAt != null &&
+        now.difference(_savedGivensConfirmedAt!) < const Duration(seconds: 2);
+
+    if (isDoubleTap && !_savedGivensJustConfirmed) {
+      _savedGivensJustConfirmed = true;
+      _savedGivensConfirmedAt = DateTime.now();
+      setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
+
+      await Provider.of<DataProvider>(context, listen: false)
+          .updateDataselectedwriteGivensToRust(_selected);
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) setState(() => _iconColor = Colors.blue[200]!);
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) _savedGivensJustConfirmed = false;
+      });
+    } else if (!recently) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tap twice quickly to confirm save")),
+      );
+    }
+  }
+
+  Future<void> _handleResetToGivens(bool isDoubleTap) async {
+    final now = DateTime.now();
+    final recently = _isResetToGivensConfirmedAt != null &&
+        now.difference(_isResetToGivensConfirmedAt!) <
+            const Duration(seconds: 2);
+
+    if (isDoubleTap && !_isResetToGivensJustConfirmed) {
+      _isResetToGivensJustConfirmed = true;
+      _isResetToGivensConfirmedAt = DateTime.now();
+      setState(() => _iconColor = const Color.fromARGB(255, 224, 15, 0));
+
+      await Provider.of<DataProvider>(context, listen: false)
+          .updateDataselectedResetToGivens(_selected);
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) setState(() => _iconColor = Colors.blue[200]!);
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) _isResetToGivensJustConfirmed = false;
+      });
+    } else if (!recently) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tap twice quickly to confirm reset")),
+      );
+    }
+  }
+
+  Future<void> _handleSelectAllCand(bool isDoubleTap) async {
+    final now = DateTime.now();
+    final recently = _isSelectAllCandConfirmedAt != null &&
+        now.difference(_isSelectAllCandConfirmedAt!) <
+            const Duration(seconds: 2);
+
+    if (isDoubleTap && !_isSelectAllCandJustConfirmed) {
+      _isSelectAllCandJustConfirmed = true;
+      _isSelectAllCandConfirmedAt = DateTime.now();
+      setState(() => _iconColor = const Color.fromARGB(255, 0, 224, 15));
+
+      await Provider.of<DataProvider>(context, listen: false)
+          .updateDataselectedSetAllCandidates(_selected);
+
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) setState(() => _iconColor = Colors.blue[200]!);
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) _isSelectAllCandJustConfirmed = false;
+      });
+    } else if (!recently) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text("Tap twice quickly to confirm select all candidates")),
+      );
+    }
+  }
 }
+
+
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
 // See LICENSE file in the project root for details.
