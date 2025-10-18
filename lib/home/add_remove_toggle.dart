@@ -100,10 +100,17 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         // First button: custom image
         childContent = Row(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.save,
-                size: 28, color: selected ? Colors.white : Colors.blue[400]),
-            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 4.0), // uniform space between icon and text
+              child: Icon(
+                Icons.save,
+                size: 28,
+                color: selected ? Colors.white : Colors.blue[400],
+              ),
+            ),
             Text(
               addRemoveLabels[addRemoveListIndex.saveGivens],
               textAlign: TextAlign.center,
@@ -119,9 +126,15 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         childContent = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.checklist,
-                size: 28, color: selected ? Colors.white : Colors.blue[400]),
-            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 4.0), // uniform space between icon and text
+              child: Icon(
+                Icons.checklist,
+                size: 28,
+                color: selected ? Colors.white : Colors.blue[400],
+              ),
+            ),
             Text(
               addRemoveLabels[addRemoveListIndex.selectAllCand],
               textAlign: TextAlign.center,
@@ -136,9 +149,15 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         childContent = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.refresh,
-                size: 28, color: selected ? Colors.white : Colors.blue[400]),
-            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 4.0), // uniform space between icon and text
+              child: Icon(
+                Icons.refresh,
+                size: 28,
+                color: selected ? Colors.white : Colors.blue[400],
+              ),
+            ),
             Text(
               addRemoveLabels[addRemoveListIndex.resetToGivens],
               textAlign: TextAlign.center,
@@ -154,9 +173,15 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         childContent = Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.delete,
-                size: 28, color: selected ? Colors.white : Colors.blue[400]),
-            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(
+                  right: 4.0), // uniform space between icon and text
+              child: Icon(
+                Icons.delete,
+                size: 28,
+                color: selected ? Colors.white : Colors.blue[400],
+              ),
+            ),
             Text(
               addRemoveLabels[addRemoveListIndex.eraseAll],
               textAlign: TextAlign.center,
