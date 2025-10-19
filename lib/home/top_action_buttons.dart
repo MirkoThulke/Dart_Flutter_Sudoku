@@ -74,8 +74,7 @@ class TopActionButtons extends StatelessWidget {
           children: [
             IconButton(
               iconSize: 28,
-              icon: const Icon(Icons.info_outline,
-                  color: Colors.amber), // ✅ const is fine
+              icon: const Icon(Icons.info_outline, color: Colors.amber),
               tooltip: 'App Info',
               onPressed: () {
                 showAboutDialog(
