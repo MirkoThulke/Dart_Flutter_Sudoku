@@ -46,6 +46,10 @@ class NumberButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Calculate per-button width dynamically here
+    final double buttonWidth = maxWidth / selectedList.length;
+    final double buttonHeight = buttonWidth * 0.8; // proportional height
+
     return ToggleButtons(
       direction: isVertical ? Axis.vertical : Axis.horizontal,
       onPressed: (index) {
@@ -59,10 +63,10 @@ class NumberButtons extends StatelessWidget {
       fillColor: Colors.green[200],
       color: Colors.green[400],
       constraints: BoxConstraints(
-        minHeight: maxWidth * 0.8,
-        maxHeight: maxWidth * 0.8,
-        minWidth: maxWidth,
-        maxWidth: maxWidth,
+        minHeight: buttonHeight,
+        maxHeight: buttonHeight,
+        minWidth: buttonWidth,
+        maxWidth: buttonWidth,
       ),
       isSelected: selectedList,
       children: SudokuNumber.values

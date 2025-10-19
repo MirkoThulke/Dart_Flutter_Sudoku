@@ -56,7 +56,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             mainAxisSize: MainAxisSize.min,
             children: const [
               TopActionButtons(),
-              SizedBox(height: 4),
+              SizedBox(height: 2),
               AddRemoveToggle(),
             ],
           ),

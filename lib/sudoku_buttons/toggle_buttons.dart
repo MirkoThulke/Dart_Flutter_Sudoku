@@ -59,25 +59,27 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
         SizeConfig.safeBlockHMIGridVertical ?? 180.0;
 
     // Spacing between rows
-    final double topSpacing = max((appHmiHeightTotal * 0.15), 12.0);
-    final double spacing = max((appHmiHeightTotal * 0.1), 8.0);
-    final double bottomSpacing = max((appHmiHeightTotal * 0.2), 16.0);
+    final double topRowSpacing = max((appHmiHeightTotal * 0.06), 12.0);
+    final double rowSpacing = max((appHmiHeightTotal * 0.07), 8.0);
+    final double bottomRowSpacing = max((appHmiHeightTotal * 0.2), 16.0);
+    final double bottomDynamicMessageFieldSpacing = 39.0; // To display messages
 
     // Number of rows
     const int rowCount = 3;
 
     // Calculate each row's height, accounting for spacing
-    final double rowHeightAdjusted = (appHmiHeightTotal -
-            spacing * (rowCount - 1) -
-            bottomSpacing -
-            topSpacing) /
+    final double rowHeightAdjustedRaw = (appHmiHeightTotal -
+            rowSpacing * (rowCount - 1) -
+            bottomRowSpacing -
+            topRowSpacing -
+            bottomDynamicMessageFieldSpacing) /
         rowCount;
 
-    // Max width per number button
-    final double selectedNumberListWidthMax =
-        (SizeConfig.safeBlockHorizontal ?? 400.0) *
-            0.9 /
-            max(1, _selectedNumberList.length);
+    // maximum width based on the number toogle switch
+    final double totalRowWidth =
+        (SizeConfig.safeBlockHorizontal ?? 400.0) * 0.9;
+
+    final double rowHeightAdjusted = max(20, rowHeightAdjustedRaw);
 
     return Scaffold(
       body: Center(
@@ -87,7 +89,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: topSpacing),
+              SizedBox(height: topRowSpacing),
               // Set / Reset Buttons
               SizedBox(
                 width: double.infinity, // full width to allow centering
@@ -96,6 +98,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   child: SetResetButtons(
                     isVertical: _vertical,
                     selectedList: _selectedSetResetList,
+                    maxWidth: totalRowWidth,
                     onUpdate: (list) {
                       setState(() => _selectedSetResetList = list);
                       Provider.of<DataProvider>(context, listen: false)
@@ -105,7 +108,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 ),
               ),
 
-              SizedBox(height: spacing),
+              SizedBox(height: rowSpacing),
 
               // Number Buttons
               SizedBox(
@@ -115,7 +118,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   child: NumberButtons(
                     isVertical: _vertical,
                     selectedList: _selectedNumberList,
-                    maxWidth: selectedNumberListWidthMax,
+                    maxWidth: totalRowWidth,
                     onUpdate: (list) {
                       setState(() => _selectedNumberList = list);
                       Provider.of<DataProvider>(context, listen: false)
@@ -125,7 +128,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                 ),
               ),
 
-              SizedBox(height: spacing),
+              SizedBox(height: rowSpacing),
 
               // Pattern Buttons
               SizedBox(
@@ -135,6 +138,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   child: PatternButtons(
                     isVertical: _vertical,
                     selectedList: _selectedPatternList,
+                    maxWidth: totalRowWidth,
                     onUpdate: (list) {
                       setState(() => _selectedPatternList = list);
                       Provider.of<DataProvider>(context, listen: false)
@@ -143,7 +147,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
                   ),
                 ),
               ),
-              SizedBox(height: spacing),
+              SizedBox(height: bottomDynamicMessageFieldSpacing),
             ],
           ),
         ),

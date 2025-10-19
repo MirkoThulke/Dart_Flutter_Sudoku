@@ -66,13 +66,14 @@ class TopActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
+        constraints: const BoxConstraints(minHeight: 40.0, minWidth: 120.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
+              iconSize: 28, // ⬅️ Bigger icon
               icon: const Icon(Icons.info_outline, color: Colors.amber),
               tooltip: 'App Info',
               onPressed: () {
@@ -93,14 +94,18 @@ class TopActionButtons extends StatelessWidget {
                 );
               },
             ),
+            const SizedBox(width: 48), // ⬅️ Horizontal spacing
             IconButton(
+              iconSize: 28, // ⬅️ Bigger icon
               icon: const Icon(Icons.help_outline, color: Colors.blue),
               tooltip: 'Help',
               onPressed: () {
-                // Help logic
+                // TODO: Help logic
               },
             ),
+            const SizedBox(width: 48), // ⬅️ Horizontal spacing
             IconButton(
+              iconSize: 28, // ⬅️ Bigger icon
               icon: const Icon(Icons.power_settings_new, color: Colors.red),
               tooltip: 'Exit',
               onPressed: () async {

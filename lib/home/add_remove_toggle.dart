@@ -162,7 +162,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
               addRemoveLabels[addRemoveListIndex.resetToGivens],
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   color: selected ? Colors.white : Colors.blue[400]),
             ),
           ],
@@ -186,7 +186,7 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
               addRemoveLabels[addRemoveListIndex.eraseAll],
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   color: selected ? Colors.white : Colors.blue[400]),
             ),
           ],

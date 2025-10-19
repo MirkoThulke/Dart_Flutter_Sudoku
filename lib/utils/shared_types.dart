@@ -176,16 +176,16 @@ enum SudokuNumber {
 }
 
 const List<Widget> setresetlist = <Widget>[
-  Text('SetCand'),
-  Text('ResetCand'),
-  Text('SetNum'),
-  Text('ResetNum')
+  Text('Set Cand.'),
+  Text('Reset Cand.'),
+  Text('Set Num.'),
+  Text('Reset Num.')
 ];
 
 const List<bool> constSelectedSetResetList = [true, false, false, false];
 
 const List<Widget> patternlistButtonList = <Widget>[
-  Text('HiLightOn'),
+  Text('HiLight On'),
   Text('Pairs'),
   Text('Singles'),
   Text('Givens'),

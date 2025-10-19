@@ -35,17 +35,23 @@ import 'package:flutter/material.dart';
 class SetResetButtons extends StatelessWidget {
   final bool isVertical;
   final List<bool> selectedList;
+  final double maxWidth;
   final ValueChanged<List<bool>> onUpdate;
 
   const SetResetButtons({
     super.key,
     required this.isVertical,
     required this.selectedList,
+    required this.maxWidth,
     required this.onUpdate,
   });
 
   @override
   Widget build(BuildContext context) {
+    // ✅ Calculate per-button width dynamically here
+    final double buttonWidth = maxWidth / selectedList.length;
+    final double buttonHeight = buttonWidth * 0.8; // proportional height
+
     return ToggleButtons(
       direction: isVertical ? Axis.vertical : Axis.horizontal,
       onPressed: (index) {
@@ -60,7 +66,12 @@ class SetResetButtons extends StatelessWidget {
       selectedColor: Colors.white,
       fillColor: Colors.blue[200],
       color: Colors.blue[400],
-      constraints: const BoxConstraints(minHeight: 30.0, minWidth: 80.0),
+      constraints: BoxConstraints(
+        minHeight: buttonHeight,
+        maxHeight: buttonHeight,
+        minWidth: buttonWidth,
+        maxWidth: buttonWidth,
+      ),
       isSelected: selectedList,
       children: setresetlist,
     );
