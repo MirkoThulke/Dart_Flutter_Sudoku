@@ -81,7 +81,7 @@ class TopActionButtons extends StatelessWidget {
                 showAboutDialog(
                   context: context,
                   applicationName: 'Tulli Sudoku',
-                  applicationVersion: '1.0.1',
+                  applicationVersion: '1.0.2',
                   applicationLegalese:
                       '© 2025 Mirko Thulke, Versailles, France',
                   children: [
