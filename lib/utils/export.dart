@@ -40,6 +40,9 @@ export 'package:sudoku/utils/shared_types.dart';
 // Help Page
 export 'package:sudoku/utils/help_page.dart';
 
+// User Feedback Page
+export 'package:sudoku/utils/user_feedback.dart';
+
 // RUST FFI backend Interface
 export 'package:sudoku/rust_ffi/rust_matrix.dart';
 

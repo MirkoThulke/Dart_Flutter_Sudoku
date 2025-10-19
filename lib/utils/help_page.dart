@@ -1,18 +1,8 @@
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class HelpPage extends StatelessWidget {
-  const HelpPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Help')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Markdown(
-            data: '''
+  final String markdownData = """
 # 🧩 Sudoku Help
 
 This application is designed to help you solve Sudoku puzzles with visual ease.
@@ -35,14 +25,36 @@ Below are explanations of the main features available in the app.
 - Tap a number to highlight it across the grid.  
 - Use **Mark Num** to quickly spot conflicts or repetitions.  
 - Toggle features on/off to explore solving strategies.
-            ''',
-            styleSheet: MarkdownStyleSheet(
-              p: TextStyle(fontSize: 16, height: 1.4),
-              h1: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              h3: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+""";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Help'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Sudoku Instructions',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ),
-        ),
+          Expanded(
+            child: Markdown(
+              data: markdownData,
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              styleSheet: MarkdownStyleSheet(
+                p: TextStyle(fontSize: 14), // Paragraph text
+                h1: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                h2: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                h3: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -73,8 +73,9 @@ class TopActionButtons extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              iconSize: 28, // ⬅️ Bigger icon
-              icon: const Icon(Icons.info_outline, color: Colors.amber),
+              iconSize: 28,
+              icon: const Icon(Icons.info_outline,
+                  color: Colors.amber), // ✅ const is fine
               tooltip: 'App Info',
               onPressed: () {
                 showAboutDialog(
@@ -83,13 +84,22 @@ class TopActionButtons extends StatelessWidget {
                   applicationVersion: '1.0.1',
                   applicationLegalese:
                       '© 2025 Mirko Thulke, Versailles, France',
-                  children: const [
-                    SizedBox(height: 12),
+                  children: [
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.feedback),
+                      label: const Text('Send Feedback'),
+                      onPressed: () {
+                        FeedbackHelper.sendFeedback(context);
+                      },
+                    ),
+                    const SizedBox(height: 16),
                     Text(
                       licenseText,
                       textAlign: TextAlign.justify,
-                      style: TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14),
                     ),
+                    const SizedBox(height: 16),
                   ],
                 );
               },
@@ -102,7 +112,7 @@ class TopActionButtons extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const HelpPage()),
+                  MaterialPageRoute(builder: (context) => HelpPage()),
                 );
               },
             ),

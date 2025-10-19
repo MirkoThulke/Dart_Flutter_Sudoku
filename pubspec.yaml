@@ -45,6 +45,7 @@ dependencies:
    # UI enhancements
   flutter_markdown: ^0.6.18
   auto_size_text: ^3.0.0
+  url_launcher: ^6.1.10  # check pub.dev for latest version
 
 
 dev_dependencies:
