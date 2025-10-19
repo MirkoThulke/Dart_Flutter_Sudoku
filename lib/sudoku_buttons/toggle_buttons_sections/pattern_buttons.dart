@@ -71,7 +71,12 @@ class PatternButtons extends StatelessWidget {
         maxWidth: buttonWidth,
       ),
       isSelected: selectedList,
-      children: patternlistButtonList,
+      children: List.generate(sudokuTooltipsByIndex.length, (index) {
+        return Tooltip(
+          message: sudokuTooltipsByIndex[index]!,
+          child: patternlistButtonList[index]!,
+        );
+      }),
     );
   }
 }

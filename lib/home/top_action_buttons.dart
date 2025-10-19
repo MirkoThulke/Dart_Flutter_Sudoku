@@ -100,7 +100,10 @@ class TopActionButtons extends StatelessWidget {
               icon: const Icon(Icons.help_outline, color: Colors.blue),
               tooltip: 'Help',
               onPressed: () {
-                // TODO: Help logic
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HelpPage()),
+                );
               },
             ),
             const SizedBox(width: 48), // ⬅️ Horizontal spacing

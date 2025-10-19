@@ -37,6 +37,9 @@ import 'package:sudoku/utils/export.dart';
 // Global type definitions, enum and constants
 export 'package:sudoku/utils/shared_types.dart';
 
+// Help Page
+export 'package:sudoku/utils/help_page.dart';
+
 // RUST FFI backend Interface
 export 'package:sudoku/rust_ffi/rust_matrix.dart';
 

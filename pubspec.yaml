@@ -16,10 +16,12 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
+
 version: 1.0.0+1
 
 environment:
   sdk: ^3.5.4
+
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -27,28 +29,31 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
+
 dependencies:
   flutter:
     sdk: flutter
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  
+  # Core UI & utilities
+  cupertino_icons: ^1.0.8 # Use with the CupertinoIcons class for iOS style icons.
   provider: ^6.1.2
   logging: ^1.3.0
   path_provider: ^2.1.5
   sqflite: ^2.4.1
-  ffi: ^2.0.2  # Add this line
+  ffi: ^2.0.2
+
+   # UI enhancements
+  flutter_markdown: ^0.6.18
+  auto_size_text: ^3.0.0
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-    
-  auto_size_text: ^3.0.0
-
   flutter_launcher_icons: ^0.13.1
-
+  flutter_lints: ^5.0.0   # The "flutter_lints" package below contains a set of recommended lints
+  # to encourage good coding practices.
+  analyzer: ^6.1.0   # For documentation generation
 
 
   # The "flutter_lints" package below contains a set of recommended lints
@@ -56,16 +61,11 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
 
-  # For documentation generation
-  analyzer: ^6.1.0
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -73,6 +73,15 @@ flutter:
 
   assets:
     - assets/icon/Sudoku_SaveGivens.png
+
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/Sudoku_SaveGivens.png"
+  adaptive_icon_background: "#ffffff"  # optional
+  adaptive_icon_foreground: "assets/icon/Sudoku_SaveGivens.png"
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

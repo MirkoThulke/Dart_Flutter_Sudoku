@@ -176,27 +176,35 @@ enum SudokuNumber {
 }
 
 const List<Widget> setresetlist = <Widget>[
-  Text('Set Cand.'),
-  Text('Reset Cand.'),
-  Text('Set Num.'),
-  Text('Reset Num.')
+  Text('Set Cand'),
+  Text('Reset Cand'),
+  Text('Set Num'),
+  Text('Reset Num')
 ];
 
 const List<bool> constSelectedSetResetList = [true, false, false, false];
 
-const List<Widget> patternlistButtonList = <Widget>[
-  Text('HiLight On'),
-  Text('Pairs'),
-  Text('Singles'),
-  Text('Givens'),
-];
-
+// Pattern List button definitions
 const List<bool> constSelectedPatternList = [
   false,
   false,
   false,
   false,
 ];
+
+const List<Widget> patternlistButtonList = <Widget>[
+  Text('Mark Num'),
+  Text('Cand Pairs'),
+  Text('Single Cand'),
+  Text('Givens'),
+];
+
+final Map<int, String> sudokuTooltipsByIndex = {
+  0: 'Highlight all occurrences of a number',
+  1: 'Shows candidate pairs',
+  2: 'Shows single candidates',
+  3: 'Displays the given numbers of the puzzle',
+};
 
 class PatternList {
   static const int hiLightOn = 0;
@@ -290,34 +298,6 @@ class addRemoveListIndex {
   static const int selectAllCand = 3;
 }
 
-// This is the type used by the popup menu below.
-enum SudokuItem { itemOne, itemTwo, itemThree }
-
-class SudokuItemIndex {
-  static const int itemOne = 0;
-  static const int itemTwo = 1;
-  static const int itemThree = 2;
-}
-
-// This is the type used by the popup menu below.
-enum SampleItem { itemOne, itemTwo, itemThree }
-
-class SampleItemIndex {
-  static const int itemOne = 0;
-  static const int itemTwo = 1;
-  static const int itemThree = 2;
-}
-
-/*
-const List<Widget> saveCreateList = <Widget>[
-  Icon(Icons.list_alt_rounded),
-  Icon(Icons.add_box_outlined),
-  Icon(Icons.remove_circle_outline),
-  Icon(Icons.settings_applications_outlined),
-  Icon(Icons.info_outline_rounded),
-  Icon(Icons.exit_to_app_sharp),
-];
-*/
 /////////////////////////////////////
 
 /////////////////////////////////////
