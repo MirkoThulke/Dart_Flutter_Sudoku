@@ -35,8 +35,6 @@ import 'dart:io';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart'; // for toNativeUtf8()
 
-import 'package:logging/logging.dart';
-
 ///////////////////////////////////////////////////////////////////
 /* FFI (Foreign Function Interface) to connect to the RUST backend
   Compiles RUST *.so libraries must be placed in respective folder
@@ -54,11 +52,6 @@ import 'package:logging/logging.dart';
         // Take snapshot into Dart List<List<CellData>>
         var snapshot = toDartList(matrix.ptr, matrix.numRows, matrix.numCols);
 */
-
-////////////////////////////////////////////////////////////
-// Debug Logging class
-final Logger _logger = Logger('RustMatrixLogger');
-////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
 /// @startuml
@@ -150,21 +143,6 @@ class DartToRustElement {
 
   // Constructure to define position of Cell inside matrix
   DartToRustElement(this.row, this.col);
-
-  // for debugging
-  @override
-  String toString() {
-    return 'DartToRustElement('
-        'row=$row, '
-        'col=$col, '
-        'selectedNum=$selectedNum, '
-        'selectedNumStateList=$selectedNumStateList, '
-        'selectedCandList=$selectedCandList, '
-        'selectedPatternList=$selectedPatternList, '
-        'requestedElementHighLightType=$requestedElementHighLightType'
-        'requestedCandHighLightType=$requestedCandHighLightType'
-        ')';
-  }
 }
 
 //////////////////////////////////////////////////////
@@ -616,21 +594,6 @@ Creates a 2D Dart list of DartToRustElement.
   void dispose() {
     _finalizer.detach(this);
     _freeMatrix(ptr, numRows, numCols);
-  }
-
-  // -------------------------------
-  // Optional debug print
-  // -------------------------------
-  void printRustAllElements() {
-    for (int r = 0; r < numRows; r++) {
-      String numRowstr = '';
-      for (int c = 0; c < numCols; c++) {
-        final cell = readCellFromRust(
-            r, c, numRows, numCols); // returns DartToRustElement
-        numRowstr += '(${cell.row},${cell.col}=${cell.selectedNum}) ';
-      }
-      _logger.fine(numRowstr); // use 'fine' for debug-level messages
-    }
   }
 }
 

@@ -342,7 +342,5 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
   }
 }
 
-
-
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
 // See LICENSE file in the project root for details.

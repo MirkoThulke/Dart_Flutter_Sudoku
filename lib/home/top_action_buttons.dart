@@ -156,6 +156,5 @@ use of the Software.
 Contact: MIRKO THULKE (for permission requests)
 ''';
 
-
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
 // See LICENSE file in the project root for details.

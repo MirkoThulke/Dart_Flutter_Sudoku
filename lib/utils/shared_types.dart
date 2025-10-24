@@ -29,37 +29,10 @@ Contact: MIRKO THULKE (for permission requests)
 
 import 'package:flutter/material.dart';
 
-/// @startuml
-/// class SelectedSetResetList {
-///   + setCand : bool
-///   + resetCand : bool
-///   + setNum : bool
-///   + resetNum, : bool
-/// }
-/// note right of SelectedSetResetList::setCand
-///   set cell candidate number. Each cell can hold numbers 1..9 as candidates.
-/// end note
-///
-/// note right of SelectedSetResetList::resetCand
-///   reset candidate number
-/// end note
-///
-/// note right of SelectedSetResetList::setNum
-///   each cell can alternatively hold exactly one nubmer as result Number
-/// end note
-///
-/// note right of SelectedSetResetList::resetNum
-///   Reset the final number choice of this cell
-/// end note
-/// @enduml
-
 /////////////////////////////////////
 // constants
 /////////////////////////////////////
-///
-///
-///
-///
+
 // Acticate JSON file storage an external Device Memory .
 // Only allowed during debugging testing !
 const bool DEBUG_JSON = true;
@@ -353,7 +326,6 @@ GridPosition getRowColFromId(int id, int numColumns) {
 
 int boolToU8(bool value) => value ? 1 : 0;
 bool u8ToBool(int value) => value != 0;
-
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
 // See LICENSE file in the project root for details.

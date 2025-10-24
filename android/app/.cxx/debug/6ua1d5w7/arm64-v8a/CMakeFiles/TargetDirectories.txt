@@ -1,0 +1,2 @@
+C:/Programming/Apps_Mirko/sudoku/android/app/.cxx/debug/6ua1d5w7/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Programming/Apps_Mirko/sudoku/android/app/.cxx/debug/6ua1d5w7/arm64-v8a/CMakeFiles/rebuild_cache.dir

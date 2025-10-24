@@ -1,0 +1,1 @@
+C:\Programming\Apps_Mirko\sudoku\android\app\build\intermediates\cxx\debug\6t6q4g70\obj\armeabi-v7a

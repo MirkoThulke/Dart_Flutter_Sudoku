@@ -27,15 +27,13 @@ Contact: MIRKO THULKE (for permission requests)
 ##############################################################################
 */
 
-/////////////////////////////////////
-// Use this class to handle the overall dimension of the app content depending on the actual screen size
-
 // Import specific dart files
-import 'package:sudoku/utils/export.dart';
 
 import 'package:flutter/material.dart'; // basics
 import 'dart:math'; // basics
-import 'package:logging/logging.dart'; // logging
+
+/////////////////////////////////////
+// Use this class to handle the overall dimension of the app content depending on the actual screen size
 
 class SizeConfig {
   static MediaQueryData? _mediaQueryData;
@@ -88,21 +86,6 @@ class SizeConfig {
     safeBlockHMIGridHorizontal = safeBlockHorizontal!; // width of screen
     safeBlockSudokuGridHorizontal =
         safeBlockSudokuGridVertical!; // Grid shall be a square.
-
-// Button min / max sizes :
-    Logger.root.level = Level.ALL;
-
-    log.info(
-        'Horizontal size of screen in pixel: $SizeConfig.blockSizeHorizontal.toString()');
-    log.info(
-        'Vertical size of screen in pixel: $SizeConfig.blockSizeVertical.toString()');
-    log.info(
-        'Horizontal safe size of screen in pixel: $SizeConfig.safeBlockHorizontal.toString()');
-    log.info(
-        'Vertical safe size of screen in pixel: $SizeConfig.safeBlockVertical.toString()');
-    log.info('AppBar height in pixel: $safeBlockAppBarGridVertical.toString()');
-    log.info('Sudoku height in pixel: $safeBlockSudokuGridVertical.toString()');
-    log.info('HMI height in pixel: $safeBlockHMIGridVertical.toString()');
   }
 }
 

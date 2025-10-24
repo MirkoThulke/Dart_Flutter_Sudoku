@@ -1,5 +1,5 @@
 name: sudoku
-description: "A new Flutter project."
+description: "A new Sudoku 'anti-cheating' project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -17,10 +17,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
 
-version: 1.0.0+1
+version: 1.0.1+1
 
 environment:
-  sdk: ^3.5.4
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.7.0"
 
 
 # Dependencies specify other packages that your package needs in order to work.
@@ -35,26 +36,25 @@ dependencies:
     sdk: flutter
   
   # Core UI & utilities
-  cupertino_icons: ^1.0.8 # Use with the CupertinoIcons class for iOS style icons.
-  provider: ^6.1.2
-  logging: ^1.3.0
-  path_provider: ^2.1.5
-  sqflite: ^2.4.1
-  ffi: ^2.0.2
+  cupertino_icons: ^1.0.8          # latest stable
+  provider: ^6.1.5                 # minor update
+  logging: ^1.3.0                  # same, latest stable
+  path_provider: ^2.1.3            # minor update
+  sqflite: ^2.4.2                  # minor update
+  ffi: ">=2.1.0 <3.0.0"        # Works now; automatically uses 2.2.0+ on newer Flutter
 
-   # UI enhancements
-  flutter_markdown: ^0.6.18
-  auto_size_text: ^3.0.0
-  url_launcher: ^6.1.10  # check pub.dev for latest version
+  # UI enhancements
+  markdown_widget: ^2.3.2          # latest stable
+  auto_size_text: ^3.0.0            # same
+  url_launcher: ^6.1.12             # latest patch version
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
-  flutter_lints: ^5.0.0   # The "flutter_lints" package below contains a set of recommended lints
-  # to encourage good coding practices.
-  analyzer: ^6.1.0   # For documentation generation
+  flutter_launcher_icons: ">=0.13.1 <0.15.0"  # upgrades automatically when possible
+  flutter_lints: ^6.0.0             # same
+  analyzer: ^8.4.0                  # same
 
 
   # The "flutter_lints" package below contains a set of recommended lints

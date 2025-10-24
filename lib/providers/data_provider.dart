@@ -264,21 +264,18 @@ Avoid putting await directly in the constructor.
 
       if (jsonExists) {
         final loaded = await rustMatrix.loadFromJSON(appJsonPath);
-        print('Rust loadFromJSON returned: $loaded');
+
         if (loaded) {
           dartMatrix = rustMatrix.readMatrixFromRust(
               rustMatrix.numRows, rustMatrix.numCols);
 
           final numRows = dartMatrix.length;
           final numCols = dartMatrix.isNotEmpty ? dartMatrix[0].length : 0;
-          print('Number of rows: $numRows');
+
           if (dartMatrix.isNotEmpty) {
             final numCols = dartMatrix[0].length;
-            print('Number of columns: $numCols');
           }
-        } else {
-          print('Rust JSON load failed');
-        }
+        } else {}
       }
 
       _status = DataStatus.ready;
@@ -286,7 +283,6 @@ Avoid putting await directly in the constructor.
     } catch (e, st) {
       _status = DataStatus.error;
       _errorMessage = e.toString();
-      print('DataProvider initialization failed: $e\n$st');
       notifyListeners();
     }
   }
@@ -470,13 +466,6 @@ Avoid putting await directly in the constructor.
     shutdown(); // ensures it’s also done on normal widget disposal
 
     super.dispose();
-  }
-
-  // -------------------------------
-  // Debug print
-  // -------------------------------
-  void printDebug() {
-    rustMatrix.printRustAllElements();
   }
 }
 

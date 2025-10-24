@@ -35,29 +35,6 @@ import 'package:provider/provider.dart'; // data excahnge between classes
 
 ////// JAVA 1.19 used
 
-/*
-Important Flutter commands:
-
-cmd> flutter run --profile --verbose // extended debug mode
-command paletet> Open DevTools  // open the devtools browser
-cmd> flutter upgrade
-cmd> flutter pub upgrade 
-cmd> flutter pub outdated
-cmd> flutter build apk
-cmd> flutter build apk --debug
-cmd> flutter pub get
-cmd> flutter clean
-cmd> flutter analyse 
-cmd> flutter clean build --refresh-dependencis
-cmd> gradlew clean
-cmd> gradlew cleanBuildCache
-cmd> gradlew build
-cmd> gradlew build --refresh-dependencies
-cmd> flutter pub add "Dart package name"
-cmd> flutter devices
-cmd> flutter emulators
-*/
-
 ////////////////////////////////////////////////////////////
 // Main classe  -> root
 void main() {
