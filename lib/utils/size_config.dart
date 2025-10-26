@@ -1,43 +1,60 @@
-/*
-# -----------------------------------------------------------------------------
-# Author: MIRKO THULKE 
-# Copyright (c) 2025, MIRKO THULKE
-# All rights reserved.
-#
-# Date: 2025, VERSAILLES, FRANCE
-#
-# MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-# FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
-#
-# -----------------------------------------------------------------------------
+/* 
+##############################################################################
+
+Author: MIRKO THULKE
+Copyright (c) 2025, MIRKO THULKE
+All rights reserved.
+
+Date: 2025, VERSAILLES, FRANCE
+
+License: "All Rights Reserved – View Only"
+
+Permission is hereby granted to view and share this code in its original,
+unmodified form for educational or reference purposes only.
+
+Any other use, including but not limited to copying, modification,
+redistribution, commercial use, or inclusion in other projects, is strictly
+prohibited without the express written permission of the author.
+
+The Software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall the
+author be liable for any claim, damages, or other liability arising from the
+use of the Software.
+
+Contact: MIRKO THULKE (for permission requests)
+
+##############################################################################
 */
+
+// Import specific dart files
+
+import 'package:flutter/material.dart'; // basics
+import 'dart:math'; // basics
 
 /////////////////////////////////////
 // Use this class to handle the overall dimension of the app content depending on the actual screen size
 
-import 'package:flutter/material.dart'; // basics
-import 'dart:math'; // basics
-import 'package:logging/logging.dart'; // logging
+/*
+------------------------------------------------------------------
+safeBlockAppBarGridVertical: 
+20% of the safe vertical screen size
 
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
+------------------------------------------------------------------
+safeBlockSudokuGridVertical: 
+min(66% of the safe vertical screen size, 100% of the safe horizontal screen size)
+
+
+
+
+------------------------------------------------------------------
+safeBlockHMIGridVertical: 
+remaining vertical space after allocating space for AppBar and SudokuGrid
+
+
+
+------------------------------------------------------------------
+*/
 
 class SizeConfig {
   static MediaQueryData? _mediaQueryData;
@@ -51,13 +68,13 @@ class SizeConfig {
   static double? safeBlockHorizontal;
   static double? safeBlockVertical;
 
-  static double? safeBlockAppBarGridVertical;
-  static double? safeBlockSudokuGridVertical;
-  static double? safeBlockHMIGridVertical;
+  static double? safeBlockTopAppBarGridVertical;
+  static double? safeBlockMidSudokuGridVertical;
+  static double? safeBlockBottomHMIGridVertical;
 
-  static double? safeBlockAppBarGridHorizontal;
-  static double? safeBlockSudokuGridHorizontal;
-  static double? safeBlockHMIGridHorizontal;
+  static double? safeBlockTopAppBarGridHorizontal;
+  static double? safeBlockMidSudokuGridHorizontal;
+  static double? safeBlockBottomHMIGridHorizontal;
 
   void init(BuildContext context) {
     _mediaQueryData = MediaQuery.of(context);
@@ -73,53 +90,26 @@ class SizeConfig {
     safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
     safeBlockVertical = (screenHeight! - _safeAreaVertical!);
 
-// App screen space repartition in pixel :
+    // AppBar shall take 20% of the safe vertical screen size
+    safeBlockTopAppBarGridVertical = safeBlockVertical! * 0.2;
 
-// 5 percent height for AppBar, but not smaller than 20 logical pixel but smaller than aprox. 1 cm .
-    safeBlockAppBarGridVertical = max(min(safeBlockVertical! * 0.05, 20.0), 40);
-
-// Sudokugrid shall extend to the minimum of screen width / height,
-// but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
-// Height not smaller than aprox. 2cm
-
-    if (safeBlockVertical! > safeBlockHorizontal!) {
-      safeBlockSudokuGridVertical =
-          min(safeBlockHorizontal!, safeBlockVertical! * 0.75);
-    } else {
-      safeBlockSudokuGridVertical = safeBlockVertical! * 0.75;
-    }
-
-    safeBlockSudokuGridVertical =
+    // Sudokugrid shall extend to the minimum of screen width / height,
+    // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
+    safeBlockMidSudokuGridVertical =
         min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
 
-// HMI height shall take the remaining space
-    safeBlockHMIGridVertical = min(
-        (safeBlockVertical! -
-            safeBlockSudokuGridVertical! -
-            safeBlockAppBarGridVertical!),
-        80.0); // Not smaller than aprox. 2cm
+    // HMI height shall take the remaining space, by using scroling if necessary.
+    safeBlockBottomHMIGridVertical = (safeBlockVertical! -
+        safeBlockMidSudokuGridVertical! -
+        safeBlockTopAppBarGridVertical!);
 
-    safeBlockAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockSudokuGridHorizontal =
-        safeBlockSudokuGridVertical!; // Grid shall be a square.
-
-// Button min / max sizes :
-    Logger.root.level = Level.ALL;
-
-    log.info(
-        'Horizontal size of screen in pixel: $SizeConfig.blockSizeHorizontal.toString()');
-    log.info(
-        'Vertical size of screen in pixel: $SizeConfig.blockSizeVertical.toString()');
-    log.info(
-        'Horizontal safe size of screen in pixel: $SizeConfig.safeBlockHorizontal.toString()');
-    log.info(
-        'Vertical safe size of screen in pixel: $SizeConfig.safeBlockVertical.toString()');
-    log.info('AppBar height in pixel: $safeBlockAppBarGridVertical.toString()');
-    log.info('Sudoku height in pixel: $safeBlockSudokuGridVertical.toString()');
-    log.info('HMI height in pixel: $safeBlockHMIGridVertical.toString()');
+    safeBlockTopAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockMidSudokuGridHorizontal =
+        safeBlockMidSudokuGridVertical!; // Grid shall be a square.
   }
 }
 
 
-// Copyright 2025, Mirko THULKE, Versailles
+// Copyright (c) 2025, MIRKO THULKE. All rights reserved.
+// See LICENSE file in the project root for details.

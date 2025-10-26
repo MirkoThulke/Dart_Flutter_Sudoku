@@ -1,33 +1,35 @@
-/*
-# -----------------------------------------------------------------------------
-# Author: MIRKO THULKE 
-# Copyright (c) 2025, MIRKO THULKE
-# All rights reserved.
-#
-# Date: 2025, VERSAILLES, FRANCE
-#
-# MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-# FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
-#
-# -----------------------------------------------------------------------------
+/* 
+##############################################################################
+
+Author: MIRKO THULKE
+Copyright (c) 2025, MIRKO THULKE
+All rights reserved.
+
+Date: 2025, VERSAILLES, FRANCE
+
+License: "All Rights Reserved – View Only"
+
+Permission is hereby granted to view and share this code in its original,
+unmodified form for educational or reference purposes only.
+
+Any other use, including but not limited to copying, modification,
+redistribution, commercial use, or inclusion in other projects, is strictly
+prohibited without the express written permission of the author.
+
+The Software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall the
+author be liable for any claim, damages, or other liability arising from the
+use of the Software.
+
+Contact: MIRKO THULKE (for permission requests)
+
+##############################################################################
 */
+
+// Import specific dart files
+import 'package:sudoku/utils/export.dart';
+
 import 'package:flutter/widgets.dart';
 
 import 'dart:io'; // to persist data on local storage
@@ -38,9 +40,6 @@ import 'dart:ffi';
 import 'package:path_provider/path_provider.dart';
 
 import 'dart:async';
-
-// Import specific dart files
-import 'package:sudoku/utils/export.dart';
 
 /// @startuml
 /// class DataProvider {
@@ -115,7 +114,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Updated method
-  Future<void> updateDataselectedRemoveList(
+  Future<void> updateDataselectedEraseAll(
       SelectedAddRemoveList selectedAddRemoveListNewData) async {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
@@ -126,7 +125,45 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
       notifyListeners();
 
       // ✅ Now async/await works
-      await callRustErase();
+      await callRustEraseAll();
+      await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    }
+  }
+
+  Future<void> updateDataselectedResetToGivens(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    if (_selectedAddRemoveList[addRemoveListIndex.resetToGivens]) {
+      // Optional: set a loading state to show spinner
+      _status = DataStatus.loading;
+      notifyListeners();
+
+      await callRustResetToGivens();
+      await readMatrixFromRust();
+
+      // Done — update status
+      _status = DataStatus.ready;
+
+      notifyListeners(); // signals UI rebuild if needed
+    }
+  }
+
+  Future<void> updateDataselectedSetAllCandidates(
+      SelectedAddRemoveList selectedAddRemoveListNewData) async {
+    _selectedAddRemoveList = selectedAddRemoveListNewData;
+
+    if (_selectedAddRemoveList[addRemoveListIndex.selectAllCand]) {
+      // Optional: set a loading state to show spinner
+      _status = DataStatus.loading;
+      notifyListeners();
+
+      await callRustSetAllCandidates();
       await readMatrixFromRust();
 
       // Done — update status
@@ -139,7 +176,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Updated method
-  Future<void> updateDataselectedAddList(
+  Future<void> updateDataselectedwriteGivensToRust(
       SelectedAddRemoveList selectedAddRemoveListNewData) async {
     _selectedAddRemoveList = selectedAddRemoveListNewData;
 
@@ -227,21 +264,18 @@ Avoid putting await directly in the constructor.
 
       if (jsonExists) {
         final loaded = await rustMatrix.loadFromJSON(appJsonPath);
-        print('Rust loadFromJSON returned: $loaded');
+
         if (loaded) {
           dartMatrix = rustMatrix.readMatrixFromRust(
               rustMatrix.numRows, rustMatrix.numCols);
 
           final numRows = dartMatrix.length;
           final numCols = dartMatrix.isNotEmpty ? dartMatrix[0].length : 0;
-          print('Number of rows: $numRows');
+
           if (dartMatrix.isNotEmpty) {
             final numCols = dartMatrix[0].length;
-            print('Number of columns: $numCols');
           }
-        } else {
-          print('Rust JSON load failed');
-        }
+        } else {}
       }
 
       _status = DataStatus.ready;
@@ -249,7 +283,6 @@ Avoid putting await directly in the constructor.
     } catch (e, st) {
       _status = DataStatus.error;
       _errorMessage = e.toString();
-      print('DataProvider initialization failed: $e\n$st');
       notifyListeners();
     }
   }
@@ -386,10 +419,24 @@ Avoid putting await directly in the constructor.
   }
 
   // -------------------------------
-  // Call Rust erase function
+  // Call Rust erase function to erase all cells
   // -------------------------------
-  Future<void> callRustErase() async {
-    rustMatrix.erase();
+  Future<void> callRustEraseAll() async {
+    rustMatrix.erase(true);
+  }
+
+  // -------------------------------
+  // Call Rust erase function to erase all except givens
+  // -------------------------------
+  Future<void> callRustResetToGivens() async {
+    rustMatrix.erase(false);
+  }
+
+  // -------------------------------
+  // Call Rust erase function to erase all except givens
+  // -------------------------------
+  Future<void> callRustSetAllCandidates() async {
+    rustMatrix.setAllCandidates();
   }
 
   // -------------------------------
@@ -399,12 +446,7 @@ Avoid putting await directly in the constructor.
     rustMatrix.updateCell(r, c, numRows, numCols);
   }
 
-  // -------------------------------
-  // Dispose / cleanup
-  // -------------------------------
-  @override
-  // is automatically called by ChangeNotifierProvider
-  void dispose() {
+  Future<void> shutdown() async {
     // 1. Save Rust data to JSON
     rustMatrix.saveToJSON(appJsonPath); // call your Rust FFI save function
 
@@ -413,16 +455,19 @@ Avoid putting await directly in the constructor.
 
     // Remove observer to avoid leaks
     WidgetsBinding.instance.removeObserver(this);
+  }
+
+  // -------------------------------
+  // Dispose / cleanup
+  // -------------------------------
+  @override
+  // is automatically called by ChangeNotifierProvider
+  void dispose() {
+    shutdown(); // ensures it’s also done on normal widget disposal
 
     super.dispose();
   }
-
-  // -------------------------------
-  // Debug print
-  // -------------------------------
-  void printDebug() {
-    rustMatrix.printRustAllElements();
-  }
 }
 
-// Copyright 2025, Mirko THULKE, Versailles
+// Copyright (c) 2025, MIRKO THULKE. All rights reserved.
+// See LICENSE file in the project root for details.

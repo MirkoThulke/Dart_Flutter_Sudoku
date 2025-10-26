@@ -1,32 +1,30 @@
-/*
-# -----------------------------------------------------------------------------
-# Author: MIRKO THULKE 
-# Copyright (c) 2025, MIRKO THULKE
-# All rights reserved.
-#
-# Date: 2025, VERSAILLES, FRANCE
-#
-# MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-# FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
-#
-# -----------------------------------------------------------------------------
+/* 
+##############################################################################
+
+Author: MIRKO THULKE
+Copyright (c) 2025, MIRKO THULKE
+All rights reserved.
+
+Date: 2025, VERSAILLES, FRANCE
+
+License: "All Rights Reserved – View Only"
+
+Permission is hereby granted to view and share this code in its original,
+unmodified form for educational or reference purposes only.
+
+Any other use, including but not limited to copying, modification,
+redistribution, commercial use, or inclusion in other projects, is strictly
+prohibited without the express written permission of the author.
+
+The Software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall the
+author be liable for any claim, damages, or other liability arising from the
+use of the Software.
+
+Contact: MIRKO THULKE (for permission requests)
+
+##############################################################################
 */
 
 // Import specific dart files
@@ -36,8 +34,6 @@ import 'dart:io';
 
 import 'dart:ffi';
 import 'package:ffi/ffi.dart'; // for toNativeUtf8()
-
-import 'package:logging/logging.dart';
 
 ///////////////////////////////////////////////////////////////////
 /* FFI (Foreign Function Interface) to connect to the RUST backend
@@ -56,11 +52,6 @@ import 'package:logging/logging.dart';
         // Take snapshot into Dart List<List<CellData>>
         var snapshot = toDartList(matrix.ptr, matrix.numRows, matrix.numCols);
 */
-
-////////////////////////////////////////////////////////////
-// Debug Logging class
-final Logger _logger = Logger('RustMatrixLogger');
-////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////
 /// @startuml
@@ -152,21 +143,6 @@ class DartToRustElement {
 
   // Constructure to define position of Cell inside matrix
   DartToRustElement(this.row, this.col);
-
-  // for debugging
-  @override
-  String toString() {
-    return 'DartToRustElement('
-        'row=$row, '
-        'col=$col, '
-        'selectedNum=$selectedNum, '
-        'selectedNumStateList=$selectedNumStateList, '
-        'selectedCandList=$selectedCandList, '
-        'selectedPatternList=$selectedPatternList, '
-        'requestedElementHighLightType=$requestedElementHighLightType'
-        'requestedCandHighLightType=$requestedCandHighLightType'
-        ')';
-  }
 }
 
 //////////////////////////////////////////////////////
@@ -189,10 +165,17 @@ typedef UpdateMatrixDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
-typedef EraseMatrixNative = Void Function(
+typedef EraseMatrixNative = Void Function(Pointer<DartToRustElementFFI> ptr,
+    Uint8 numRows, Uint8 numCols, Uint8 eraseGivens);
+// Dart-friendly version
+typedef EraseMatrixDart = void Function(Pointer<DartToRustElementFFI> ptr,
+    int numRows, int numCols, int eraseGivens);
+
+// Matches the exact C/Rust function signature
+typedef SetAllCandidatesNative = Void Function(
     Pointer<DartToRustElementFFI> ptr, Uint8 numRows, Uint8 numCols);
 // Dart-friendly version
-typedef EraseMatrixDart = void Function(
+typedef SetAllCandidatesDart = void Function(
     Pointer<DartToRustElementFFI> ptr, int numRows, int numCols);
 
 // Matches the exact C/Rust function signature
@@ -281,6 +264,7 @@ class RustMatrix {
 
   static late final UpdateMatrixDart _updateMatrix;
   static late final EraseMatrixDart _eraseMatrix;
+  static late final SetAllCandidatesDart _setAllCandidates;
   static late final UpdateCellDart _updateCell;
   static late final SaveDataDart _saveData;
   static late final LoadDataDart _loadData;
@@ -319,6 +303,10 @@ class RustMatrix {
     _eraseMatrix = dylib
         .lookupFunction<EraseMatrixNative, EraseMatrixDart>('erase_matrix');
 
+    _setAllCandidates =
+        dylib.lookupFunction<SetAllCandidatesNative, SetAllCandidatesDart>(
+            'set_all_candidates');
+
     _updateCell =
         dylib.lookupFunction<UpdateCellNative, UpdateCellDart>('update_cell');
 
@@ -352,8 +340,16 @@ class RustMatrix {
   // -------------------------------
   // Call Rust matrix erase function
   // -------------------------------
-  void erase() {
-    _eraseMatrix(ptr, numRows, numCols);
+  void erase(bool eraseGivens) {
+    final int eraseGivensU8 = boolToU8(eraseGivens);
+    _eraseMatrix(ptr, numRows, numCols, eraseGivensU8);
+  }
+
+  // -------------------------------
+  // Call Rust matrix erase function
+  // -------------------------------
+  void setAllCandidates() {
+    _setAllCandidates(ptr, numRows, numCols);
   }
 
   // -------------------------------
@@ -599,21 +595,7 @@ Creates a 2D Dart list of DartToRustElement.
     _finalizer.detach(this);
     _freeMatrix(ptr, numRows, numCols);
   }
-
-  // -------------------------------
-  // Optional debug print
-  // -------------------------------
-  void printRustAllElements() {
-    for (int r = 0; r < numRows; r++) {
-      String numRowstr = '';
-      for (int c = 0; c < numCols; c++) {
-        final cell = readCellFromRust(
-            r, c, numRows, numCols); // returns DartToRustElement
-        numRowstr += '(${cell.row},${cell.col}=${cell.selectedNum}) ';
-      }
-      _logger.fine(numRowstr); // use 'fine' for debug-level messages
-    }
-  }
 }
 
-// Copyright 2025, Mirko THULKE, Versailles
+// Copyright (c) 2025, MIRKO THULKE. All rights reserved.
+// See LICENSE file in the project root for details.

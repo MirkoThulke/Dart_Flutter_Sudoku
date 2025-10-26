@@ -1,32 +1,30 @@
-/*
-# -----------------------------------------------------------------------------
-# Author: MIRKO THULKE 
-# Copyright (c) 2025, MIRKO THULKE
-# All rights reserved.
-#
-# Date: 2025, VERSAILLES, FRANCE
-#
-# MIT License
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
-# FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-# IN THE SOFTWARE.
-#
-# -----------------------------------------------------------------------------
+/* 
+##############################################################################
+
+Author: MIRKO THULKE
+Copyright (c) 2025, MIRKO THULKE
+All rights reserved.
+
+Date: 2025, VERSAILLES, FRANCE
+
+License: "All Rights Reserved – View Only"
+
+Permission is hereby granted to view and share this code in its original,
+unmodified form for educational or reference purposes only.
+
+Any other use, including but not limited to copying, modification,
+redistribution, commercial use, or inclusion in other projects, is strictly
+prohibited without the express written permission of the author.
+
+The Software is provided "AS IS", without warranty of any kind, express or
+implied, including but not limited to the warranties of merchantability,
+fitness for a particular purpose, and noninfringement. In no event shall the
+author be liable for any claim, damages, or other liability arising from the
+use of the Software.
+
+Contact: MIRKO THULKE (for permission requests)
+
+##############################################################################
 */
 
 /*
@@ -38,6 +36,12 @@ import 'package:sudoku/utils/export.dart';
 
 // Global type definitions, enum and constants
 export 'package:sudoku/utils/shared_types.dart';
+
+// Help Page
+export 'package:sudoku/utils/help_page.dart';
+
+// User Feedback Page
+export 'package:sudoku/utils/user_feedback.dart';
 
 // RUST FFI backend Interface
 export 'package:sudoku/rust_ffi/rust_matrix.dart';
@@ -56,9 +60,10 @@ export 'package:sudoku/app.dart';
 
 // homepage
 export 'package:sudoku/home/home_page.dart';
-
-// App top bar hmi
+export 'package:sudoku/home/add_remove_toggle.dart';
 export 'package:sudoku/home/app_bar_actions.dart';
+export 'package:sudoku/home/secure_button.dart';
+export 'package:sudoku/home/top_action_buttons.dart';
 
 // Sudoku Gridd widget
 export 'package:sudoku/sudoku/sudoku_grid.dart';
@@ -71,7 +76,12 @@ export 'package:sudoku/sudoku/sudoku_element.dart';
 
 // Sudoku element widget
 export 'package:sudoku/sudoku_buttons/toggle_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/number_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/pattern_buttons.dart';
+export 'package:sudoku/sudoku_buttons/toggle_buttons_sections/set_reset_buttons.dart';
 
 
 
-// Copyright 2025, Mirko THULKE, Versailles
+
+// Copyright (c) 2025, MIRKO THULKE. All rights reserved.
+// See LICENSE file in the project root for details.
