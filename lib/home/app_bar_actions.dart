@@ -38,8 +38,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     // ✅ Fallback height if SizeConfig hasn't initialized yet
-    final appBarHeight = SizeConfig.safeBlockAppBarGridVertical ?? 56.0;
-    final appBarWidth = SizeConfig.safeBlockAppBarGridHorizontal ?? 56.0;
+    final appBarHeight = SizeConfig.safeBlockTopAppBarGridVertical ?? 56.0;
+    final appBarWidth = SizeConfig.safeBlockTopAppBarGridHorizontal ?? 56.0;
 
     return Material(
       color: Colors.white, // AppBar background
@@ -67,9 +67,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize {
-    final double height = (SizeConfig.safeBlockAppBarGridVertical != null &&
-            SizeConfig.safeBlockAppBarGridVertical!.isFinite)
-        ? SizeConfig.safeBlockAppBarGridVertical!
+    final double height = (SizeConfig.safeBlockTopAppBarGridVertical != null &&
+            SizeConfig.safeBlockTopAppBarGridVertical!.isFinite)
+        ? SizeConfig.safeBlockTopAppBarGridVertical!
         : 56.0;
 
     return Size.fromHeight(height);
