@@ -35,6 +35,27 @@ import 'dart:math'; // basics
 /////////////////////////////////////
 // Use this class to handle the overall dimension of the app content depending on the actual screen size
 
+/*
+------------------------------------------------------------------
+safeBlockAppBarGridVertical: 
+20% of the safe vertical screen size
+
+------------------------------------------------------------------
+safeBlockSudokuGridVertical: 
+min(66% of the safe vertical screen size, 100% of the safe horizontal screen size)
+
+
+
+
+------------------------------------------------------------------
+safeBlockHMIGridVertical: 
+remaining vertical space after allocating space for AppBar and SudokuGrid
+
+
+
+------------------------------------------------------------------
+*/
+
 class SizeConfig {
   static MediaQueryData? _mediaQueryData;
   static double? screenWidth;
@@ -47,13 +68,13 @@ class SizeConfig {
   static double? safeBlockHorizontal;
   static double? safeBlockVertical;
 
-  static double? safeBlockAppBarGridVertical;
-  static double? safeBlockSudokuGridVertical;
-  static double? safeBlockHMIGridVertical;
+  static double? safeBlockTopAppBarGridVertical;
+  static double? safeBlockMidSudokuGridVertical;
+  static double? safeBlockBottomHMIGridVertical;
 
-  static double? safeBlockAppBarGridHorizontal;
-  static double? safeBlockSudokuGridHorizontal;
-  static double? safeBlockHMIGridHorizontal;
+  static double? safeBlockTopAppBarGridHorizontal;
+  static double? safeBlockMidSudokuGridHorizontal;
+  static double? safeBlockBottomHMIGridHorizontal;
 
   void init(BuildContext context) {
     _mediaQueryData = MediaQuery.of(context);
@@ -69,23 +90,23 @@ class SizeConfig {
     safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
     safeBlockVertical = (screenHeight! - _safeAreaVertical!);
 
-    safeBlockAppBarGridVertical = safeBlockVertical! * 0.2;
+    // AppBar shall take 20% of the safe vertical screen size
+    safeBlockTopAppBarGridVertical = safeBlockVertical! * 0.2;
 
-// Sudokugrid shall extend to the minimum of screen width / height,
-// but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
-
-    safeBlockSudokuGridVertical =
+    // Sudokugrid shall extend to the minimum of screen width / height,
+    // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
+    safeBlockMidSudokuGridVertical =
         min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
 
-// HMI height shall take the remaining space
-    safeBlockHMIGridVertical = (safeBlockVertical! -
-        safeBlockSudokuGridVertical! -
-        safeBlockAppBarGridVertical!);
+    // HMI height shall take the remaining space, by using scroling if necessary.
+    safeBlockBottomHMIGridVertical = (safeBlockVertical! -
+        safeBlockMidSudokuGridVertical! -
+        safeBlockTopAppBarGridVertical!);
 
-    safeBlockAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockSudokuGridHorizontal =
-        safeBlockSudokuGridVertical!; // Grid shall be a square.
+    safeBlockTopAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockMidSudokuGridHorizontal =
+        safeBlockMidSudokuGridVertical!; // Grid shall be a square.
   }
 }
 

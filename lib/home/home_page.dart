@@ -43,7 +43,7 @@ class MyHomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-          toolbarHeight: SizeConfig.safeBlockAppBarGridVertical!,
+          toolbarHeight: SizeConfig.safeBlockTopAppBarGridVertical!,
           // Top bar button list is defined is seperate class
           actions: [CustomAppBar()]),
       // _appBarActions
@@ -54,15 +54,15 @@ class MyHomePage extends StatelessWidget {
             CrossAxisAlignment.center, // Align children horizontall
         children: [
           Container(
-            height: SizeConfig.safeBlockSudokuGridVertical!,
-            width: SizeConfig.safeBlockSudokuGridHorizontal!,
+            height: SizeConfig.safeBlockMidSudokuGridVertical!,
+            width: SizeConfig.safeBlockMidSudokuGridHorizontal!,
             color: Colors.orange,
             child: const SudokuGrid(),
           ),
           Expanded(
               child: Container(
             height: SizeConfig
-                .safeBlockHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
+                .safeBlockBottomHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
             width: SizeConfig.safeBlockHorizontal!,
             color: Colors.blue,
             child: ToggleButtonsSample(),

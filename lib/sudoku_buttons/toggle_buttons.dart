@@ -56,7 +56,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
     // Total HMI area height
     final double appHmiHeightTotal =
-        SizeConfig.safeBlockHMIGridVertical ?? 180.0;
+        SizeConfig.safeBlockBottomHMIGridVertical ?? 180.0;
 
     // Spacing between rows
     final double topRowSpacing = max((appHmiHeightTotal * 0.06), 12.0);
