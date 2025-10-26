@@ -33,6 +33,15 @@ Contact: MIRKO THULKE (for permission requests)
 // Rust code compiled to a dynamic library (.so, .dll, .dylib).
 
 /* 
+compile : in C:\...\appfolder\rust\rust_lib>
+cargo ndk -t armeabi-v7a -t arm64-v8a -t x86 -t x86_64 -o ../android/app/src/main/jniLibs build --release
+
+
+link to app : 
+cargo ndk -t armeabi-v7a -t arm64-v8a -t x86 -t x86_64 -o ..\..\android\app\src\main\jniLibs build --release
+*/
+
+/* 
 FFI function parameters are u8 (Dart-compatible).
 Internal Rust indexing uses usize (casting from u8).
 Array lengths also cast from u8 → usize.

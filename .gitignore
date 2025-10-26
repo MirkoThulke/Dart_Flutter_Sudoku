@@ -65,3 +65,5 @@ windows/Flutter/ephemeral/
 # Generated files
 *.lock
 
+# Ignore all Rust build artifacts
+rust/rust_lib/target/
