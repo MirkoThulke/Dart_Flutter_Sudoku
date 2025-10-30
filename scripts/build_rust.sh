@@ -31,16 +31,17 @@
 # Compile Rust backend for Android (all targets) and place
 # shared libraries into Flutter jniLibs folder
 # ------------------------------------------------------------
-
+#!/usr/bin/env bash
 set -e  # Exit on any error
 
-# Go to the Rust library folder
-cd "$(dirname "$0")/rust/rust_lib"
+# Resolve script directory
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+RUST_LIB_DIR="$SCRIPT_DIR/../rust/rust_lib"
+JNI_LIBS_PATH="$SCRIPT_DIR/../android/app/src/main/jniLibs"
 
-# Output path for jniLibs (relative to Rust folder)
-JNI_LIBS_PATH="../../android/app/src/main/jniLibs"
+cd "$RUST_LIB_DIR"
 
-echo "Cleaning previous build..."
+echo "Cleaning previous Rust build..."
 cargo clean
 
 echo "Building Rust backend for Android targets..."
@@ -53,7 +54,5 @@ cargo ndk \
     build --release
 
 echo "Rust build finished. Shared libraries placed in $JNI_LIBS_PATH"
-
-# Optional: show resulting files
 echo "Resulting files:"
 ls -R "$JNI_LIBS_PATH"

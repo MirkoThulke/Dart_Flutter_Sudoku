@@ -1,23 +1,66 @@
 {
   "version": "2.0.0",
   "tasks": [
+    // -----------------------------
+    // Host build tasks
+    // -----------------------------
     {
-      "label": "flutter-analyze",
+      "label": "update-device-id",
       "type": "shell",
-      "command": "flutter analyze"
+      "command": "./update_device.sh",
+      "problemMatcher": []
     },
     {
-      "label": "flutter-build-apk-debug",
+      "label": "build-all-host-debug",
       "type": "shell",
-      "command": "flutter build apk --debug"
+      "command": "./scripts/build_all.sh debug",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-id"]
     },
     {
-      "label": "analyze-and-build",
-      "dependsOn": [
-        "flutter-analyze",
-        "flutter-build-apk-debug"
-      ],
-      "dependsOrder": "sequence"
+      "label": "build-all-host-profile",
+      "type": "shell",
+      "command": "./scripts/build_all.sh profile",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-id"]
+    },
+    {
+      "label": "build-all-host-release",
+      "type": "shell",
+      "command": "./scripts/build_all.sh release",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-id"]
+    },
+
+
+    // -----------------------------
+    // Docker build tasks
+    // -----------------------------
+    {
+      "label": "build-all-docker-debug",
+      "type": "shell",
+      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh debug",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-ip"]
+    },
+    {
+      "label": "build-all-docker-profile",
+      "type": "shell",
+      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh profile",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-ip"]
+    },
+    {
+      "label": "build-all-docker-release",
+      "type": "shell",
+      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh release",
+      "problemMatcher": [],
+      "dependsOn": ["update-device-ip"]
     }
+
+
   ]
 }
+
+
+

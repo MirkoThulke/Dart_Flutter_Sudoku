@@ -32,22 +32,29 @@
 # Rust FFI binaries for Android require setting NDK toolchains properly. You can set CC_aarch64_linux_android etc. if needed.
 
 
+# ------------------------------------------------------------  
+#  How to Use This Dockerfile
+# ------------------------------------------------------------  
 
-##  How to Use This Dockerfile
+# ------------------------------------------------------------  
+# Build the Docker image:
+# ------------------------------------------------------------  
 
-## Build the Docker image:
+# ------------------------------------------------------------  
+# Build the environment image once :
+#
+#         docker build -t flutter_rust_env .
+# ------------------------------------------------------------  
 
-# docker build -t flutter-rust-builder .
-
-
-## Run the container with your local project mounted:
-
-# docker run --rm -it \
-#  -v /path/to/project:/app \
-#  -v ~/.cargo:/root/.cargo \
-#  -v ~/.pub-cache:/root/.pub-cache \
-#  flutter-rust-builder
-
+# ------------------------------------------------------------      
+# Run the container with your local project mounted:
+# ------------------------------------------------------------
+#         docker run --rm \
+#           -v ${PWD}:/app \
+#           -w /app \
+#           flutter_rust_env \
+#           bash -c "./scripts/build_all.sh release"
+# ------------------------------------------------------------
 
 # ------------------------------------------------------------
 # Base image
@@ -81,12 +88,12 @@ RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
     && flutter doctor
 
 
-
 # -------------------------------
 # Install Rust toolchain
 # -------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
+
 
 # Add Android targets for cross-compilation
 RUN rustup target add \
@@ -119,26 +126,31 @@ RUN $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
 RUN cargo install cargo-ndk
 
 # ------------------------------------------------------------
-# Copy project source
-# ------------------------------------------------------------
-COPY . /app
+# Add to Dockerfile after installing essential packages // for debugging on phone
+#       Connect Your Android Phone (Windows Host)
+#       Enable USB debugging on your phone.
+#       Connect the phone via USB.
+
+#       On your Windows host, switch to TCP/IP:
+#       adb tcpip 5555
+#       adb connect <PHONE_IP>:5555
+
+#       
+#       Example:
+#       adb connect 192.168.1.42:5555
+
+
+#       Verify connection:
+#       adb devices
+
+#       You should see:
+#       192.168.1.42:5555 device
+
+#       Your phone is now reachable over Wi-Fi — Docker doesn’t need USB access.
+
 
 # ------------------------------------------------------------
-# Make build script executable
-# ------------------------------------------------------------
-RUN chmod +x build_rust.sh
+RUN apt-get update && apt-get install -y adb
 
-# ------------------------------------------------------------
-# Build Rust FFI libraries
-# ------------------------------------------------------------
-RUN ./build_rust.sh
-
-# ------------------------------------------------------------
-# Pre-fetch Flutter dependencies
-# ------------------------------------------------------------
-RUN flutter pub get
-
-# ------------------------------------------------------------
-# Default command (interactive build shell)
-# ------------------------------------------------------------
-CMD ["bash", "-c", "./build_rust.sh && flutter build apk --release && bash"]
+# Default command: just print Flutter and Rust versions
+CMD ["bash", "-c", "flutter --version && rustc --version"]
