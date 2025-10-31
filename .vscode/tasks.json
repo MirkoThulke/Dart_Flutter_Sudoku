@@ -7,7 +7,7 @@
     {
       "label": "update-device-id",
       "type": "shell",
-      "command": "./update_device.sh",
+      "command": "./scripts/update_device.sh",
       "problemMatcher": []
     },
     {

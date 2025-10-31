@@ -1,4 +1,16 @@
 {
-    "cmake.ignoreCMakeListsMissing": true,
-    "java.configuration.updateBuildConfiguration": "interactive"
+  "cmake.ignoreCMakeListsMissing": true,
+  "java.configuration.updateBuildConfiguration": "interactive",
+  // use absolute path to GIT bash 
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.profiles.windows": {
+    "Git Bash": {
+      "path": "C:\\Programming\\Git\\bin\\bash.exe",
+      "args": ["--login", "-i"]
+    }
+  },
+  "tasks.shell": {
+    "executable": "C:\\Programming\\Git\\bin\\bash.exe",
+    "args": ["-c"]
+  }
 }
