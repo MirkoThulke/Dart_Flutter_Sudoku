@@ -11,9 +11,26 @@
       "problemMatcher": []
     },
     {
+      "label": "clean-flutter-host",
+      "type": "shell",
+      "command": "./scripts/clean_flutter.sh",
+      "args": [],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "build-flutter-host-debug",
+      "type": "shell",
+      "command": "./scripts/build_flutter.sh",
+      "args": ["debug"],
+      "problemMatcher": [],
+      "dependsOn": ["update-device-id"]
+    },
+    {
       "label": "build-all-host-debug",
       "type": "shell",
-      "command": "./scripts/build_all.sh debug",
+      "command": "./scripts/build_all.sh",
+      "args": ["debug"],
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
@@ -21,6 +38,7 @@
       "label": "build-all-host-profile",
       "type": "shell",
       "command": "./scripts/build_all.sh profile",
+      "args": ["profile"],
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
@@ -28,6 +46,7 @@
       "label": "build-all-host-release",
       "type": "shell",
       "command": "./scripts/build_all.sh release",
+      "args": ["release", "--clean"],
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
@@ -37,25 +56,83 @@
     // Docker build tasks
     // -----------------------------
     {
+      "label": "clean-flutter-docker",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+      "run",
+      "--rm",
+      "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
+      "-w", "/app",
+      "flutter_rust_env",
+      "./scripts/clean_flutter.sh"
+      ],
+      "problemMatcher": [],
+      "isBackground": false
+    },
+    {
+      "label": "build-flutter-docker-debug",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+      "run",
+      "--rm",
+      "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
+      "-w", "/app",
+      "flutter_rust_env",
+      "./scripts/build_flutter.sh", "debug"
+      ],
+      "problemMatcher": [],
+      "dependsOn": ["update-device-ip"],
+      "isBackground": false
+    },
+    {
       "label": "build-all-docker-debug",
       "type": "shell",
-      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh debug",
+      "command": "docker",
+      "args": [
+      "run",
+      "--rm",
+      "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
+      "-w", "/app",
+      "flutter_rust_env",
+      "./scripts/build_all.sh", "debug"
+      ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-ip"]
+      "dependsOn": ["update-device-ip"],
+      "isBackground": false
     },
     {
       "label": "build-all-docker-profile",
       "type": "shell",
-      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh profile",
+      "command": "docker",
+      "args": [
+      "run",
+      "--rm",
+      "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
+      "-w", "/app",
+      "flutter_rust_env",
+      "./scripts/build_all.sh", "profile"
+      ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-ip"]
+      "dependsOn": ["update-device-ip"],
+      "isBackground": false
     },
     {
       "label": "build-all-docker-release",
       "type": "shell",
-      "command": "docker run --rm -v /c/Programming/Apps_Mirko/sudoku:/app -w /app flutter_rust_env ./scripts/build_all.sh release",
+      "command": "docker",
+      "args": [
+      "run",
+      "--rm",
+      "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
+      "-w", "/app",
+      "flutter_rust_env",
+      "./scripts/build_all.sh", "release", "--clean"
+      ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-ip"]
+      "dependsOn": ["update-device-ip"],
+      "isBackground": false
     }
 
 
