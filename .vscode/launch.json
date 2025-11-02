@@ -16,30 +16,24 @@
       "name": "sudoku (usb debug flutter - host)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
       "preLaunchTask": "build-flutter-host-debug"
     },
     {
       "name": "sudoku (usb debug all - host)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
       "preLaunchTask": "build-all-host-debug"
     },
     {
       "name": "sudoku (usb profile all - host)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
-      "flutterMode": "profile",
       "preLaunchTask": "build-all-host-profile"
     },
     {
       "name": "sudoku (usb release all - host)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
-      "flutterMode": "release",
       "preLaunchTask": "build-all-host-release"
     },
     // -----------------------------
@@ -57,30 +51,24 @@
       "name": "sudoku (usb debug flutter - docker)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
       "preLaunchTask": "build-flutter-docker-debug"
     },
     {
       "name": "sudoku (usb debug all - docker)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
       "preLaunchTask": "build-all-docker-debug"
     },
     {
       "name": "sudoku (usb profile all - docker)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
-      "flutterMode": "profile",
       "preLaunchTask": "build-all-docker-profile"
     },
     {
       "name": "sudoku (usb release all - docker)",
       "request": "launch",
       "type": "dart",
-      "deviceId": "${env:ANDROID_DEVICE_ID}",
-      "flutterMode": "release",
       "preLaunchTask": "build-all-docker-release"
     },
   ]
