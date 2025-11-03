@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR/.."
 cd "$PROJECT_ROOT"
 
+echo "Project root is defined as: $PROJECT_ROOT"
+
 # Set Gradle cache path depending on environment
 # Use container-local cache if inside Docker
 if [ -n "$DOCKER_ENV" ]; then

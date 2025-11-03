@@ -37,7 +37,7 @@ import 'dart:math'; // basics
 
 /*
 ------------------------------------------------------------------
-safeBlockAppBarGridVertical: 
+safeBlockTopHMIdVertical: 
 20% of the safe vertical screen size
 
 ------------------------------------------------------------------
@@ -48,7 +48,7 @@ min(66% of the safe vertical screen size, 100% of the safe horizontal screen siz
 
 
 ------------------------------------------------------------------
-safeBlockHMIGridVertical: 
+safeBlockBottomHMIVertical: 
 remaining vertical space after allocating space for AppBar and SudokuGrid
 
 
@@ -56,28 +56,78 @@ remaining vertical space after allocating space for AppBar and SudokuGrid
 ------------------------------------------------------------------
 */
 
+import 'package:flutter/material.dart';
+import 'dart:math';
+import 'size_config.dart'; // if you put it in another file
+
+
+
+class OrientationAwareWidget extends StatefulWidget {
+  const OrientationAwareWidget({super.key});
+
+  @override
+  State<OrientationAwareWidget> createState() => _OrientationAwareWidgetState();
+}
+
+
+class _OrientationAwareWidgetState extends State<OrientationAwareWidget> {
+  late SizeConfig sizeConfig; // ✅ instance of SizeConfig
+  String _currentMode = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // ✅ Initialize SizeConfig whenever dependencies (like orientation) change
+    sizeConfig = SizeConfig()..init(context);
+  }
+
+  void _updateMode(Orientation orientation) {
+    setState(() {
+      _currentMode = orientation == Orientation.portrait
+          ? 'Portrait mode initialized'
+          : 'Landscape mode initialized';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orientation = MediaQuery.of(context).orientation;
+
+    // Reinitialize when building
+    sizeConfig.init(context);
+
+    
+  }
+}
+
+
+
 class SizeConfig {
-  static MediaQueryData? _mediaQueryData;
-  static double? screenWidth;
-  static double? screenHeight;
-  static double? blockSizeHorizontal;
-  static double? blockSizeVertical;
+  late MediaQueryData mediaQueryData;
+  late Orientation orientation;
 
-  static double? _safeAreaHorizontal;
-  static double? _safeAreaVertical;
-  static double? safeBlockHorizontal;
-  static double? safeBlockVertical;
+  late double screenWidth;
+  late double screenHeight;
+  late double blockSizeHorizontal;
+  late double blockSizeVertical;
 
-  static double? safeBlockTopAppBarGridVertical;
-  static double? safeBlockMidSudokuGridVertical;
-  static double? safeBlockBottomHMIGridVertical;
+  late double safeAreaHorizontal;
+  late double safeAreaVertical;
+  late double safeBlockHorizontal;
+  late double safeBlockVertical;
 
-  static double? safeBlockTopAppBarGridHorizontal;
-  static double? safeBlockMidSudokuGridHorizontal;
-  static double? safeBlockBottomHMIGridHorizontal;
+  late double safeBlockTopHMIGridVertical;
+  late double safeBlockMidSudokuGridVertical;
+  late double safeBlockBottomHMIGridVertical;
+
+  late double safeBlockTopHMIGridHorizontal;
+  late double safeBlockMidSudokuGridHorizontal;
+  late double safeBlockBottomHMIGridHorizontal;
 
   void init(BuildContext context) {
     _mediaQueryData = MediaQuery.of(context);
+    orientation = mediaQueryData.orientation; // 👈 Store current orientation
+
     screenWidth = _mediaQueryData!.size.width;
     screenHeight = _mediaQueryData!.size.height;
     blockSizeHorizontal = screenWidth!;
@@ -89,9 +139,19 @@ class SizeConfig {
         _mediaQueryData!.padding.top + _mediaQueryData!.padding.bottom;
     safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
     safeBlockVertical = (screenHeight! - _safeAreaVertical!);
+    
+    // ✅ Delegate calculation based on current orientation
+    if (orientation == Orientation.portrait) {
+      _calculatePortrait();
+    } else {
+      _calculateLandscape();
+    }
+  }
 
+  /// 📱 Portrait-specific calculations
+  void _calculatePortrait() {
     // AppBar shall take 20% of the safe vertical screen size
-    safeBlockTopAppBarGridVertical = safeBlockVertical! * 0.2;
+    safeBlockTopHMIGridVertical = safeBlockVertical! * 0.2;
 
     // Sudokugrid shall extend to the minimum of screen width / height,
     // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
@@ -101,14 +161,40 @@ class SizeConfig {
     // HMI height shall take the remaining space, by using scroling if necessary.
     safeBlockBottomHMIGridVertical = (safeBlockVertical! -
         safeBlockMidSudokuGridVertical! -
-        safeBlockTopAppBarGridVertical!);
+        safeBlockTopHMIGridVertical!);
 
-    safeBlockTopAppBarGridHorizontal = safeBlockHorizontal!; // width of screen
+    // For horizontal orientation
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal!; // width of screen
     safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
     safeBlockMidSudokuGridHorizontal =
         safeBlockMidSudokuGridVertical!; // Grid shall be a square.
   }
+
+    /// 🖥️ Landscape-specific calculations
+  void _calculateLandscape() {
+
+    // AppBar shall take 20% of the safe vertical screen size
+    safeBlockTopHMIGridVertical = safeBlockVertical! * 0.2;
+
+    // Sudokugrid shall extend to the minimum of screen width / height,
+    // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
+    safeBlockMidSudokuGridVertical =
+        min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
+
+    // HMI height shall take the remaining space, by using scroling if necessary.
+    safeBlockBottomHMIGridVertical = (safeBlockVertical! -
+        safeBlockMidSudokuGridVertical! -
+        safeBlockTopHMIGridVertical!);
+
+    // For horizontal orientation
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
+    safeBlockMidSudokuGridHorizontal =
+        safeBlockMidSudokuGridVertical!; // Grid shall be a square.
+
+  }
 }
+
 
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.

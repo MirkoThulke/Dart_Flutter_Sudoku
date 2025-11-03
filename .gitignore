@@ -67,3 +67,4 @@ windows/Flutter/ephemeral/
 
 # Ignore all Rust build artifacts
 rust/rust_lib/target/
+.vscode/launch.json.bak

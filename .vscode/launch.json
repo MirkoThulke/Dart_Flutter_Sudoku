@@ -5,12 +5,18 @@
     // Host builds
     // -----------------------------
     {
+      "name": "sudoku (flutter update device id - host)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/scripts/update_device.dart",
+      "preLaunchTask": "update-device-id"
+    },
+    {
       "name": "sudoku (flutter clean - host)",
       "request": "launch",
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
-      "preLaunchTask": "clean-flutter-host",
-       "deviceId": "none"
+      "preLaunchTask": "clean-flutter-host"
     },
     {
       "name": "sudoku (usb debug flutter - host)",
@@ -45,7 +51,7 @@
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
       "preLaunchTask": "clean-flutter-docker",
-       "deviceId": "none"
+       "deviceId": "TK7TEEYDHECEBAGU"
     },
     {
       "name": "sudoku (usb debug flutter - docker)",

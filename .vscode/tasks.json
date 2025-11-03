@@ -12,17 +12,23 @@
     },
     {
       "label": "clean-flutter-host",
-      "type": "shell",
-      "command": "./scripts/clean_flutter.sh",
-      "args": [],
+      "type": "process",
+      "command": "wsl",
+      "args": ["bash", "-ic", "./scripts/clean_flutter.sh"],
+      "options": {
+      "cwd": "${workspaceFolder}"  // <-- ensure the script runs from project root
+      },
       "isBackground": false,
       "problemMatcher": []
     },
     {
       "label": "build-flutter-host-debug",
-      "type": "shell",
-      "command": "./scripts/build_flutter.sh",
-      "args": ["debug"],
+      "type": "process",
+      "command": "wsl",
+      "args": ["bash", "-ic", "./scripts/build_flutter.sh", "debug"],
+      "options": {
+      "cwd": "${workspaceFolder}"  // <-- ensure the script runs from project root
+      },
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },

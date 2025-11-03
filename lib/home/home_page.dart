@@ -43,7 +43,7 @@ class MyHomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-          toolbarHeight: SizeConfig.safeBlockTopAppBarGridVertical!,
+          toolbarHeight: SizeConfig.safeBlockTopHMIGridVertical!,
           // Top bar button list is defined is seperate class
           actions: [CustomAppBar()]),
       // _appBarActions
