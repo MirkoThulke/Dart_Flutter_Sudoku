@@ -36,6 +36,7 @@ import 'package:sudoku/utils/export.dart';
 // Homepage screen . This is the overall root screen
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
+  final sizeConfig = Provider.of<SizeConfig>(context);
 
   @override
   Widget build(BuildContext context) {

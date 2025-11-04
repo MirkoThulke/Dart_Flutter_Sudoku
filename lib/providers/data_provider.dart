@@ -69,6 +69,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   String? get errorMessage => _errorMessage;
 
   // HMI Input section :
+
   // HMI Number selection input
   SelectedNumberList _selectedNumberList =
       List<bool>.from(constSelectedNumberList);
@@ -88,6 +89,8 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedAddRemoveList _selectedAddRemoveList =
       List<bool>.from(constSelectedAddRemoveList);
 
+
+
   // Public getter
   SelectedNumberList get selectedNumberList => _selectedNumberList;
   SelectedNumStateList get selectedNumStateList => _selectedNumStateList;
@@ -95,6 +98,7 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedPatternList get selectedPatternList => _selectedPatternList;
   SelectedUndoIconList get selectedUndoIconList => _selectedUndoIconList;
   SelectedAddRemoveList get selectedAddRemoveList => _selectedAddRemoveList;
+
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;

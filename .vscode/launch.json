@@ -51,7 +51,7 @@
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
       "preLaunchTask": "clean-flutter-docker",
-       "deviceId": "TK7TEEYDHECEBAGU"
+       "deviceId": "linux"
     },
     {
       "name": "sudoku (usb debug flutter - docker)",

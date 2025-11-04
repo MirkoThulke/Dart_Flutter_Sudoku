@@ -39,6 +39,7 @@ import 'package:flutter/services.dart';
 
 Future<void> shutdownApp(BuildContext context) async {
   final dataProvider = Provider.of<DataProvider>(context, listen: false);
+  final sizeConfig = Provider.of<SizeConfig>(context);
 
   try {
     // 🧹 Perform full cleanup and save synchronously or awaited

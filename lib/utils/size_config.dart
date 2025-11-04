@@ -61,49 +61,8 @@ import 'dart:math';
 import 'size_config.dart'; // if you put it in another file
 
 
-
-class OrientationAwareWidget extends StatefulWidget {
-  const OrientationAwareWidget({super.key});
-
-  @override
-  State<OrientationAwareWidget> createState() => _OrientationAwareWidgetState();
-}
-
-
-class _OrientationAwareWidgetState extends State<OrientationAwareWidget> {
-  late SizeConfig sizeConfig; // ✅ instance of SizeConfig
-  String _currentMode = '';
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // ✅ Initialize SizeConfig whenever dependencies (like orientation) change
-    sizeConfig = SizeConfig()..init(context);
-  }
-
-  void _updateMode(Orientation orientation) {
-    setState(() {
-      _currentMode = orientation == Orientation.portrait
-          ? 'Portrait mode initialized'
-          : 'Landscape mode initialized';
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final orientation = MediaQuery.of(context).orientation;
-
-    // Reinitialize when building
-    sizeConfig.init(context);
-
-    
-  }
-}
-
-
-
-class SizeConfig {
-  late MediaQueryData mediaQueryData;
+class SizeConfig extends ChangeNotifier {
+  late MediaQueryData _mediaQueryData;
   late Orientation orientation;
 
   late double screenWidth;
@@ -124,74 +83,54 @@ class SizeConfig {
   late double safeBlockMidSudokuGridHorizontal;
   late double safeBlockBottomHMIGridHorizontal;
 
+  /// ✅ Initialize and notify listeners if orientation changes
   void init(BuildContext context) {
-    _mediaQueryData = MediaQuery.of(context);
-    orientation = mediaQueryData.orientation; // 👈 Store current orientation
+    final newMediaQuery = MediaQuery.of(context);
+    final newOrientation = newMediaQuery.orientation;
 
-    screenWidth = _mediaQueryData!.size.width;
-    screenHeight = _mediaQueryData!.size.height;
-    blockSizeHorizontal = screenWidth!;
-    blockSizeVertical = screenHeight!;
+    _mediaQueryData = newMediaQuery;
+    screenWidth = _mediaQueryData.size.width;
+    screenHeight = _mediaQueryData.size.height;
 
-    _safeAreaHorizontal =
-        _mediaQueryData!.padding.left + _mediaQueryData!.padding.right;
-    _safeAreaVertical =
-        _mediaQueryData!.padding.top + _mediaQueryData!.padding.bottom;
-    safeBlockHorizontal = (screenWidth! - _safeAreaHorizontal!);
-    safeBlockVertical = (screenHeight! - _safeAreaVertical!);
-    
-    // ✅ Delegate calculation based on current orientation
-    if (orientation == Orientation.portrait) {
-      _calculatePortrait();
-    } else {
-      _calculateLandscape();
+    safeAreaHorizontal = _mediaQueryData.padding.left + _mediaQueryData.padding.right;
+    safeAreaVertical = _mediaQueryData.padding.top + _mediaQueryData.padding.bottom;
+
+    safeBlockHorizontal = screenWidth - safeAreaHorizontal;
+    safeBlockVertical = screenHeight - safeAreaVertical;
+
+    if (orientation != newOrientation) {
+      orientation = newOrientation;
+
+      // Recalculate layout blocks
+      if (orientation == Orientation.portrait) {
+        _calculatePortrait();
+      } else {
+        _calculateLandscape();
+      }
+
+      // ✅ Notify listeners about the change
+      notifyListeners();
     }
   }
 
-  /// 📱 Portrait-specific calculations
   void _calculatePortrait() {
-    // AppBar shall take 20% of the safe vertical screen size
-    safeBlockTopHMIGridVertical = safeBlockVertical! * 0.2;
+    safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
+    safeBlockMidSudokuGridVertical = min(safeBlockVertical * 0.66, safeBlockHorizontal);
+    safeBlockBottomHMIGridVertical = safeBlockVertical - safeBlockMidSudokuGridVertical - safeBlockTopHMIGridVertical;
 
-    // Sudokugrid shall extend to the minimum of screen width / height,
-    // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
-    safeBlockMidSudokuGridVertical =
-        min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
-
-    // HMI height shall take the remaining space, by using scroling if necessary.
-    safeBlockBottomHMIGridVertical = (safeBlockVertical! -
-        safeBlockMidSudokuGridVertical! -
-        safeBlockTopHMIGridVertical!);
-
-    // For horizontal orientation
-    safeBlockTopHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockMidSudokuGridHorizontal =
-        safeBlockMidSudokuGridVertical!; // Grid shall be a square.
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
+    safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal;
   }
 
-    /// 🖥️ Landscape-specific calculations
   void _calculateLandscape() {
+    safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
+    safeBlockMidSudokuGridVertical = min(safeBlockVertical * 0.66, safeBlockHorizontal);
+    safeBlockBottomHMIGridVertical = safeBlockVertical - safeBlockMidSudokuGridVertical - safeBlockTopHMIGridVertical;
 
-    // AppBar shall take 20% of the safe vertical screen size
-    safeBlockTopHMIGridVertical = safeBlockVertical! * 0.2;
-
-    // Sudokugrid shall extend to the minimum of screen width / height,
-    // but not greater than 0.66 of this dimension; to leave enough space for the HMI segment.
-    safeBlockMidSudokuGridVertical =
-        min(safeBlockVertical! * 0.66, safeBlockHorizontal!);
-
-    // HMI height shall take the remaining space, by using scroling if necessary.
-    safeBlockBottomHMIGridVertical = (safeBlockVertical! -
-        safeBlockMidSudokuGridVertical! -
-        safeBlockTopHMIGridVertical!);
-
-    // For horizontal orientation
-    safeBlockTopHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal!; // width of screen
-    safeBlockMidSudokuGridHorizontal =
-        safeBlockMidSudokuGridVertical!; // Grid shall be a square.
-
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
+    safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal;
   }
 }
 

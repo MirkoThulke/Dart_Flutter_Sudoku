@@ -61,6 +61,8 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
 
   @override
   Widget build(BuildContext context) {
+    final sizeConfig = Provider.of<SizeConfig>(context);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: 16.0), // add left & right padding

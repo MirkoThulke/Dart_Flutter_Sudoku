@@ -37,6 +37,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final sizeConfig = Provider.of<SizeConfig>(context);
+    
     // ✅ Fallback height if SizeConfig hasn't initialized yet
     final appBarHeight = SizeConfig.safeBlockTopHMIGridVertical ?? 56.0;
     final appBarWidth = SizeConfig.safeBlockTopHMIGridHorizontal ?? 56.0;

@@ -1,16 +1,24 @@
 {
   "cmake.ignoreCMakeListsMissing": true,
   "java.configuration.updateBuildConfiguration": "interactive",
-  // use absolute path to GIT bash 
-  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "dart.flutterSdkPath": "/home/mirko/flutter",
+    // use PowerShell as default terminal
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
     "Git Bash": {
       "path": "C:\\Programming\\Git\\bin\\bash.exe",
       "args": ["--login", "-i"]
+    },
+    "WSL": {
+      "path": "C:\\Windows\\System32\\wsl.exe",
+      "args": []
     }
   },
   "tasks.shell": {
-    "executable": "C:\\Programming\\Git\\bin\\bash.exe",
-    "args": ["-c"]
+    "executable": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "args": ["-Command"]
   }
 }
