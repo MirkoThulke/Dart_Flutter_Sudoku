@@ -28,7 +28,3 @@ flutter pub get
 # Optional: check outdated packages
 # echo "Checking for outdated packages..."
 # flutter pub outdated
-
-
-
-

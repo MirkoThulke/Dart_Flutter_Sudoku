@@ -2,7 +2,6 @@
   "cmake.ignoreCMakeListsMissing": true,
   "java.configuration.updateBuildConfiguration": "interactive",
   "dart.flutterSdkPath": "/home/mirko/flutter",
-    // use PowerShell as default terminal
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
