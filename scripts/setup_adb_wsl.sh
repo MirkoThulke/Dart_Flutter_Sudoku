@@ -2,21 +2,14 @@
 set -e
 
 # =========================================
-# WSL-native ADB over TCP/IP setup for Flutter
+# Fully automated WSL-native ADB over TCP/IP setup for Flutter
 # =========================================
 
 # Notes:
-
-# Replace DEVICE_IP="192.168.1.123" with your phone’s actual IP.
-
-# Make sure your phone and WSL are on the same network.
-
-# You only need one USB connection to enable TCP/IP debugging on the phone initially:
-
-# On Windows or Mac
-#   adb tcpip 5555
-
-
+# - Requires adb installed in WSL: sudo apt install adb
+# - Phone must have "USB Debugging" enabled
+# - Only one USB connection is needed to enable TCP/IP debugging
+# - Phone and WSL must be on the same Wi-Fi network
 
 # 1️⃣ Ensure adb is installed
 if ! command -v adb >/dev/null 2>&1; then
@@ -32,15 +25,26 @@ adb kill-server
 echo "🔄 Starting adb server..."
 adb start-server
 
-# 4️⃣ Connect to device via TCP/IP
-DEVICE_IP="192.168.1.123"  # <-- replace with your phone's IP
+# 4️⃣ Detect phone IP automatically (requires USB connection)
+DEVICE_IP=$(adb shell ip -f inet addr show wlan0 | grep -oP 'inet \K[\d.]+')
+
+if [ -z "$DEVICE_IP" ]; then
+    echo "❌ Could not detect phone IP. Make sure USB debugging is enabled and phone is connected via USB."
+    exit 1
+fi
+echo "✅ Detected phone IP: $DEVICE_IP"
+
+# 5️⃣ Switch phone to TCP/IP mode (only required once)
+echo "🔄 Switching device to TCP/IP mode on port 5555..."
+adb tcpip 5555
+
+# 6️⃣ Connect via TCP/IP
 PORT=5555
 echo "🔄 Connecting to device $DEVICE_IP:$PORT..."
 adb connect "$DEVICE_IP:$PORT"
 
-# 5️⃣ Verify connected devices
+# 7️⃣ Verify connected devices
 echo "🔄 Checking connected devices..."
-adb devices
+adb devices -l
 
 echo "✅ WSL is now configured to use adb over TCP/IP."
-
