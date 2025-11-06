@@ -57,9 +57,8 @@ remaining vertical space after allocating space for AppBar and SudokuGrid
 */
 
 import 'package:flutter/material.dart';
-import 'dart:math';
-import 'size_config.dart'; // if you put it in another file
 
+import 'dart:math';
 
 class SizeConfig extends ChangeNotifier {
   late MediaQueryData _mediaQueryData;
@@ -92,8 +91,10 @@ class SizeConfig extends ChangeNotifier {
     screenWidth = _mediaQueryData.size.width;
     screenHeight = _mediaQueryData.size.height;
 
-    safeAreaHorizontal = _mediaQueryData.padding.left + _mediaQueryData.padding.right;
-    safeAreaVertical = _mediaQueryData.padding.top + _mediaQueryData.padding.bottom;
+    safeAreaHorizontal =
+        _mediaQueryData.padding.left + _mediaQueryData.padding.right;
+    safeAreaVertical =
+        _mediaQueryData.padding.top + _mediaQueryData.padding.bottom;
 
     safeBlockHorizontal = screenWidth - safeAreaHorizontal;
     safeBlockVertical = screenHeight - safeAreaVertical;
@@ -115,8 +116,11 @@ class SizeConfig extends ChangeNotifier {
 
   void _calculatePortrait() {
     safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
-    safeBlockMidSudokuGridVertical = min(safeBlockVertical * 0.66, safeBlockHorizontal);
-    safeBlockBottomHMIGridVertical = safeBlockVertical - safeBlockMidSudokuGridVertical - safeBlockTopHMIGridVertical;
+    safeBlockMidSudokuGridVertical =
+        min(safeBlockVertical * 0.66, safeBlockHorizontal);
+    safeBlockBottomHMIGridVertical = safeBlockVertical -
+        safeBlockMidSudokuGridVertical -
+        safeBlockTopHMIGridVertical;
 
     safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
     safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;
@@ -125,8 +129,11 @@ class SizeConfig extends ChangeNotifier {
 
   void _calculateLandscape() {
     safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
-    safeBlockMidSudokuGridVertical = min(safeBlockVertical * 0.66, safeBlockHorizontal);
-    safeBlockBottomHMIGridVertical = safeBlockVertical - safeBlockMidSudokuGridVertical - safeBlockTopHMIGridVertical;
+    safeBlockMidSudokuGridVertical =
+        min(safeBlockVertical * 0.66, safeBlockHorizontal);
+    safeBlockBottomHMIGridVertical = safeBlockVertical -
+        safeBlockMidSudokuGridVertical -
+        safeBlockTopHMIGridVertical;
 
     safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
     safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;

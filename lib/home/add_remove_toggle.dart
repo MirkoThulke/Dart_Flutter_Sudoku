@@ -62,7 +62,8 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
   @override
   Widget build(BuildContext context) {
     final sizeConfig = Provider.of<SizeConfig>(context);
-    
+    sizeConfig.init(context); // if your class has an init method
+
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: 16.0), // add left & right padding

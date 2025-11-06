@@ -1,144 +1,58 @@
 {
   "version": "2.0.0",
   "tasks": [
-    // -----------------------------
-    // Host build tasks (WSL via CMD)
-    // Make sure that your Visual Studio Code terminal default profile is set to PowerShell !!
-    // -----------------------------
     {
-      "label": "update-device-id",
+      "label": "setup-adb-wsl",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/update_device.sh"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/setup_adb_wsl.sh"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": []
     },
     {
       "label": "clean-flutter-host",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/clean_flutter.sh"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/clean_flutter.sh"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": []
     },
     {
       "label": "build-flutter-host-debug",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/build_flutter.sh", "debug"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/build_flutter.sh", "debug"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
     {
       "label": "build-all-host-debug",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/build_all.sh", "debug"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "debug"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
     {
       "label": "build-all-host-profile",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/build_all.sh", "profile"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "profile"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
     },
     {
       "label": "build-all-host-release",
       "type": "shell",
-      "command": "wsl",
-      "args": ["bash", "-i", "/home/mirko/sudoku/scripts/build_all.sh", "release", "--clean"],
-      "options": { "cwd": "C:\\" },
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "release", "--clean"],
+      "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
       "dependsOn": ["update-device-id"]
-    },
-
-    // -----------------------------
-    // Docker build tasks
-    // -----------------------------
-    {
-      "label": "clean-flutter-docker",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "./scripts/clean_flutter.sh"
-      ],
-      "problemMatcher": [],
-      "isBackground": false
-    },
-    {
-      "label": "build-flutter-docker-debug",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "./scripts/build_flutter.sh", "debug"
-      ],
-      "problemMatcher": [],
-      "dependsOn": ["update-device-id"],
-      "isBackground": false
-    },
-    {
-      "label": "build-all-docker-debug",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "./scripts/build_all.sh", "debug"
-      ],
-      "problemMatcher": [],
-      "dependsOn": ["update-device-id"],
-      "isBackground": false
-    },
-    {
-      "label": "build-all-docker-profile",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "./scripts/build_all.sh", "profile"
-      ],
-      "problemMatcher": [],
-      "dependsOn": ["update-device-id"],
-      "isBackground": false
-    },
-    {
-      "label": "build-all-docker-release",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "run",
-        "--rm",
-        "-v", "/c/Programming/Apps_Mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "./scripts/build_all.sh", "release", "--clean"
-      ],
-      "problemMatcher": [],
-      "dependsOn": ["update-device-id"],
-      "isBackground": false
     }
   ]
 }
+

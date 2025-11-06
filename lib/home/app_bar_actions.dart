@@ -30,6 +30,8 @@ Contact: MIRKO THULKE (for permission requests)
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
+import 'package:provider/provider.dart';
+
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -37,12 +39,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    // ✅ Use Provider.of INSIDE build()
     final sizeConfig = Provider.of<SizeConfig>(context);
-    
+
+    sizeConfig.init(context); // if your class has an init method
+
     // ✅ Fallback height if SizeConfig hasn't initialized yet
-    final appBarHeight = SizeConfig.safeBlockTopHMIGridVertical ?? 56.0;
-    final appBarWidth = SizeConfig.safeBlockTopHMIGridHorizontal ?? 56.0;
+    final appBarHeight = sizeConfig.safeBlockTopHMIGridVertical ?? 56.0;
+    final appBarWidth = sizeConfig.safeBlockTopHMIGridHorizontal ?? 56.0;
 
     return Material(
       color: Colors.white, // AppBar background
@@ -69,14 +73,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize {
-    final double height = (SizeConfig.safeBlockTopHMIGridVertical != null &&
-            SizeConfig.safeBlockTopHMIGridVertical!.isFinite)
-        ? SizeConfig.safeBlockTopHMIGridVertical!
-        : 56.0;
-
-    return Size.fromHeight(height);
-  }
+  Size get preferredSize => const Size.fromHeight(56.0);
 }
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.

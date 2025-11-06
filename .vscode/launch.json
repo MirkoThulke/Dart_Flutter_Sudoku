@@ -5,11 +5,11 @@
     // Host builds
     // -----------------------------
     {
-      "name": "sudoku (flutter update device id - host)",
+      "name": "sudoku ( Configure WSL to use Windows ADB daemon)",
       "request": "launch",
       "type": "dart",
       "program": "${workspaceFolder}/scripts/update_device.dart",
-      "preLaunchTask": "update-device-id"
+      "preLaunchTask": "setup-adb-wsl"
     },
     {
       "name": "sudoku (flutter clean - host)",
@@ -51,7 +51,7 @@
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
       "preLaunchTask": "clean-flutter-docker",
-       "deviceId": "linux"
+       "deviceId": "192.168.1.142:5555"
     },
     {
       "name": "sudoku (usb debug flutter - docker)",

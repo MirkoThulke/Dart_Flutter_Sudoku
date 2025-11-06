@@ -52,11 +52,14 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context);
+    // ✅ Use Provider.of INSIDE build()
+    final sizeConfig = Provider.of<SizeConfig>(context);
+
+    sizeConfig.init(context); // if your class has an init method
 
     // Total HMI area height
     final double appHmiHeightTotal =
-        SizeConfig.safeBlockBottomHMIGridVertical ?? 180.0;
+        sizeConfig.safeBlockBottomHMIGridVertical ?? 180.0;
 
     // Spacing between rows
     final double topRowSpacing = max((appHmiHeightTotal * 0.06), 12.0);
@@ -77,7 +80,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
     // maximum width based on the number toogle switch
     final double totalRowWidth =
-        (SizeConfig.safeBlockHorizontal ?? 400.0) * 0.9;
+        (sizeConfig.safeBlockHorizontal ?? 400.0) * 0.9;
 
     final double rowHeightAdjusted = max(20, rowHeightAdjustedRaw);
 

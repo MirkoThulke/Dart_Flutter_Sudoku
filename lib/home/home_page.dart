@@ -29,6 +29,8 @@ Contact: MIRKO THULKE (for permission requests)
 
 import 'package:flutter/material.dart'; // basics
 
+import 'package:provider/provider.dart';
+
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
@@ -36,15 +38,17 @@ import 'package:sudoku/utils/export.dart';
 // Homepage screen . This is the overall root screen
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
-  final sizeConfig = Provider.of<SizeConfig>(context);
 
   @override
   Widget build(BuildContext context) {
-    SizeConfig().init(context); // obtain current size of App on screen
+    // ✅ Use Provider.of INSIDE build()
+    final sizeConfig = Provider.of<SizeConfig>(context);
+
+    sizeConfig.init(context); // if your class has an init method
 
     return Scaffold(
       appBar: AppBar(
-          toolbarHeight: SizeConfig.safeBlockTopHMIGridVertical!,
+          toolbarHeight: sizeConfig.safeBlockTopHMIGridVertical!,
           // Top bar button list is defined is seperate class
           actions: [CustomAppBar()]),
       // _appBarActions
@@ -55,16 +59,16 @@ class MyHomePage extends StatelessWidget {
             CrossAxisAlignment.center, // Align children horizontall
         children: [
           Container(
-            height: SizeConfig.safeBlockMidSudokuGridVertical!,
-            width: SizeConfig.safeBlockMidSudokuGridHorizontal!,
+            height: sizeConfig.safeBlockMidSudokuGridVertical!,
+            width: sizeConfig.safeBlockMidSudokuGridHorizontal!,
             color: Colors.orange,
             child: const SudokuGrid(),
           ),
           Expanded(
               child: Container(
-            height: SizeConfig
+            height: sizeConfig
                 .safeBlockBottomHMIGridVertical!, // what remaines if appbar and sudokugrid is placed
-            width: SizeConfig.safeBlockHorizontal!,
+            width: sizeConfig.safeBlockHorizontal!,
             color: Colors.blue,
             child: ToggleButtonsSample(),
           ))
