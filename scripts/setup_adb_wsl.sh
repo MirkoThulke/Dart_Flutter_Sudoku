@@ -138,7 +138,6 @@ else
     echo "$DEVICE_IP" > "$DEVICE_IP_FILE"
     echo "✅ Saved device IP for future sessions: $DEVICE_IP"
 fi
-
 # 9️⃣ Optional firewall check for device
 echo "🔍 Checking connectivity to device $DEVICE_IP:$PORT..."
 if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
@@ -146,18 +145,32 @@ if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
     echo "💡 Make sure WSL can reach the phone on the same network and port $PORT is open."
 fi
 
-# 🛡 Handle first-time TCP/IP authorization
-KNOWN_HOSTS_FILE="/mnt/c/Users/M/.android/adb_known_hosts.pb"
-if [ ! -f "$KNOWN_HOSTS_FILE" ]; then
-    echo "🆕 First-time TCP/IP connection detected."
-    echo "💡 Your phone will prompt to authorize this PC over Wi-Fi."
-    echo "📱 Make sure the phone screen is unlocked and accept the prompt."
-    read -p "Press Enter once you've authorized your device on the phone..."
-fi
+# 🛡 Handle first-time TCP/IP authorization automatically
+MAX_RETRIES=15
+SLEEP_INTERVAL=3
+RETRY_COUNT=0
 
-# 🔟 Connect to device via TCP/IP
-echo "🔄 Connecting to device $DEVICE_IP:$PORT..."
-adb connect "$DEVICE_IP:$PORT" || echo "⚠️ Could not connect to device $DEVICE_IP:$PORT"
+echo "🆕 Attempting TCP/IP connection to $DEVICE_IP:$PORT..."
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    adb connect "$DEVICE_IP:$PORT" >/dev/null 2>&1
+    if adb devices | grep -q "$DEVICE_IP"; then
+        echo "✅ Successfully connected to $DEVICE_IP:$PORT"
+        break
+    else
+        if [ $RETRY_COUNT -eq 0 ]; then
+            echo "💡 Your phone will prompt to authorize this PC over Wi-Fi."
+            echo "📱 Make sure the phone screen is unlocked and accept the prompt."
+        fi
+        echo "⏳ Waiting for device authorization... (retry $((RETRY_COUNT+1))/$MAX_RETRIES)"
+        sleep $SLEEP_INTERVAL
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+    fi
+done
+
+if ! adb devices | grep -q "$DEVICE_IP"; then
+    echo "⚠️ Could not connect to $DEVICE_IP:$PORT after $MAX_RETRIES attempts."
+    echo "💡 Make sure your phone is unlocked and the authorization prompt was accepted."
+fi
 
 # 1️⃣1️⃣ List all devices
 echo "🔄 Listing all devices..."
