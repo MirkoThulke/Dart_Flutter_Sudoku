@@ -41,11 +41,11 @@ if powershell.exe 'Get-Process -Name adb -ErrorAction SilentlyContinue' >/dev/nu
 else
     echo "⚠️ No adb.exe process detected on Windows."
     echo "💡 You can start it manually from PowerShell with:"
-    echo "   adb.exe -P 5037 nodaemon server"
+    echo "   adb.exe -a -P 5037 nodaemon server"
     read -p "Press Enter to attempt starting adb.exe automatically via PowerShell or Ctrl+C to abort..."
 
     # 🚀 Start adb.exe on Windows side (non-blocking, no new window)
-    powershell.exe -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath 'adb.exe' -ArgumentList '-P','5037','nodaemon','server'" >/dev/null 2>&1
+    powershell.exe -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath 'adb.exe' -ArgumentList '-a','-P','5037','nodaemon','server'" >/dev/null 2>&1
 
     echo "⏳ Waiting a few seconds for adb.exe to start..."
     sleep 3
@@ -56,7 +56,7 @@ else
     else
         echo "❌ Failed to start adb.exe automatically."
         echo "💡 Try running manually in PowerShell:"
-        echo "   adb.exe -P 5037 nodaemon server"
+        echo "   adb.exe -a -P 5037 nodaemon server"
     fi
 fi
 
@@ -82,7 +82,7 @@ else
     echo
     echo "   If you see '0.0.0.0:5037' or an error like 'cannot bind', restart ADB manually:"
     echo "     taskkill /IM adb.exe /F"
-    echo "     adb.exe -P 5037 nodaemon server"
+    echo "     adb.exe -a -P 5037 nodaemon server"
     echo
     echo "💬 After fixing it, press Enter to continue or Ctrl+C to abort..."
     read -p ""
