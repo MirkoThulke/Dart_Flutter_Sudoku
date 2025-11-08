@@ -4,10 +4,11 @@
     {
       "label": "setup-adb-wsl",
       "type": "shell",
-      "command": "bash",
-      "args": ["-i", "/home/mirko/sudoku/scripts/setup_adb_wsl.sh"],
-      "options": { "cwd": "/home/mirko/sudoku" },
-      "problemMatcher": []
+      "command": "/home/mirko/sudoku/scripts/setup_adb_wsl.sh",
+      "problemMatcher": [],
+      "options": {
+        "shell": { "executable": "/bin/bash", "args": ["-i"] }
+      }
     },
     {
       "label": "clean-flutter-host",
