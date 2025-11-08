@@ -2,7 +2,7 @@
 set -e
 
 # =========================================
-# Robust WSL-native ADB over TCP/IP setup for Flutter
+# Fully automatic WSL-native ADB over TCP/IP setup
 # =========================================
 
 DEVICE_IP_FILE="$HOME/.adb_device_ip"
@@ -50,28 +50,40 @@ nc -z -v -w 3 "$WIN_IP" 5037 >/dev/null 2>&1 || {
 
 # 5️⃣ Detect USB-connected device (first-time TCP setup)
 USB_DEVICE=$(adb devices | grep -v "List of devices" | grep -v "offline" | grep -v "unauthorized" | awk '{print $1}' | head -n 1 || true)
+
 if [ -n "$USB_DEVICE" ]; then
     echo "📱 USB device detected: $USB_DEVICE"
+    
     if [ ! -f "$DEVICE_IP_FILE" ]; then
         echo "🔄 Switching device to TCP/IP mode on port $PORT..."
         adb -s "$USB_DEVICE" tcpip $PORT || echo "⚠️ Failed to switch device to TCP/IP mode"
+        echo "✅ TCP/IP mode enabled. You can now unplug the USB cable."
     fi
 else
-    echo "⚠️ No USB device detected. Assuming TCP/IP mode was enabled previously."
+    echo "⚠️ No USB device detected. TCP/IP mode must have been enabled previously."
 fi
 
-# 6️⃣ Detect device IP
+# 5️⃣ Detect device IP
 if [ -f "$DEVICE_IP_FILE" ]; then
     DEVICE_IP=$(cat "$DEVICE_IP_FILE")
     echo "📌 Using saved device IP: $DEVICE_IP"
 else
     echo "ℹ️ Attempting to detect device IP from USB/TCP..."
     DEVICE_IP=$(adb shell ip -f inet addr show wlan0 2>/dev/null | grep -oP 'inet \K[\d.]+' | head -n 1 || true)
+    
     if [ -z "$DEVICE_IP" ]; then
         read -p "Enter your phone IP for TCP/IP connection: " DEVICE_IP
     fi
+    
     echo "$DEVICE_IP" > "$DEVICE_IP_FILE"
     echo "✅ Saved device IP for future sessions: $DEVICE_IP"
+fi
+
+# 6️⃣ Optional firewall check
+echo "🔍 Checking firewall connectivity to device..."
+if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
+    echo "⚠️ Cannot reach $DEVICE_IP. Check your firewall and Wi-Fi network."
+    echo "💡 Make sure WSL can reach the phone on the same network and port $PORT is open."
 fi
 
 # 7️⃣ Connect to device via TCP/IP
@@ -82,4 +94,14 @@ adb connect "$DEVICE_IP:$PORT" || echo "⚠️ Could not connect to device $DEVI
 echo "🔄 Listing all devices..."
 adb devices -l || true
 
+# 9️⃣ User instructions
+echo
+echo "💡 Instructions:"
+echo " - If this was the first run, you can now safely unplug the USB cable."
+echo " - Your phone must remain on the same Wi-Fi network for future connections."
+echo " - Run this script anytime to reconnect to your device over TCP/IP."
+echo " - If the connection fails, ensure your firewall allows traffic on port $PORT."
+echo
+
 echo "✅ WSL is now configured to use adb over TCP/IP."
+
