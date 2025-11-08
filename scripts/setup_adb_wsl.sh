@@ -33,6 +33,7 @@ if ! command -v adb >/dev/null 2>&1; then
     exit 1
 fi
 
+
 # 🧠 Extra Check: Ensure Windows adb.exe is running correctly
 echo "🩺 Checking if adb.exe is running on Windows..."
 if powershell.exe 'Get-Process -Name adb -ErrorAction SilentlyContinue' >/dev/null 2>&1; then
@@ -40,15 +41,39 @@ if powershell.exe 'Get-Process -Name adb -ErrorAction SilentlyContinue' >/dev/nu
 else
     echo "⚠️ No adb.exe process detected on Windows."
     echo "💡 You can start it manually from PowerShell with:"
-    echo "   adb.exe -a -P 5037 nodaemon server"
+    echo "   adb.exe -P 5037 nodaemon server"
     read -p "Press Enter to attempt starting adb.exe automatically via PowerShell or Ctrl+C to abort..."
-    powershell.exe 'Start-Process "adb.exe" -ArgumentList "-a -P 5037 nodaemon server" -NoNewWindow' || echo "⚠️ Failed to start adb.exe automatically."
+
+    # 🚀 Start adb.exe on Windows side (non-blocking, no new window)
+    powershell.exe -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath 'adb.exe' -ArgumentList '-P','5037','nodaemon','server'" >/dev/null 2>&1
+
+    echo "⏳ Waiting a few seconds for adb.exe to start..."
+    sleep 3
+
+    # 🧪 Verify adb.exe is running now
+    if powershell.exe 'Get-Process -Name adb -ErrorAction SilentlyContinue' >/dev/null 2>&1; then
+        echo "✅ adb.exe successfully started on Windows."
+    else
+        echo "❌ Failed to start adb.exe automatically."
+        echo "💡 Try running manually in PowerShell:"
+        echo "   adb.exe -P 5037 nodaemon server"
+    fi
 fi
 
+echo "🔍 Checking if adb.exe is listening on 127.0.0.1:5037..."
+if powershell.exe "netstat -ano | findstr 5037" | grep -q "127.0.0.1:5037"; then
+    echo "✅ adb.exe is listening on 127.0.0.1:5037"
+else
+    echo "⚠️ adb.exe is not listening on 127.0.0.1:5037 yet."
+    echo "💡 You can check manually in PowerShell with:"
+    echo "   netstat -ano | findstr 5037"
+fi
 
 # 🧹 Optional: Check if adb.exe is misbehaving on 0.0.0.0:5037
 echo "🧪 Testing ADB connection on Windows side..."
-if ! nc -z -w 2 "$WIN_IP" 5037 >/dev/null 2>&1; then
+if nc -z -w 2 "$WIN_IP" 5037 >/dev/null 2>&1; then
+    echo "✅ ADB on Windows is reachable on $WIN_IP:5037"
+else
     echo "⚠️ ADB on Windows might not be listening on the expected interface."
     echo
     echo "💡 Check the ADB binding from PowerShell (on Windows):"
@@ -57,12 +82,11 @@ if ! nc -z -w 2 "$WIN_IP" 5037 >/dev/null 2>&1; then
     echo
     echo "   If you see '0.0.0.0:5037' or an error like 'cannot bind', restart ADB manually:"
     echo "     taskkill /IM adb.exe /F"
-    echo "     adb.exe -a -P 5037 nodaemon server"
+    echo "     adb.exe -P 5037 nodaemon server"
     echo
     echo "💬 After fixing it, press Enter to continue or Ctrl+C to abort..."
     read -p ""
 fi
-
 
 
 # 4️⃣ Check connectivity to Windows ADB
@@ -120,6 +144,15 @@ echo "🔍 Checking connectivity to device $DEVICE_IP:$PORT..."
 if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
     echo "⚠️ Cannot reach $DEVICE_IP. Check your firewall and Wi-Fi network."
     echo "💡 Make sure WSL can reach the phone on the same network and port $PORT is open."
+fi
+
+# 🛡 Handle first-time TCP/IP authorization
+KNOWN_HOSTS_FILE="/mnt/c/Users/M/.android/adb_known_hosts.pb"
+if [ ! -f "$KNOWN_HOSTS_FILE" ]; then
+    echo "🆕 First-time TCP/IP connection detected."
+    echo "💡 Your phone will prompt to authorize this PC over Wi-Fi."
+    echo "📱 Make sure the phone screen is unlocked and accept the prompt."
+    read -p "Press Enter once you've authorized your device on the phone..."
 fi
 
 # 🔟 Connect to device via TCP/IP
