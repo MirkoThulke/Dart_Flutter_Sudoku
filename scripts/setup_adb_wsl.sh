@@ -45,16 +45,24 @@ else
     powershell.exe 'Start-Process "adb.exe" -ArgumentList "-a -P 5037 nodaemon server" -NoNewWindow' || echo "⚠️ Failed to start adb.exe automatically."
 fi
 
+
 # 🧹 Optional: Check if adb.exe is misbehaving on 0.0.0.0:5037
 echo "🧪 Testing ADB connection on Windows side..."
 if ! nc -z -w 2 "$WIN_IP" 5037 >/dev/null 2>&1; then
     echo "⚠️ ADB on Windows might not be listening on the expected interface."
-    echo "💡 If you see '0.0.0.0:5037' or 'cannot bind', stop adb.exe manually:"
-    echo "   PowerShell> taskkill /IM adb.exe /F"
-    echo "Then restart it with:"
-    echo "   adb.exe -a -P 5037 nodaemon server"
-    read -p "Press Enter once you've done this or Ctrl+C to abort..."
+    echo
+    echo "💡 Check the ADB binding from PowerShell (on Windows):"
+    echo "   netstat -ano | findstr 5037"
+    echo "   👉 You should see something like: '127.0.0.1:5037  LISTENING'"
+    echo
+    echo "   If you see '0.0.0.0:5037' or an error like 'cannot bind', restart ADB manually:"
+    echo "     taskkill /IM adb.exe /F"
+    echo "     adb.exe -a -P 5037 nodaemon server"
+    echo
+    echo "💬 After fixing it, press Enter to continue or Ctrl+C to abort..."
+    read -p ""
 fi
+
 
 
 # 4️⃣ Check connectivity to Windows ADB
