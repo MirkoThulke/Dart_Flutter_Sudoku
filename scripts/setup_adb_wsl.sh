@@ -63,7 +63,7 @@ else
     echo "⚠️ No USB device detected. TCP/IP mode must have been enabled previously."
 fi
 
-# 5️⃣ Detect device IP
+# 6️⃣ Detect device IP
 if [ -f "$DEVICE_IP_FILE" ]; then
     DEVICE_IP=$(cat "$DEVICE_IP_FILE")
     echo "📌 Using saved device IP: $DEVICE_IP"
@@ -79,22 +79,25 @@ else
     echo "✅ Saved device IP for future sessions: $DEVICE_IP"
 fi
 
-# 6️⃣ Optional firewall check
-echo "🔍 Checking firewall connectivity to device..."
-if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
-    echo "⚠️ Cannot reach $DEVICE_IP. Check your firewall and Wi-Fi network."
-    echo "💡 Make sure WSL can reach the phone on the same network and port $PORT is open."
+# 7️⃣ Direct TCP check to phone
+echo "🔍 Checking connectivity to $DEVICE_IP on port $PORT..."
+if ! nc -z -v -w 3 "$DEVICE_IP" $PORT >/dev/null 2>&1; then
+    echo "⚠️ Cannot reach $DEVICE_IP:$PORT."
+    echo "💡 Check your phone Wi-Fi, firewall, and ensure TCP/IP debugging is enabled."
+    read -p "Press Enter to continue anyway or Ctrl+C to abort..."
+else
+    echo "✅ TCP port $PORT on $DEVICE_IP is reachable."
 fi
 
-# 7️⃣ Connect to device via TCP/IP
+# 8️⃣ Connect to device via TCP/IP
 echo "🔄 Connecting to device $DEVICE_IP:$PORT..."
 adb connect "$DEVICE_IP:$PORT" || echo "⚠️ Could not connect to device $DEVICE_IP:$PORT"
 
-# 8️⃣ List all devices
+# 9️⃣ List all devices
 echo "🔄 Listing all devices..."
 adb devices -l || true
 
-# 9️⃣ User instructions
+# 10️⃣ User instructions
 echo
 echo "💡 Instructions:"
 echo " - If this was the first run, you can now safely unplug the USB cable."
@@ -104,4 +107,3 @@ echo " - If the connection fails, ensure your firewall allows traffic on port $P
 echo
 
 echo "✅ WSL is now configured to use adb over TCP/IP."
-
