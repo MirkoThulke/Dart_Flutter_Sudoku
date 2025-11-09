@@ -100,13 +100,20 @@ if ! nc -z -w 3 "$WIN_IP" 5037 >/dev/null 2>&1; then
     read -p "Press Enter to continue anyway or Ctrl+C to abort..."
 fi
 
-# 5️⃣ Stop any running adb server
-echo "🔄 Stopping any running adb server in WSL..."
-adb kill-server || true
+# 5️⃣ Ensure no WSL adb server is running (just cleanup)
+echo "🔄 Ensuring no adb server is running in WSL..."
+pkill -f "adb" >/dev/null 2>&1 || true
 
-# 6️⃣ Start adb server
-echo "🔄 Starting adb server in WSL..."
-adb start-server || true
+# ✅ Verify connectivity to Windows ADB server instead of starting a new one
+echo "🔍 Verifying connection to Windows adb.exe..."
+if ! adb devices >/dev/null 2>&1; then
+    echo "⚠️ Cannot connect to Windows adb.exe at $WIN_IP:5037."
+    echo "💡 Make sure Windows adb.exe is running (check in PowerShell with: Get-Process adb)"
+    echo "💡 If not, start it manually with: adb.exe -a -P 5037 nodaemon server"
+else
+    echo "✅ Connected to Windows adb.exe successfully."
+fi
+
 
 # 7️⃣ Detect USB-connected device for first-time TCP/IP setup
 USB_DEVICE=$(adb devices | grep -v "List of devices" | grep -v "offline" | grep -v "unauthorized" | awk '{print $1}' | head -n 1 || true)
