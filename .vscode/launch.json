@@ -9,14 +9,16 @@
       "request": "launch",
       "type": "dart",
       "program": "${workspaceFolder}/scripts/update_device.dart",
-      "preLaunchTask": "setup-adb-wsl"
+      "preLaunchTask": "setup-adb-wsl",
+      "noDebug": true
     },
     {
       "name": "sudoku (flutter clean - host)",
       "request": "launch",
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
-      "preLaunchTask": "clean-flutter-host"
+      "preLaunchTask": "clean-flutter-host",
+      "noDebug": true
     },
     {
       "name": "sudoku (usb debug flutter - host)",

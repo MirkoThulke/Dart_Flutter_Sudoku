@@ -30,6 +30,13 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"  // <-- THIS MUST point to your CMakeLists.txt
+            version "3.22.1"                    // optional: the version you want to use
+        }
+    }
+
 
 }
 

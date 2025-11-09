@@ -145,6 +145,7 @@ else
     echo "$DEVICE_IP" > "$DEVICE_IP_FILE"
     echo "✅ Saved device IP for future sessions: $DEVICE_IP"
 fi
+
 # 9️⃣ Optional firewall check for device
 echo "🔍 Checking connectivity to device $DEVICE_IP:$PORT..."
 if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
@@ -192,4 +193,34 @@ echo " - Run this script anytime to reconnect to your device over TCP/IP."
 echo " - If the connection fails, ensure your firewall allows traffic on port $PORT."
 echo
 
-echo "✅ WSL is now configured to use adb over TCP/IP."
+
+# =========================================
+# 12️⃣ Configure WSL CMake for Flutter/Gradle (automatic)
+# =========================================
+
+# Detect CMake in WSL
+WSL_CMAKE=$(which cmake || true)
+
+if [ -z "$WSL_CMAKE" ]; then
+    echo "❌ CMake not found in WSL. Install it with: sudo apt install cmake"
+else
+    echo "ℹ️ Detected WSL CMake at: $WSL_CMAKE"
+
+    # Export environment variable for this session
+    export ANDROID_CMAKE="$WSL_CMAKE"
+
+    # Persist in bashrc for future sessions
+    if ! grep -q "ANDROID_CMAKE" ~/.bashrc; then
+        echo "export ANDROID_CMAKE=$WSL_CMAKE" >> ~/.bashrc
+        echo "✅ Added ANDROID_CMAKE to ~/.bashrc"
+    fi
+
+    # Automatically tell Gradle to use this CMake
+    export ORG_GRADLE_PROJECT_android_cmake_path="$WSL_CMAKE"
+    echo "✅ Gradle will automatically use WSL CMake at: $WSL_CMAKE"
+
+    # Optional: Inform the user
+    echo "💡 No manual gradle.properties edit needed. Flutter/Gradle build will pick up CMake from WSL."
+fi
+
+echo "✅ WSL is now configured to use adb over TCP/IP and CMake for Flutter/Gradle."
