@@ -18,8 +18,14 @@ fi
 echo "ℹ️ Detected Windows host IP: $WIN_IP"
 
 # 2️⃣ Set ADB_SERVER_SOCKET for this session
-export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037
-echo "✅ Set ADB_SERVER_SOCKET for this session: $ADB_SERVER_SOCKET"
+# Use Windows adb.exe in WSL
+if [[ "$(grep -qEi "(Microsoft|WSL)" /proc/version && echo WSL)" == "WSL" ]]; then
+    export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037
+    ADB_CMD="adb.exe -a -P 5037"
+    echo "✅ Set ADB_SERVER_SOCKET for this session: $ADB_SERVER_SOCKET"
+else
+    ADB_CMD="adb"
+fi
 
 # Persist for future sessions
 if ! grep -q "ADB_SERVER_SOCKET" ~/.bashrc; then
@@ -60,12 +66,22 @@ else
     fi
 fi
 
-echo "🔍 Checking if adb.exe is listening on 127.0.0.1:5037..."
-if powershell.exe "netstat -ano | findstr 5037" | grep -q "127.0.0.1:5037"; then
-    echo "✅ adb.exe is listening on 127.0.0.1:5037"
+echo "🔍 Checking ADB port binding..."
+BIND_STATUS=$(powershell.exe "netstat -ano | findstr 5037" | tr -d '\r' || true)
+
+if echo "$BIND_STATUS" | grep -q "127.0.0.1:5037"; then
+    echo "✅ adb.exe is correctly bound to 127.0.0.1:5037"
+elif echo "$BIND_STATUS" | grep -q "0.0.0.0:5037"; then
+    echo "⚠️ adb.exe is bound to 0.0.0.0:5037 — this can cause conflicts or firewall blocking."
+    echo "💡 Fixing: killing adb.exe and restarting with proper binding..."
+    powershell.exe "taskkill /IM adb.exe /F" >/dev/null 2>&1 || true
+    sleep 1
+    powershell.exe -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath 'adb.exe' -ArgumentList '-a','-P','5037','nodaemon','server'" >/dev/null 2>&1
+    echo "✅ Restarted adb.exe on Windows."
+    sleep 3
 else
-    echo "⚠️ adb.exe is not listening on 127.0.0.1:5037 yet."
-    echo "💡 You can check manually in PowerShell with:"
+    echo "⚠️ adb.exe is not listening on 5037 yet."
+    echo "💡 You can check manually in PowerShell:"
     echo "   netstat -ano | findstr 5037"
 fi
 
@@ -116,14 +132,14 @@ fi
 
 
 # 7️⃣ Detect USB-connected device for first-time TCP/IP setup
-USB_DEVICE=$(adb devices | grep -v "List of devices" | grep -v "offline" | grep -v "unauthorized" | awk '{print $1}' | head -n 1 || true)
+USB_DEVICE=$($ADB_CMD devices | grep -v "List of devices" | grep -v "offline" | grep -v "unauthorized" | awk '{print $1}' | head -n 1 || true)
 
 if [ -n "$USB_DEVICE" ]; then
     echo "📱 USB device detected: $USB_DEVICE"
 
     if [ ! -f "$DEVICE_IP_FILE" ]; then
         echo "🔄 Switching device to TCP/IP mode on port $PORT..."
-        adb -s "$USB_DEVICE" tcpip $PORT || echo "⚠️ Failed to switch device to TCP/IP mode"
+        $ADB_CMD -s "$USB_DEVICE" tcpip $PORT || echo "⚠️ Failed to switch device to TCP/IP mode"
         echo "✅ TCP/IP mode enabled. You can now unplug the USB cable."
     fi
 else
@@ -136,7 +152,7 @@ if [ -f "$DEVICE_IP_FILE" ]; then
     echo "📌 Using saved device IP: $DEVICE_IP"
 else
     echo "ℹ️ Attempting to detect device IP from USB/TCP..."
-    DEVICE_IP=$(adb shell ip -f inet addr show wlan0 2>/dev/null | grep -oP 'inet \K[\d.]+' | head -n 1 || true)
+    DEVICE_IP=$($ADB_CMD shell ip -f inet addr show wlan0 2>/dev/null | grep -oP 'inet \K[\d.]+' | head -n 1 || true)
 
     if [ -z "$DEVICE_IP" ]; then
         read -p "Enter your phone IP for TCP/IP connection: " DEVICE_IP
@@ -160,8 +176,8 @@ RETRY_COUNT=0
 
 echo "🆕 Attempting TCP/IP connection to $DEVICE_IP:$PORT..."
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    adb connect "$DEVICE_IP:$PORT" >/dev/null 2>&1
-    if adb devices | grep -q "$DEVICE_IP"; then
+    $ADB_CMD connect "$DEVICE_IP:$PORT" >/dev/null 2>&1
+    if $ADB_CMD devices | grep -q "$DEVICE_IP"; then
         echo "✅ Successfully connected to $DEVICE_IP:$PORT"
         break
     else
@@ -182,7 +198,7 @@ fi
 
 # 1️⃣1️⃣ List all devices
 echo "🔄 Listing all devices..."
-adb devices -l || true
+$ADB_CMD devices -l || true
 
 # 📝 User instructions
 echo

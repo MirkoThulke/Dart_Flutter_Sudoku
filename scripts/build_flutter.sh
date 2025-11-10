@@ -22,6 +22,15 @@ else
 fi
 echo "Detected environment: $ENV_TYPE"
 
+# Use Windows adb.exe in WSL
+if [[ "$ENV_TYPE" == "WSL" ]]; then
+    WIN_IP=$(grep nameserver /etc/resolv.conf | awk '{print $2}')
+    export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037
+    ADB_CMD="adb.exe -a -P 5037"
+else
+    ADB_CMD="adb"
+fi
+
 # Resolve project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ "$ENV_TYPE" == "WINDOWS" ]]; then
@@ -82,10 +91,23 @@ else
   exit 1
 fi
 
+# switch USB device to TCP/IP mode automatically
+USB_DEVICE=$($ADB_CMD devices | grep -v "List of devices" | grep -v "offline" | grep -v "unauthorized" | awk '{print $1}' | head -n1)
+if [[ -n "$USB_DEVICE" ]]; then
+    echo "📱 USB device detected: $USB_DEVICE"
+    $ADB_CMD -s "$USB_DEVICE" tcpip 5555
+    echo "✅ TCP/IP mode enabled on port 5555. You can unplug the USB cable."
+fi
+
 # Install APK automatically if device is connected
-if adb devices | grep -q "device$"; then
+if $ADB_CMD devices | grep -q "device$"; then
     echo "📲 Installing app..."
-    adb install -r "$APK_PATH"
+    $ADB_CMD install -r "$APK_PATH" || {
+        echo "⚠️ Failed to install. Trying uninstall + reinstall..."
+        PACKAGE_NAME=$(aapt dump badging "$APK_PATH" | grep package:\ name | awk -F"'" '{print $2}')
+        $ADB_CMD uninstall "$PACKAGE_NAME"
+        $ADB_CMD install -r "$APK_PATH"
+    }
 else
     echo "⚠️ No device connected. Skipping install."
 fi
