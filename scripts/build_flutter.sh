@@ -81,3 +81,11 @@ else
   echo "❌ APK not found at expected location: $APK_PATH"
   exit 1
 fi
+
+# Install APK automatically if device is connected
+if adb devices | grep -q "device$"; then
+    echo "📲 Installing app..."
+    adb install -r "$APK_PATH"
+else
+    echo "⚠️ No device connected. Skipping install."
+fi
