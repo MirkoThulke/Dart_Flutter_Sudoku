@@ -1,73 +1,130 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
+# =========================================
+# Rust (native library integration)
+# =========================================
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# Rust build outputs (do not commit)
+rust/android/target/
+rust/android/build/
+rust/android/**/target/
+rust/android/**/build/
+rust/android/.cargo/
+rust/android/.fingerprint/
 
-# VS Code (optional)
-#.vscode/
+# Rust generic build artifacts
+rust/**/target/
+rust/**/build/
+**/*.rlib
+**/*.so
+**/*.a
+**/*.d
 
-# Flutter / Dart / Pub
+# Cargo metadata and cache
+**/.cargo/
+**/.rustc_info.json
+
+# Keep Rust source and manifest
+!rust/rust_lib/
+!rust/rust_lib/src/
+!rust/rust_lib/Cargo.toml
+!rust/rust_lib/Cargo.lock
+
+# =========================================
+# Flutter / Dart
+# =========================================
 .dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
 .packages
 .pub-cache/
 .pub/
+.flutter-*
 build/
-**/build/
-**/.dart_tool/
+flutter_export_environment.sh
+generated_plugin_registrant.dart
 
-# Documentation
-**/doc/api/
+# Keep Flutter plugin registrant
+!android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 
-# Symbolication / Obfuscation
-app.*.symbols
-app.*.map.json
+# =========================================
+# Android
+# =========================================
 
-# Android build artifacts
-android/.gradle/
-android/build/
-android/app/build/
-android/app/release/
-android/app/profile/
-android/app/debug/
-*.apk
-*.aab
-*.so
+# Build artifacts
+**/android/.gradle/
+**/android/build/
+**/android/app/build/
+android/app/.cxx/
+android/app/src/main/cpp/CMakeFiles/
+android/app/src/main/cpp/cmake-build-*/
 
-# iOS build artifacts
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
+# Local machine config (DO NOT COMMIT)
+**/android/local.properties
+**/android/key.properties
+**/android/captures/
+
+# Gradle Wrapper (keep scripts and JAR)
+.gradle/
+gradlew.bat
+gradlew
+!gradle/wrapper/gradle-wrapper.properties
+!gradle/wrapper/gradle-wrapper.jar
+
+# =========================================
+# iOS
+# =========================================
 ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/App.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Flutter.podspec
 ios/build/
+ios/Runner/GeneratedPluginRegistrant.*
 
-# macOS build artifacts
+# =========================================
+# Windows
+# =========================================
+windows/flutter/ephemeral/
+windows/build/
+
+# =========================================
+# Linux
+# =========================================
+linux/flutter/ephemeral/
+linux/build/
+
+# =========================================
+# macOS
+# =========================================
 macos/Flutter/ephemeral/
+macos/build/
 
-# Windows build artifacts
-windows/Flutter/ephemeral/
+# =========================================
+# IDEs
+# =========================================
+.vscode/
+.idea/
+*.iml
 
-# Generated files
+# =========================================
+# System files
+# =========================================
+.DS_Store
+Thumbs.db
+*.log
 *.lock
 
-# Ignore all Rust build artifacts
-rust/rust_lib/target/
-.vscode/launch.json.bak
-pubspec.lock
-pubspec.lock
-android/.kotlin/sessions/kotlin-compiler-10202280821973020368.salive
+# =========================================
+# Custom project scripts
+# =========================================
+# ✅ Keep your automation scripts
+!scripts/
+scripts/*.sh
+
+# =========================================
+# Temporary / Cache / WSL files
+# =========================================
+tmp/
+.cache/
+.wslconfig
+
+
+

@@ -3,6 +3,23 @@ plugins {
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
+
+// =====================================================
+// 🐧 WSL CMake Fix (MUST be placed BEFORE android { ... })
+// =====================================================
+def isWSL = System.getenv("WSL_DISTRO_NAME") != null
+if (isWSL) {
+    println("🐧 Detected WSL — forcing Gradle to use Linux cmake")
+    def localPropsFile = rootProject.file("local.properties")
+    def props = new Properties()
+    if (localPropsFile.exists()) {
+        localPropsFile.withInputStream { props.load(it) }
+    }
+    props.setProperty("cmake.dir", "/usr")   // ✅ change here
+    localPropsFile.withOutputStream { props.store(it, null) }
+    println("✅ Patched local.properties → cmake.dir=/usr")
+}
+
 android {
     namespace = "com.example.sudoku"
     compileSdk = 36
@@ -30,14 +47,13 @@ android {
         }
     }
 
+    // ✅ Linux-native CMakeLists.txt path
     externalNativeBuild {
         cmake {
-            path "src/main/cpp/CMakeLists.txt"  // <-- THIS MUST point to your CMakeLists.txt
-            version "3.22.1"                    // optional: the version you want to use
+            path "src/main/cpp/CMakeLists.txt"
+            // remove any version = "3.22.1"
         }
     }
-
-
 }
 
 flutter {
@@ -59,6 +75,3 @@ afterEvaluate {
         finalizedBy("copyDebugApk")
     }
 }
-
-
-

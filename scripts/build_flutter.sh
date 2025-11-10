@@ -37,6 +37,21 @@ fi
 cd "$PROJECT_ROOT" || { echo "❌ Failed to cd to project root: $PROJECT_ROOT"; exit 1; }
 echo "📂 Current directory: $(pwd)"
 
+# 🧩 Force CMake path for WSL builds
+if [[ "$ENV_TYPE" == "WSL" ]]; then
+  echo "🐧 Running inside WSL – ensuring Gradle uses Linux cmake"
+  LOCAL_PROPS="$PROJECT_ROOT/android/local.properties"
+  if [ -f "$LOCAL_PROPS" ]; then
+      sed -i '/^cmake\.dir=/d' "$LOCAL_PROPS" || true
+      echo "cmake.dir=/usr/bin" >> "$LOCAL_PROPS"
+      echo "✅ Patched local.properties → cmake.dir=/usr/bin"
+  else
+      echo "⚠️ local.properties not found — creating it"
+      echo "cmake.dir=/usr/bin" > "$LOCAL_PROPS"
+      echo "✅ Created local.properties with cmake.dir=/usr/bin"
+  fi
+fi
+
 # Verify Flutter
 if ! command -v flutter >/dev/null 2>&1; then
   echo "❌ Flutter not found in PATH"
@@ -66,4 +81,3 @@ else
   echo "❌ APK not found at expected location: $APK_PATH"
   exit 1
 fi
-
