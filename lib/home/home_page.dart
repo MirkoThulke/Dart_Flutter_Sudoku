@@ -43,7 +43,6 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     // ✅ Use Provider.of INSIDE build()
     final sizeConfig = Provider.of<SizeConfig>(context);
-
     sizeConfig.init(context); // if your class has an init method
 
     return Scaffold(

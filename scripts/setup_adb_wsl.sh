@@ -177,7 +177,9 @@ RETRY_COUNT=0
 echo "🆕 Attempting TCP/IP connection to $DEVICE_IP:$PORT..."
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     $ADB_CMD connect "$DEVICE_IP:$PORT" >/dev/null 2>&1
-    if $ADB_CMD devices | grep -q "$DEVICE_IP"; then
+
+    # check for a proper "device" state (USB or TCP)
+    if $ADB_CMD devices | grep -E "$DEVICE_IP[:]*[[:space:]]+device$" >/dev/null; then
         echo "✅ Successfully connected to $DEVICE_IP:$PORT"
         break
     else
@@ -191,9 +193,12 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     fi
 done
 
-if ! adb devices | grep -q "$DEVICE_IP"; then
+# Final check after retries
+if ! $ADB_CMD devices | grep -E "$DEVICE_IP[:]*[[:space:]]+device$" >/dev/null; then
     echo "⚠️ Could not connect to $DEVICE_IP:$PORT after $MAX_RETRIES attempts."
     echo "💡 Make sure your phone is unlocked and the authorization prompt was accepted."
+    echo "💡 You can verify manually with:"
+    echo "   $ADB_CMD devices"
 fi
 
 # 1️⃣1️⃣ List all devices

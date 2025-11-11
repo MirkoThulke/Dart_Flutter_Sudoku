@@ -41,7 +41,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     // ✅ Use Provider.of INSIDE build()
     final sizeConfig = Provider.of<SizeConfig>(context);
-
     sizeConfig.init(context); // if your class has an init method
 
     // ✅ Fallback height if SizeConfig hasn't initialized yet

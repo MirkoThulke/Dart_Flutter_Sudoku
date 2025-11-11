@@ -54,7 +54,6 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
   Widget build(BuildContext context) {
     // ✅ Use Provider.of INSIDE build()
     final sizeConfig = Provider.of<SizeConfig>(context);
-
     sizeConfig.init(context); // if your class has an init method
 
     // Total HMI area height

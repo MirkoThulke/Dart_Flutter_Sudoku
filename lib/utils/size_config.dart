@@ -57,37 +57,43 @@ remaining vertical space after allocating space for AppBar and SudokuGrid
 */
 
 import 'package:flutter/material.dart';
-
 import 'dart:math';
 
 class SizeConfig extends ChangeNotifier {
-  late MediaQueryData _mediaQueryData;
-  late Orientation orientation;
+  MediaQueryData _mediaQueryData = const MediaQueryData(); // default safe value
+  Orientation orientation = Orientation.portrait; // safe default
 
-  late double screenWidth;
-  late double screenHeight;
-  late double blockSizeHorizontal;
-  late double blockSizeVertical;
+  double screenWidth = 0;
+  double screenHeight = 0;
+  double blockSizeHorizontal = 0;
+  double blockSizeVertical = 0;
 
-  late double safeAreaHorizontal;
-  late double safeAreaVertical;
-  late double safeBlockHorizontal;
-  late double safeBlockVertical;
+  double safeAreaHorizontal = 0;
+  double safeAreaVertical = 0;
+  double safeBlockHorizontal = 0;
+  double safeBlockVertical = 0;
 
-  late double safeBlockTopHMIGridVertical;
-  late double safeBlockMidSudokuGridVertical;
-  late double safeBlockBottomHMIGridVertical;
+  double safeBlockTopHMIGridVertical = 0;
+  double safeBlockMidSudokuGridVertical = 0;
+  double safeBlockBottomHMIGridVertical = 0;
 
-  late double safeBlockTopHMIGridHorizontal;
-  late double safeBlockMidSudokuGridHorizontal;
-  late double safeBlockBottomHMIGridHorizontal;
+  double safeBlockTopHMIGridHorizontal = 0;
+  double safeBlockMidSudokuGridHorizontal = 0;
+  double safeBlockBottomHMIGridHorizontal = 0;
 
-  /// ✅ Initialize and notify listeners if orientation changes
+  /// ✅ Initialize and notify listeners if orientation or size changes
   void init(BuildContext context) {
     final newMediaQuery = MediaQuery.of(context);
     final newOrientation = newMediaQuery.orientation;
 
+    // Detect if anything changed
+    final sizeChanged = screenWidth != newMediaQuery.size.width ||
+        screenHeight != newMediaQuery.size.height ||
+        orientation != newOrientation;
+
     _mediaQueryData = newMediaQuery;
+    orientation = newOrientation;
+
     screenWidth = _mediaQueryData.size.width;
     screenHeight = _mediaQueryData.size.height;
 
@@ -99,17 +105,15 @@ class SizeConfig extends ChangeNotifier {
     safeBlockHorizontal = screenWidth - safeAreaHorizontal;
     safeBlockVertical = screenHeight - safeAreaVertical;
 
-    if (orientation != newOrientation) {
-      orientation = newOrientation;
+    // Recalculate layout blocks based on orientation
+    if (orientation == Orientation.portrait) {
+      _calculatePortrait();
+    } else {
+      _calculateLandscape();
+    }
 
-      // Recalculate layout blocks
-      if (orientation == Orientation.portrait) {
-        _calculatePortrait();
-      } else {
-        _calculateLandscape();
-      }
-
-      // ✅ Notify listeners about the change
+    // ✅ Only notify listeners if something actually changed
+    if (sizeChanged) {
       notifyListeners();
     }
   }
@@ -140,6 +144,7 @@ class SizeConfig extends ChangeNotifier {
     safeBlockBottomHMIGridHorizontal = safeBlockHorizontal;
   }
 }
+
 
 
 
