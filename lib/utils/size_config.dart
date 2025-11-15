@@ -112,6 +112,8 @@ class SizeConfig extends ChangeNotifier {
       _calculateLandscape();
     }
 
+    _validateLayout(); // ✅ call the check
+
     // ✅ Only notify listeners if something actually changed
     if (sizeChanged) {
       notifyListeners();
@@ -119,33 +121,62 @@ class SizeConfig extends ChangeNotifier {
   }
 
   void _calculatePortrait() {
-    safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
-    safeBlockMidSudokuGridVertical =
-        min(safeBlockVertical * 0.66, safeBlockHorizontal);
-    safeBlockBottomHMIGridVertical = safeBlockVertical -
-        safeBlockMidSudokuGridVertical -
-        safeBlockTopHMIGridVertical;
+    final topRatio = 0.25;
+    final bottomRatio = 0.25;
 
-    safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
-    safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;
+    safeBlockTopHMIGridVertical = safeBlockVertical * topRatio;
+    safeBlockTopHMIGridHorizontal = double.infinity;
+
+    safeBlockBottomHMIGridVertical = safeBlockVertical * bottomRatio;
     safeBlockBottomHMIGridHorizontal = safeBlockHorizontal;
+
+    safeBlockMidSudokuGridVertical = min(
+        safeBlockHorizontal,
+        safeBlockVertical -
+            safeBlockTopHMIGridVertical -
+            safeBlockBottomHMIGridVertical);
+    safeBlockMidSudokuGridHorizontal = safeBlockHorizontal;
   }
 
   void _calculateLandscape() {
-    safeBlockTopHMIGridVertical = safeBlockVertical * 0.2;
-    safeBlockMidSudokuGridVertical =
-        min(safeBlockVertical * 0.66, safeBlockHorizontal);
-    safeBlockBottomHMIGridVertical = safeBlockVertical -
-        safeBlockMidSudokuGridVertical -
-        safeBlockTopHMIGridVertical;
+    final leftRatio = 0.25;
+    final rightRatio = 0.25;
 
-    safeBlockTopHMIGridHorizontal = safeBlockHorizontal;
-    safeBlockMidSudokuGridHorizontal = safeBlockMidSudokuGridVertical;
-    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal;
+    safeBlockTopHMIGridVertical = safeBlockVertical;
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal * leftRatio;
+
+    safeBlockBottomHMIGridVertical = safeBlockVertical;
+    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal * rightRatio;
+
+    safeBlockMidSudokuGridVertical = safeBlockVertical;
+    safeBlockMidSudokuGridHorizontal = min(
+        safeBlockVertical,
+        safeBlockHorizontal -
+            safeBlockTopHMIGridHorizontal -
+            safeBlockBottomHMIGridHorizontal);
+  }
+
+  /// Private method to assert HMI layout fits screen
+  void _validateLayout() {
+    if (orientation == Orientation.portrait) {
+      assert(
+        safeBlockTopHMIGridVertical +
+                safeBlockMidSudokuGridVertical +
+                safeBlockBottomHMIGridVertical <=
+            screenHeight,
+        'Portrait HMI blocks exceed screen height!',
+      );
+    } else {
+      assert(
+        safeBlockTopHMIGridHorizontal +
+                safeBlockMidSudokuGridHorizontal +
+                safeBlockBottomHMIGridHorizontal <=
+            screenWidth,
+        'Landscape HMI blocks exceed screen width!',
+      );
+    }
   }
 }
-
-
 
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.

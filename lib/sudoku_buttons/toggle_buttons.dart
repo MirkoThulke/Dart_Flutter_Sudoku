@@ -52,9 +52,11 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Use Provider.of INSIDE build()
-    final sizeConfig = Provider.of<SizeConfig>(context);
-    sizeConfig.init(context); // if your class has an init method
+    // ✅ rebuilds when SizeConfig notifies
+    final sizeConfig = context.watch<SizeConfig>();
+
+    // ✅ safe — only triggers rebuilds when size/orientation actually changes
+    sizeConfig.init(context);
 
     // Total HMI area height
     final double appHmiHeightTotal =

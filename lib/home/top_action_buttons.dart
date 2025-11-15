@@ -39,7 +39,6 @@ import 'package:flutter/services.dart';
 
 Future<void> shutdownApp(BuildContext context) async {
   final dataProvider = Provider.of<DataProvider>(context, listen: false);
-  final sizeConfig = Provider.of<SizeConfig>(context);
 
   try {
     // 🧹 Perform full cleanup and save synchronously or awaited
@@ -65,6 +64,12 @@ class TopActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ rebuilds when SizeConfig notifies
+    final sizeConfig = context.watch<SizeConfig>();
+
+    // ✅ safe — only triggers rebuilds when size/orientation actually changes
+    sizeConfig.init(context);
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 40.0, minWidth: 120.0),

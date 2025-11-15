@@ -39,9 +39,11 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Use Provider.of INSIDE build()
-    final sizeConfig = Provider.of<SizeConfig>(context);
-    sizeConfig.init(context); // if your class has an init method
+    // ✅ rebuilds when SizeConfig notifies
+    final sizeConfig = context.watch<SizeConfig>();
+
+    // ✅ safe — only triggers rebuilds when size/orientation actually changes
+    sizeConfig.init(context);
 
     // ✅ Fallback height if SizeConfig hasn't initialized yet
     final appBarHeight = sizeConfig.safeBlockTopHMIGridVertical ?? 56.0;

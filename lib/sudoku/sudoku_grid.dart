@@ -105,6 +105,8 @@ Contact: MIRKO THULKE (for permission requests)
 
 import 'package:flutter/material.dart'; // basics
 
+import 'package:provider/provider.dart';
+
 // Import specific dart files
 import 'package:sudoku/utils/export.dart';
 
@@ -112,6 +114,12 @@ class SudokuGrid extends StatelessWidget {
   const SudokuGrid({super.key});
   @override
   Widget build(BuildContext context) {
+    // ✅ rebuilds when SizeConfig notifies
+    final sizeConfig = context.watch<SizeConfig>();
+
+    // ✅ safe — only triggers rebuilds when size/orientation actually changes
+    sizeConfig.init(context);
+
     return Scaffold(
       body: GridView.count(
         primary: true,

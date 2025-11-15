@@ -169,37 +169,62 @@ if ! ping -c 1 "$DEVICE_IP" &>/dev/null; then
     echo "💡 Make sure WSL can reach the phone on the same network and port $PORT is open."
 fi
 
-# 🛡 Handle first-time TCP/IP authorization automatically
-MAX_RETRIES=15
-SLEEP_INTERVAL=3
+# 🛡 Robust TCP/IP authorization loop (FINAL FIXED VERSION)
+# Sanitize IP (remove hidden whitespace and CR)
+DEVICE_IP=$(echo "$DEVICE_IP" | tr -d '[:space:]\r')
+
+MAX_RETRIES=20
+SLEEP_INTERVAL=2
 RETRY_COUNT=0
+CONNECTED_TCP=0
 
 echo "🆕 Attempting TCP/IP connection to $DEVICE_IP:$PORT..."
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    $ADB_CMD connect "$DEVICE_IP:$PORT" >/dev/null 2>&1
 
-    # check for a proper "device" state (USB or TCP)
-    if $ADB_CMD devices | grep -E "$DEVICE_IP[:]*[[:space:]]+device$" >/dev/null; then
-        echo "✅ Successfully connected to $DEVICE_IP:$PORT"
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    # Try to connect
+    $ADB_CMD connect "$DEVICE_IP:$PORT" >/dev/null 2>&1 || true
+
+    # Clean CRLF output from Windows adb.exe
+    CLEAN_DEVICES=$($ADB_CMD devices | tr -d '\r')
+
+    # Check if Wi-Fi device is registered
+    if echo "$CLEAN_DEVICES" | grep -E "^$DEVICE_IP(:[0-9]+)?[[:space:]]+device$" >/dev/null; then
+        echo "✅ Wi-Fi device connected: $DEVICE_IP:$PORT"
+        CONNECTED_TCP=1
         break
-    else
-        if [ $RETRY_COUNT -eq 0 ]; then
-            echo "💡 Your phone will prompt to authorize this PC over Wi-Fi."
-            echo "📱 Make sure the phone screen is unlocked and accept the prompt."
-        fi
-        echo "⏳ Waiting for device authorization... (retry $((RETRY_COUNT+1))/$MAX_RETRIES)"
-        sleep $SLEEP_INTERVAL
-        RETRY_COUNT=$((RETRY_COUNT + 1))
     fi
+
+    # Check for USB device (exclude IP-based entries)
+    if echo "$CLEAN_DEVICES" | grep -E "^[0-9A-Za-z._-]+[[:space:]]+device$" >/dev/null; then
+        echo "📱 USB still connected — waiting for Wi-Fi authorization..."
+    fi
+
+    if [ $RETRY_COUNT -eq 0 ]; then
+        echo "💡 If prompted on your phone, accept the ADB authorization request."
+    fi
+
+    echo "⏳ Waiting for Wi-Fi ADB... (retry $((RETRY_COUNT+1))/$MAX_RETRIES)"
+    sleep $SLEEP_INTERVAL
+    RETRY_COUNT=$((RETRY_COUNT + 1))
 done
 
-# Final check after retries
-if ! $ADB_CMD devices | grep -E "$DEVICE_IP[:]*[[:space:]]+device$" >/dev/null; then
+# Final verification (clean and correct)
+CLEAN_DEVICES=$($ADB_CMD devices | tr -d '\r')
+
+if echo "$CLEAN_DEVICES" | grep -E "^$DEVICE_IP(:[0-9]+)?[[:space:]]+device$" >/dev/null; then
+    echo "🎉 TCP/IP ADB is active: $DEVICE_IP:$PORT"
+else
     echo "⚠️ Could not connect to $DEVICE_IP:$PORT after $MAX_RETRIES attempts."
-    echo "💡 Make sure your phone is unlocked and the authorization prompt was accepted."
-    echo "💡 You can verify manually with:"
+    echo "💡 Ensure your phone is unlocked and authorization was accepted."
+    echo "💡 You can check manually with:"
     echo "   $ADB_CMD devices"
 fi
+
+echo
+echo "🔄 Listing all devices..."
+echo "$CLEAN_DEVICES"
+
+
 
 # 1️⃣1️⃣ List all devices
 echo "🔄 Listing all devices..."

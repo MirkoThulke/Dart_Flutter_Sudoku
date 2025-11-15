@@ -61,8 +61,11 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final sizeConfig = Provider.of<SizeConfig>(context);
-    sizeConfig.init(context); // if your class has an init method
+    // ✅ rebuilds when SizeConfig notifies
+    final sizeConfig = context.watch<SizeConfig>();
+
+    // ✅ safe — only triggers rebuilds when size/orientation actually changes
+    sizeConfig.init(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
