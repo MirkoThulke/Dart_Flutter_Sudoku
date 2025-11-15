@@ -139,21 +139,20 @@ class SizeConfig extends ChangeNotifier {
   }
 
   void _calculateLandscape() {
-    final leftRatio = 0.25;
-    final rightRatio = 0.25;
+    final leftRatio = 0.5;
+    final rightRatio = 0.5;
+    final topRatio = 0.5;
+    final bottomRatio = 0.5;
 
-    safeBlockTopHMIGridVertical = safeBlockVertical;
-    safeBlockTopHMIGridHorizontal = safeBlockHorizontal * leftRatio;
+    safeBlockTopHMIGridVertical = safeBlockVertical * topRatio;
+    safeBlockTopHMIGridHorizontal = safeBlockHorizontal * rightRatio;
 
-    safeBlockBottomHMIGridVertical = safeBlockVertical;
-    safeBlockBottomHMIGridHorizontal = safeBlockHorizontal * rightRatio;
+    safeBlockBottomHMIGridVertical = safeBlockVertical * bottomRatio;
+    safeBlockBottomHMIGridHorizontal = safeBlockTopHMIGridHorizontal;
 
     safeBlockMidSudokuGridVertical = safeBlockVertical;
-    safeBlockMidSudokuGridHorizontal = min(
-        safeBlockVertical,
-        safeBlockHorizontal -
-            safeBlockTopHMIGridHorizontal -
-            safeBlockBottomHMIGridHorizontal);
+    safeBlockMidSudokuGridHorizontal = min(safeBlockVertical,
+        safeBlockHorizontal - safeBlockBottomHMIGridHorizontal);
   }
 
   /// Private method to assert HMI layout fits screen
@@ -168,11 +167,14 @@ class SizeConfig extends ChangeNotifier {
       );
     } else {
       assert(
-        safeBlockTopHMIGridHorizontal +
-                safeBlockMidSudokuGridHorizontal +
-                safeBlockBottomHMIGridHorizontal <=
+        safeBlockTopHMIGridHorizontal + safeBlockMidSudokuGridHorizontal <=
             screenWidth,
         'Landscape HMI blocks exceed screen width!',
+      );
+      assert(
+        safeBlockTopHMIGridVertical + safeBlockBottomHMIGridVertical <=
+            screenHeight,
+        'Landscape HMI blocks exceed screen height!',
       );
     }
   }

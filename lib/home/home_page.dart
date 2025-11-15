@@ -109,32 +109,27 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  /// 🟦 Landscape layout — all three arranged horizontally
+  /// 🟦 Landscape layout — mirrors portrait logic (consistent strategy)
+  /// 🟦 Landscape layout — grid on the left, buttons stacked vertically on the right
   Widget _buildLandscapeLayout(SizeConfig sizeConfig) {
     return SafeArea(
       child: Row(
         children: [
-          // Left HMI bar
-          Material(
-            elevation: 4,
-            color: Colors.red.shade200, // temporary debug color
-            shadowColor: Colors.black26,
-            child: SizedBox(
-              width: sizeConfig.safeBlockTopHMIGridHorizontal,
-              height: double.infinity,
-              child: const CustomAppBar(),
-            ),
-          ),
-
-          // Sudoku grid — square, centered
+          // --------------------------------------
+          // LEFT: SUDOKU GRID (square, centered)
+          // --------------------------------------
           Expanded(
+            flex: 3,
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final availableWidth = constraints.maxWidth;
-                  final gridSize = sizeConfig.screenHeight < availableWidth
-                      ? sizeConfig.screenHeight
-                      : availableWidth;
+                  final availableHeight = constraints.maxHeight;
+
+                  // Same square sizing logic as portrait
+                  final gridSize = availableWidth < availableHeight
+                      ? availableWidth
+                      : availableHeight;
 
                   return Container(
                     width: gridSize,
@@ -147,15 +142,35 @@ class MyHomePage extends StatelessWidget {
             ),
           ),
 
-          // Right HMI bar
-          Material(
-            elevation: 4,
-            color: Colors.blue.shade200, // debug color
-            shadowColor: Colors.black26,
-            child: SizedBox(
-              width: sizeConfig.safeBlockBottomHMIGridHorizontal,
-              height: double.infinity,
-              child: const ToggleButtonsSample(),
+          // --------------------------------------
+          // RIGHT: TOP + BOTTOM STACKED VERTICALLY
+          // --------------------------------------
+          SizedBox(
+            width: sizeConfig.safeBlockTopHMIGridHorizontal, // You pick this
+            child: Column(
+              children: [
+                // TOP HMI (same height ratio as portrait)
+                Material(
+                  elevation: 4,
+                  color: Colors.red.shade200, // debug
+                  child: SizedBox(
+                    height: sizeConfig.safeBlockTopHMIGridVertical,
+                    width: double.infinity,
+                    child: const CustomAppBar(),
+                  ),
+                ),
+
+                // BOTTOM HMI (same height ratio as portrait)
+                Material(
+                  elevation: 4,
+                  color: Colors.blue.shade200, // debug
+                  child: SizedBox(
+                    height: sizeConfig.safeBlockBottomHMIGridVertical,
+                    width: double.infinity,
+                    child: const ToggleButtonsSample(),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
