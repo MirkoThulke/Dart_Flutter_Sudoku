@@ -81,7 +81,7 @@ class _ToggleButtonsSampleState extends State<ToggleButtonsSample> {
 
     // maximum width based on the number toogle switch
     final double totalRowWidth =
-        (sizeConfig.safeBlockHorizontal ?? 400.0) * 0.9;
+        (sizeConfig.safeBlockBottomHMIGridHorizontal ?? 400.0) * 0.9;
 
     final double rowHeightAdjusted = max(20, rowHeightAdjustedRaw);
 

@@ -112,58 +112,58 @@ class MyHomePage extends StatelessWidget {
   /// 🟦 Landscape layout — mirrors portrait logic (consistent strategy)
   /// 🟦 Landscape layout — grid on the left, buttons stacked vertically on the right
   Widget _buildLandscapeLayout(SizeConfig sizeConfig) {
+    const double verticalPadding = 2.0; // your desired padding
+
     return SafeArea(
       child: Row(
         children: [
-          // --------------------------------------
-          // LEFT: SUDOKU GRID (square, centered)
-          // --------------------------------------
           Expanded(
             flex: 3,
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final availableWidth = constraints.maxWidth;
-                  final availableHeight = constraints.maxHeight;
+                  final paddedHeight =
+                      constraints.maxHeight - (verticalPadding * 2);
 
-                  // Same square sizing logic as portrait
-                  final gridSize = availableWidth < availableHeight
-                      ? availableWidth
-                      : availableHeight;
+                  // Compute square size using padded height
+                  final gridSize = constraints.maxWidth < paddedHeight
+                      ? constraints.maxWidth
+                      : paddedHeight;
 
-                  return Container(
-                    width: gridSize,
-                    height: gridSize,
-                    color: Colors.green.shade300, // debug color
-                    child: const SudokuGrid(),
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: verticalPadding),
+                    child: SizedBox(
+                      width: gridSize,
+                      height: gridSize,
+                      child: Container(
+                        color: Colors.green.shade300, // debug
+                        child: const SudokuGrid(),
+                      ),
+                    ),
                   );
                 },
               ),
             ),
           ),
 
-          // --------------------------------------
-          // RIGHT: TOP + BOTTOM STACKED VERTICALLY
-          // --------------------------------------
+          // RIGHT SIDE: unchanged
           SizedBox(
-            width: sizeConfig.safeBlockTopHMIGridHorizontal, // You pick this
+            width: sizeConfig.safeBlockTopHMIGridHorizontal,
             child: Column(
               children: [
-                // TOP HMI (same height ratio as portrait)
                 Material(
                   elevation: 4,
-                  color: Colors.red.shade200, // debug
+                  color: Colors.red.shade200,
                   child: SizedBox(
                     height: sizeConfig.safeBlockTopHMIGridVertical,
                     width: double.infinity,
                     child: const CustomAppBar(),
                   ),
                 ),
-
-                // BOTTOM HMI (same height ratio as portrait)
                 Material(
                   elevation: 4,
-                  color: Colors.blue.shade200, // debug
+                  color: Colors.blue.shade200,
                   child: SizedBox(
                     height: sizeConfig.safeBlockBottomHMIGridVertical,
                     width: double.infinity,

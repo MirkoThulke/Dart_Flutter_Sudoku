@@ -75,7 +75,6 @@ flutter:
   assets:
     - assets/icon/Sudoku_SaveGivens.png
 
-
 flutter_icons:
   android: true
   ios: true

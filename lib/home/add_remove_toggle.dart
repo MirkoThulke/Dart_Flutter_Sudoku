@@ -234,7 +234,11 @@ class _AddRemoveToggleState extends State<AddRemoveToggle> {
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
         elevation: selected ? 4 : 0,
       ),
-      child: childContent,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: childContent,
+      ),
     );
   }
 
