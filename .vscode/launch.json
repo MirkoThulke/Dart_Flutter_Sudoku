@@ -44,6 +44,24 @@
       "type": "dart",
       "preLaunchTask": "build-all-host-release"
     },
+    // --------- CI Headless Chrome ----------
+    {
+      "name": "sudoku (integration-test-ci - chrome - host)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/integration_test/driver.dart",
+      "preLaunchTask": "integration-test-ci-chrome-host",
+      "noDebug": true
+    },
+    // --------- Android device ----------
+    {
+      "name": "sudoku (integration-test - usb - host)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/integration_test/driver.dart",
+      "preLaunchTask": "integration-test-usb-host",
+      "noDebug": true
+    },
     // -----------------------------
     // Docker builds
     // -----------------------------

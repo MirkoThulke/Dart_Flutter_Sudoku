@@ -269,4 +269,7 @@ else
     echo "💡 No manual gradle.properties edit needed. Flutter/Gradle build will pick up CMake from WSL."
 fi
 
+# 1️⃣3️⃣ Persist DEVICE_IP in bashrc for future sessions
+echo "export DEVICE_IP=$DEVICE_IP" >> ~/.bashrc
+
 echo "✅ WSL is now configured to use adb over TCP/IP and CMake for Flutter/Gradle."

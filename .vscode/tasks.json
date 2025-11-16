@@ -25,7 +25,7 @@
       "args": ["-i", "/home/mirko/sudoku/scripts/build_flutter.sh", "debug"],
       "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-host-debug",
@@ -34,7 +34,7 @@
       "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "debug"],
       "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-host-profile",
@@ -43,7 +43,7 @@
       "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "profile"],
       "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-host-release",
@@ -52,8 +52,38 @@
       "args": ["-i", "/home/mirko/sudoku/scripts/build_all.sh", "release", "--clean"],
       "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
+    // --------- CI / Headless Chrome ----------
+    {
+      "label": "integration-test-ci-chrome-host",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "flutter drive --driver integration_test/driver.dart --target integration_test/app_test.dart -d chrome; STATUS=$?; if [ $STATUS -eq 0 ]; then echo '✅ All tests passed'; else echo '❌ Some tests failed'; fi"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+     // --------- Android device via TCP/IP ----------
+    {
+      "label": "integration-test-usb-host",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "flutter drive --driver integration_test/driver.dart --target integration_test/app_test.dart --device-id=$DEVICE_ID"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "dependsOn": ["setup-adb-wsl"]
+    },
+    // ######## Docker section  #######
     {
       "label": "clean-flutter-docker",
       "type": "shell",
@@ -81,7 +111,7 @@
         "bash", "-i", "./scripts/build_flutter.sh", "debug"
       ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-docker-debug",
@@ -96,7 +126,7 @@
         "bash", "-i", "./scripts/build_all.sh", "debug"
       ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-docker-profile",
@@ -111,7 +141,7 @@
         "bash", "-i", "./scripts/build_all.sh", "profile"
       ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     },
     {
       "label": "build-all-docker-release",
@@ -126,7 +156,7 @@
         "bash", "-i", "./scripts/build_all.sh", "release", "--clean"
       ],
       "problemMatcher": [],
-      "dependsOn": ["update-device-id"]
+      "dependsOn": ["setup-adb-wsl"]
     }
   ]
 }
