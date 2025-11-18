@@ -58,30 +58,32 @@
     {
       "label": "integration-test-ci-chrome-host",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "flutter drive --driver integration_test/driver.dart --target integration_test/app_test.dart -d chrome; STATUS=$?; if [ $STATUS -eq 0 ]; then echo '✅ All tests passed'; else echo '❌ Some tests failed'; fi"
-      ],
+      "command": "./scripts/run_integration_test.sh",
+      "args": [],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TEST_MODE": "ci"
+        }
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "group": "test"
     },
      // --------- Android device via TCP/IP ----------
     {
       "label": "integration-test-usb-host",
       "type": "shell",
-      "command": "bash",
-      "args": [
-        "-c",
-        "flutter drive --driver integration_test/driver.dart --target integration_test/app_test.dart --device-id=$DEVICE_ID"
-      ],
+      "command": "./scripts/run_integration_test.sh",
+      "args": [],
       "options": {
-        "cwd": "${workspaceFolder}"
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TEST_MODE": "tcp",
+          "DEVICE_ID": "${env:DEVICE_ID}"  // must be set in WSL before running
+        }
       },
       "problemMatcher": [],
-      "dependsOn": ["setup-adb-wsl"]
+      "group": "test"
     },
     // ######## Docker section  #######
     {

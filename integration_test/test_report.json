@@ -1,0 +1,21 @@
+Connected devices:
+Linux (desktop) • linux  • linux-x64      • Ubuntu 24.04.3 LTS 6.6.87.2-microsoft-standard-WSL2
+Chrome (web)    • chrome • web-javascript • Google Chrome 142.0.7444.175
+[1]: Linux (linux)
+[2]: Chrome (chrome)
+Please choose one (or "q" to quit): 1
+{"protocolVersion":"0.1.1","runnerVersion":null,"pid":20197,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"/home/mirko/sudoku/integration_test/app_test.dart"},"type":"suite","time":1}
+{"test":{"id":1,"name":"loading /home/mirko/sudoku/integration_test/app_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":19}
+{"count":1,"time":51,"type":"allSuites"}
+Building Linux application...                                   
+✓ Built build/linux/x64/debug/bundle/sudoku
+
+[{"event":"test.startedProcess","params":{"vmServiceUri":"http://127.0.0.1:37173/kXmRp1SrhiY=/"}}]
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":64792}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":64812}
+{"test":{"id":3,"name":"basic app flow test (desktop)","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":8,"root_column":3,"root_url":"file:///home/mirko/sudoku/integration_test/app_test.dart"},"type":"testStart","time":64814}
+{"testID":3,"result":"error","skipped":false,"hidden":false,"type":"testDone","time":95713}
+{"test":{"id":4,"name":"(tearDownAll)","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":50,"column":5,"url":"package:integration_test/integration_test.dart"},"type":"testStart","time":95722}
+{"testID":4,"result":"error","skipped":false,"hidden":false,"type":"testDone","time":95735}
+{"success":false,"type":"done","time":95761}

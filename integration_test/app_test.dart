@@ -3,15 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sudoku/main.dart' as app;
 
 void main() {
-  // Initialize integration test binding
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('basic app flow test', (tester) async {
-    // Launch the app
+  testWidgets('basic app flow test (desktop)', (tester) async {
+// Launch the app
     app.main();
-    await tester.pumpAndSettle();
 
-    // Example: verify initial screen
+// Give the app time to initialize
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+
+// Verify initial UI elements
     expect(find.text('Save Givens'), findsOneWidget);
     expect(find.text('Reset To Givens'), findsOneWidget);
     expect(find.text('Add All Candidates'), findsOneWidget);
@@ -30,15 +31,6 @@ void main() {
     expect(find.text('Single Cand'), findsOneWidget);
     expect(find.text('Givens'), findsOneWidget);
 
-    /*
-    // Example: simulate user interaction
-    await tester.enterText(find.byKey(Key('emailField')), 'test@example.com');
-    await tester.enterText(find.byKey(Key('passwordField')), '123456');
-    await tester.tap(find.byKey(Key('loginButton')));
-    await tester.pumpAndSettle();
-
-    // Verify next screen
-    expect(find.text('Welcome'), findsOneWidget);
-    */
+// Test ends naturally when this callback completes
   });
 }

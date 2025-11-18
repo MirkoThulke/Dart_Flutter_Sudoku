@@ -56,11 +56,12 @@
     // --------- Android device ----------
     {
       "name": "sudoku (integration-test - usb - host)",
-      "request": "launch",
       "type": "dart",
-      "program": "${workspaceFolder}/integration_test/driver.dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/run_integration_test_ci.sh",
       "preLaunchTask": "integration-test-usb-host",
-      "noDebug": true
+      "noDebug": true,
+      "console": "terminal"
     },
     // -----------------------------
     // Docker builds
