@@ -128,3 +128,5 @@ tmp/
 
 
 
+integration_test/desktop_test_report.json
+integration_test/test_report.json
