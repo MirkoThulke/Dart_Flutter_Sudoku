@@ -54,37 +54,6 @@
       "problemMatcher": [],
       "dependsOn": ["setup-adb-wsl"]
     },
-    // --------- CI / Headless Chrome ----------
-    {
-      "label": "integration-test-ci-chrome-host",
-      "type": "shell",
-      "command": "./scripts/run_integration_test.sh",
-      "args": [],
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "TEST_MODE": "ci"
-        }
-      },
-      "problemMatcher": [],
-      "group": "test"
-    },
-     // --------- Android device via TCP/IP ----------
-    {
-      "label": "integration-test-usb-host",
-      "type": "shell",
-      "command": "./scripts/run_integration_test.sh",
-      "args": [],
-      "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "TEST_MODE": "tcp",
-          "DEVICE_ID": "${env:DEVICE_ID}"  // must be set in WSL before running
-        }
-      },
-      "problemMatcher": [],
-      "group": "test"
-    },
     // ######## Docker section  #######
     {
       "label": "clean-flutter-docker",
@@ -159,6 +128,38 @@
       ],
       "problemMatcher": [],
       "dependsOn": ["setup-adb-wsl"]
+    },
+    // ---------- Integration Tests ----------
+    // --------- Android device via TCP/IP ----------
+    {
+      "label": "integration-test-usb-tcp-host",
+      "type": "shell",
+      "command": "./scripts/run_integration_test.sh",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TEST_MODE": "tcp",
+          "DEVICE_ID": "${env:DEVICE_ID}"  // must be set in WSL before running
+        }
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    // --------- CI / Headless Chrome ----------
+    {
+      "label": "integration-test-ci-chrome-hadless-docker",
+      "type": "shell",
+      "command": "./scripts/run_integration_test.sh",
+      "args": [],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TEST_MODE": "ci"
+        }
+      },
+      "problemMatcher": [],
+      "group": "test"
     }
   ]
 }

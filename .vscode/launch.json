@@ -44,25 +44,6 @@
       "type": "dart",
       "preLaunchTask": "build-all-host-release"
     },
-    // --------- CI Headless Chrome ----------
-    {
-      "name": "sudoku (integration-test-ci - chrome - host)",
-      "request": "launch",
-      "type": "dart",
-      "program": "${workspaceFolder}/integration_test/driver.dart",
-      "preLaunchTask": "integration-test-ci-chrome-host",
-      "noDebug": true
-    },
-    // --------- Android device ----------
-    {
-      "name": "sudoku (integration-test - usb - host)",
-      "type": "dart",
-      "request": "launch",
-      "program": "${workspaceFolder}/scripts/run_integration_test_ci.sh",
-      "preLaunchTask": "integration-test-usb-host",
-      "noDebug": true,
-      "console": "terminal"
-    },
     // -----------------------------
     // Docker builds
     // -----------------------------
@@ -98,6 +79,26 @@
       "type": "dart",
       "preLaunchTask": "build-all-docker-release"
     },
+    // --------   Integration Tests  -----
+    // --------- Android device ----------
+    {
+      "name": "sudoku (integration-test - usb - tcp - host)",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/run_integration_test_ci.sh",
+      "preLaunchTask": "integration-test-usb-tcp-host",
+      "noDebug": true,
+      "console": "terminal"
+    },
+    // --------- CI Headless Chrome ----------
+    {
+      "name": "sudoku (integration-test-ci - chrome - headless- docker)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/integration_test/driver.dart",
+      "preLaunchTask": "integration-test-ci-chrome-hadless-docker",
+      "noDebug": true
+    }
   ]
 }
 
