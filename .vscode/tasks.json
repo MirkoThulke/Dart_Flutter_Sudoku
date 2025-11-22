@@ -55,79 +55,64 @@
       "dependsOn": ["setup-adb-wsl"]
     },
     // ######## Docker section  #######
+    // inside wsl : sudo service docker start
+    // sudo usermod -aG docker $USER
+    // wsl --shutdown
+    // docker run hello-world
+    // ######## Docker section  #######
     {
       "label": "clean-flutter-docker",
       "type": "shell",
-      "command": "docker",
+      "command": "bash",
       "args": [
-        "run",
-        "--rm",
-        "-v", "/home/mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "bash", "-i", "./scripts/clean_flutter.sh"
+        "-c",
+        "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/clean_flutter.sh'"
       ],
       "problemMatcher": []
     },
     {
       "label": "build-flutter-docker-debug",
       "type": "shell",
-      "command": "docker",
+      "command": "bash",
       "args": [
-        "run",
-        "--rm",
-        "-v", "/home/mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "bash", "-i", "./scripts/build_flutter.sh", "debug"
+        "-c",
+        "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/build_flutter.sh debug'"
       ],
-      "problemMatcher": [],
-      "dependsOn": ["setup-adb-wsl"]
+      "dependsOn": ["setup-adb-wsl"],
+      "problemMatcher": []
     },
     {
       "label": "build-all-docker-debug",
       "type": "shell",
-      "command": "docker",
+      "command": "bash",
       "args": [
-        "run",
-        "--rm",
-        "-v", "/home/mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "bash", "-i", "./scripts/build_all.sh", "debug"
+        "-c",
+        "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/build_all.sh debug'"
       ],
-      "problemMatcher": [],
-      "dependsOn": ["setup-adb-wsl"]
+      "dependsOn": ["setup-adb-wsl"],
+      "problemMatcher": []
     },
     {
       "label": "build-all-docker-profile",
       "type": "shell",
-      "command": "docker",
+      "command": "bash",
       "args": [
-        "run",
-        "--rm",
-        "-v", "/home/mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "bash", "-i", "./scripts/build_all.sh", "profile"
+        "-c",
+        "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/build_all.sh profile'"
       ],
-      "problemMatcher": [],
-      "dependsOn": ["setup-adb-wsl"]
+      "dependsOn": ["setup-adb-wsl"],
+      "problemMatcher": []
     },
     {
       "label": "build-all-docker-release",
       "type": "shell",
-      "command": "docker",
+      "command": "bash",
       "args": [
-        "run",
-        "--rm",
-        "-v", "/home/mirko/sudoku:/app",
-        "-w", "/app",
-        "flutter_rust_env",
-        "bash", "-i", "./scripts/build_all.sh", "release", "--clean"
+      "-c",
+      "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/build_all.sh release --clean'"
       ],
-      "problemMatcher": [],
-      "dependsOn": ["setup-adb-wsl"]
+      "dependsOn": ["setup-adb-wsl"],
+      "problemMatcher": []
     },
     // ---------- Integration Tests ----------
     // --------- Android device via TCP/IP ----------

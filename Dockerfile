@@ -91,25 +91,13 @@
 # 4. adb devices to verify connection
 
 
-# ------------------------------------------------------------
-# Base image
-# ------------------------------------------------------------
-
 FROM ubuntu:22.04
-
-RUN apt-get update && apt-get install -y adb
-
-# ------------------------------------------------------------
-# Default command: prints Flutter and Rust versions (environment check)
-# ------------------------------------------------------------
-
-CMD ["bash", "-c", "flutter --version && rustc --version"]
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
-ENV ANDROID_NDK_VERSION=25.2.9519653
-ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION
+ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
+
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:/root/.cargo/bin:$PATH"
 ENV RUST_BACKTRACE=1
 
@@ -121,43 +109,37 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     curl git unzip xz-utils zip libglu1-mesa build-essential \
     cmake ninja-build python3 python3-pip clang pkg-config openjdk-17-jdk \
+    wget gnupg2 ca-certificates xvfb adb \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Install headless Chrome (for Web integration tests)
+# Install Chrome (headless)
 # ------------------------------------------------------------
-RUN apt-get update && apt-get install -y wget gnupg2 ca-certificates \
-    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Install X virtual framebuffer (Xvfb) for desktop GUI tests
-# ------------------------------------------------------------
-RUN apt-get update && apt-get install -y xvfb
-
-# ------------------------------------------------------------
 # Install Flutter SDK
 # ------------------------------------------------------------
 RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
+    && git config --system --add safe.directory /opt/flutter \
     && flutter doctor
 
 # ------------------------------------------------------------
 # Install Rust toolchain
 # ------------------------------------------------------------
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:$PATH"
-
-RUN rustup target add \
-    aarch64-linux-android \
-    armv7-linux-androideabi \
-    x86_64-linux-android \
-    i686-linux-android
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && rustup target add \
+       aarch64-linux-android \
+       armv7-linux-androideabi \
+       x86_64-linux-android \
+       i686-linux-android
 
 # ------------------------------------------------------------
-# Install Android SDK Command Line Tools
+# Install Android SDK & NDK
 # ------------------------------------------------------------
 RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
     && curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip \
@@ -165,27 +147,42 @@ RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
     && mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest \
     && rm sdk-tools.zip
 
-
-# Accept Android SDK licenses
 RUN yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
-# ------------------------------------------------------------
-# Install Android NDK (required for Rust cross-compilation)
-# ------------------------------------------------------------
-RUN $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-    "ndk;$ANDROID_NDK_VERSION" --sdk_root=$ANDROID_SDK_ROOT
+RUN AVAILABLE_NDK=$($ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --list | \
+    grep "ndk;" | tail -1 | awk '{print $1}') \
+    && echo "Installing $AVAILABLE_NDK" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "$AVAILABLE_NDK"
 
 # ------------------------------------------------------------
-# Install cargo-ndk (simplifies Rust cross-compilation for Android)
+# Install cargo-ndk
 # ------------------------------------------------------------
 RUN cargo install cargo-ndk
 
 # ------------------------------------------------------------
-# Optional: Setup ADB
+# Create non-root flutteruser
 # ------------------------------------------------------------
-RUN apt-get update && apt-get install -y adb
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+RUN groupadd -g $GROUP_ID flutteruser \
+    && useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash flutteruser
+
+ENV HOME=/home/flutteruser
 
 # ------------------------------------------------------------
-# Default command
+# Fix permissions for non-root use
 # ------------------------------------------------------------
+RUN chown -R flutteruser:flutteruser /home/flutteruser \
+    && chown -R flutteruser:flutteruser /opt/flutter \
+    && chown -R flutteruser:flutteruser /opt/android \
+    && chmod -R a+w /opt/flutter/bin/cache \
+    && chmod -R a+w /opt/android
+
+# ------------------------------------------------------------
+# Switch to non-root user LAST
+# ------------------------------------------------------------
+USER flutteruser
+WORKDIR /app
+
 CMD ["bash", "-c", "flutter --version && rustc --version"]

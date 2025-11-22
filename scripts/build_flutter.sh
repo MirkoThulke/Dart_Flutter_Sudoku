@@ -42,9 +42,45 @@ CLEAN_BUILD=false
 # Resolve project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(realpath "$SCRIPT_DIR/..")"
-
 cd "$PROJECT_ROOT" || { echo "❌ Failed to cd to project root: $PROJECT_ROOT"; exit 1; }
 echo "📂 Current directory: $(pwd)"
+
+
+# =====================================================================
+# 📌 DOCKER FIX — auto-detect NDK version (no hardcoded values)
+# =====================================================================
+if grep -qi "docker" /proc/1/cgroup || [ -f /.dockerenv ]; then
+    echo "🐋 Running inside Docker — applying Android SDK overrides"
+    LOCAL_PROPS="$PROJECT_ROOT/android/local.properties"
+
+    # Remove previous entries
+    sed -i '/^sdk.dir=/d' "$LOCAL_PROPS" 2>/dev/null || true
+    sed -i '/^ndk.dir=/d' "$LOCAL_PROPS" 2>/dev/null || true
+
+    # Correct SDK + NDK base paths (MATCHING DOCKERFILE)
+    SDK_BASE="/opt/android/sdk"
+    NDK_BASE="$SDK_BASE/ndk"
+
+    # Detect installed NDK version
+    NDK_VERSION=$(ls "$NDK_BASE" 2>/dev/null | head -n 1)
+
+    if [ -z "$NDK_VERSION" ]; then
+        echo "❌ No NDK installation found in $NDK_BASE"
+        exit 1
+    fi
+
+    echo "📦 Detected NDK version: $NDK_VERSION"
+
+    # Write completely new local.properties (overwrite)
+    cat > "$LOCAL_PROPS" <<EOF
+sdk.dir=$SDK_BASE
+ndk.dir=$NDK_BASE/$NDK_VERSION
+EOF
+
+    echo "✅ Docker SDK + NDK paths configured"
+fi
+# =====================================================================
+
 
 # 🧩 Force CMake path for WSL builds
 if [[ "$ENV_TYPE" == "WSL" ]]; then
