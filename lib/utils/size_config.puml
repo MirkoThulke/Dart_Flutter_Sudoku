@@ -1,0 +1,35 @@
+@startuml
+title SizeConfig Class Diagram
+
+class SizeConfig {
+  -- Fields --
+  - MediaQueryData _mediaQueryData
+  + Orientation orientation
+  + double screenWidth
+  + double screenHeight
+  + double blockSizeHorizontal
+  + double blockSizeVertical
+  + double safeAreaHorizontal
+  + double safeAreaVertical
+  + double safeBlockHorizontal
+  + double safeBlockVertical
+
+  + double safeBlockTopHMIGridVertical
+  + double safeBlockMidSudokuGridVertical
+  + double safeBlockBottomHMIGridVertical
+
+  + double safeBlockTopHMIGridHorizontal
+  + double safeBlockMidSudokuGridHorizontal
+  + double safeBlockBottomHMIGridHorizontal
+
+  -- Methods --
+  + void init(BuildContext context)
+  - void _calculatePortrait()
+  - void _calculateLandscape()
+  - void _validateLayout()
+}
+
+' Inheritance
+SizeConfig -|> ChangeNotifier
+
+@enduml

@@ -41,24 +41,6 @@ import 'package:path_provider/path_provider.dart';
 
 import 'dart:async';
 
-/// @startuml
-/// class DataProvider {
-/// - SelectedNumberList _selectedNumberList
-/// - SelectedSetResetList _selectedSetResetList
-/// - SelectedPatternList _selectedPatternList
-/// - SelectedUndoIconList _selectedUndoIconList
-/// - SelectAddRemoveList _selectAddRemoveList
-/// + void updateDataNumberlist(SelectedNumberList selectedNumberListNewData)
-/// + void updateDataselectedSetResetList(SelectedSetResetList selectedSetResetListNewData)
-/// + void updateDataselectedPatternList(SelectedPatternList selectedPatternListNewData)
-/// + void updateDataselectedUndoIconList(SelectedUndoIconList selectedUndoIconListNewData)
-/// + void updateDataselectAddRemoveList(SelectAddRemoveList selectAddRemoveListNewData)
-/// }
-/// class ChangeNotifier <<mixin>> {
-/// }
-/// DataProvider ..|> ChangeNotifier
-/// @enduml
-
 // Use Provider Class is used to exchange data between widgets :
 class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   // to handle app states
@@ -89,8 +71,6 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedAddRemoveList _selectedAddRemoveList =
       List<bool>.from(constSelectedAddRemoveList);
 
-
-
   // Public getter
   SelectedNumberList get selectedNumberList => _selectedNumberList;
   SelectedNumStateList get selectedNumStateList => _selectedNumStateList;
@@ -98,7 +78,6 @@ class DataProvider extends ChangeNotifier with WidgetsBindingObserver {
   SelectedPatternList get selectedPatternList => _selectedPatternList;
   SelectedUndoIconList get selectedUndoIconList => _selectedUndoIconList;
   SelectedAddRemoveList get selectedAddRemoveList => _selectedAddRemoveList;
-
 
   void updateDataNumberlist(SelectedNumberList selectedNumberListNewData) {
     _selectedNumberList = selectedNumberListNewData;

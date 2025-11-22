@@ -1,0 +1,122 @@
+@startuml
+title DataProvider Class Diagram
+
+skinparam classAttributeIconSize 0
+
+' External classes
+class ChangeNotifier
+class WidgetsBindingObserver
+class RustMatrix
+class DartToRustElement
+
+' Enum-like external types (shown as stubs)
+class DataStatus
+class SelectedNumberList
+class SelectedNumStateList
+class SelectedSetResetList
+class SelectedPatternList
+class SelectedUndoIconList
+class SelectedAddRemoveList
+class RequestedCandHighLightType
+class RequestedElementHighLightType
+
+' -----------------------------
+' Main class
+' -----------------------------
+class DataProvider {
+    - DataStatus _status
+    - String? _errorMessage
+
+    ' HMI lists
+    - SelectedNumberList _selectedNumberList
+    - SelectedNumStateList _selectedNumStateList
+    - SelectedSetResetList _selectedSetResetList
+    - SelectedPatternList _selectedPatternList
+    - SelectedUndoIconList _selectedUndoIconList
+    - SelectedAddRemoveList _selectedAddRemoveList
+
+    ' Backend matrices
+    - RustMatrix rustMatrix
+    - List<List<DartToRustElement>> dartMatrix
+
+    - String appJsonPath
+
+    - RequestedCandHighLightType _requestedCandHighLightType
+    - RequestedElementHighLightType _requestedElementHighLightType
+
+    --
+    + DataStatus get status()
+    + String? get errorMessage()
+    + SelectedNumberList get selectedNumberList()
+    + SelectedNumStateList get selectedNumStateList()
+    + SelectedSetResetList get selectedSetResetList()
+    + SelectedPatternList get selectedPatternList()
+    + SelectedUndoIconList get selectedUndoIconList()
+    + SelectedAddRemoveList get selectedAddRemoveList()
+    + RequestedCandHighLightType get requestedCandHighLightType()
+
+    --
+    + DataProvider()
+    - Future<void> _initAsync()
+    + Future<bool> initJsonFile()
+
+    --
+    ' UI update methods
+    + void updateDataNumberlist(...)
+    + void updateDataselectedSetResetList(...)
+    + void updateDataselectedUndoIconList(...)
+    + Future<void> updateDataselectedEraseAll(...)
+    + Future<void> updateDataselectedResetToGivens(...)
+    + Future<void> updateDataselectedSetAllCandidates(...)
+    + Future<void> updateDataselectedwriteGivensToRust(...)
+    + void updateDataselectedPatternList(...)
+    + void updateRequestedCandHighLightType(...)
+    + void updateRequestedElementHighLightType(...)
+
+    --
+    ' Dart -> Rust
+    + void writeCellToRust(...)
+    + void writeFullMatrixToRust()
+    + void writeGivensToRust()
+
+    ' Rust -> Dart
+    + void readCellFromRust(...)
+    + Future<void> readMatrixFromRust()
+    + int readRequestedCandHighLightTypeFromRust(...)
+
+    --
+    ' Rust commands
+    + void callRustUpdate()
+    + Future<void> callRustEraseAll()
+    + Future<void> callRustResetToGivens()
+    + Future<void> callRustSetAllCandidates()
+    + void callRustCellUpdate(...)
+
+    --
+    + Future<void> shutdown()
+    + void dispose()
+    + void didChangeAppLifecycleState(...)
+}
+
+' -----------------------------
+' Inheritance
+' -----------------------------
+DataProvider --|> ChangeNotifier
+DataProvider --|> WidgetsBindingObserver
+
+' -----------------------------
+' Associations
+' -----------------------------
+DataProvider --> RustMatrix : "uses"
+DataProvider --> DartToRustElement : "matrix element"
+DataProvider --> DataStatus
+DataProvider --> SelectedNumberList
+DataProvider --> SelectedNumStateList
+DataProvider --> SelectedSetResetList
+DataProvider --> SelectedPatternList
+DataProvider --> SelectedUndoIconList
+DataProvider --> SelectedAddRemoveList
+DataProvider --> RequestedCandHighLightType
+DataProvider --> RequestedElementHighLightType
+
+@enduml

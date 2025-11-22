@@ -1,0 +1,157 @@
+@startuml
+title Shared Types, Enums, Constants, and Utility Classes
+
+'=========================================
+' ENUMS
+'=========================================
+
+enum DataStatus {
+  loading
+  ready
+  error
+}
+
+enum constIntNumList {
+  ONE(1)
+  TWO(2)
+  THREE(3)
+  FOUR(4)
+  FIVE(5)
+  SIX(6)
+  SEVEN(7)
+  EIGHT(8)
+  NINE(9)
+  DEFAULT(255)
+}
+
+enum constIntCandList {
+  ONE(1)
+  TWO(2)
+  THREE(3)
+  FOUR(4)
+  FIVE(5)
+  SIX(6)
+  SEVEN(7)
+  EIGHT(8)
+  NINE(9)
+  DEFAULT(255)
+}
+
+enum constTextNumList {
+  ONE("1")
+  TWO("2")
+  THREE("3")
+  FOUR("4")
+  FIVE("5")
+  SIX("6")
+  SEVEN("7")
+  EIGHT("8")
+  NINE("9")
+  DEFAULT("255")
+}
+
+enum SudokuNumber {
+  one(1)
+  two(2)
+  three(3)
+  four(4)
+  five(5)
+  six(6)
+  seven(7)
+  eight(8)
+  nine(9)
+}
+
+enum constIntPatternList {
+  hiLightOn(0)
+  pairs(1)
+  singles(2)
+  givens(3)
+  DEFAULT(255)
+}
+
+'=========================================
+' TYPEDEFS AS UML ALIASES
+'=========================================
+
+class SelectedNumberList <<typedef>> {
+  + List<bool>
+}
+
+class SelectedNumStateList <<typedef>> {
+  + List<bool>
+}
+
+class SelectedCandList <<typedef>> {
+  + List<bool>
+}
+
+class SelectedSetResetList <<typedef>> {
+  + List<bool>
+}
+
+class SelectedPatternList <<typedef>> {
+  + List<bool>
+}
+
+class RequestedElementHighLightType <<typedef>> {
+  + List<bool>
+}
+
+class RequestedCandHighLightType <<typedef>> {
+  + List<int>
+}
+
+class SelectedUndoIconList <<typedef>> {
+  + List<bool>
+}
+
+class SelectedAddRemoveList <<typedef>> {
+  + List<bool>
+}
+
+'=========================================
+' STATIC INDEX CLASSES
+'=========================================
+
+class PatternList {
+  {static} hiLightOn = 0
+  {static} pairs = 1
+  {static} singles = 2
+  {static} givens = 3
+}
+
+class undoiconlistIndex {
+  {static} undo = 0
+  {static} redo = 1
+}
+
+class SelectedNumStateListIndex {
+  {static} Givens = 0
+  {static} FutureUse = 1
+}
+
+class addRemoveListIndex {
+  {static} saveGivens = 0
+  {static} eraseAll = 1
+  {static} resetToGivens = 2
+  {static} selectAllCand = 3
+}
+
+'=========================================
+' CLASS: GridPosition
+'=========================================
+
+class GridPosition {
+  + int row
+  + int col
+  + GridPosition(int row, int col)
+}
+
+note right of GridPosition
+  getRowColFromId(int id, int numColumns)
+  - Computes global Sudoku coordinates
+  - Based on 3×3 block subdivision
+end note
+
+@enduml

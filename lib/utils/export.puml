@@ -1,0 +1,52 @@
+@startuml
+title Export Barrel File - Module Dependency Diagram
+
+skinparam componentStyle rectangle
+
+component "shared_types.dart" as SharedTypes
+component "help_page.dart" as HelpPage
+component "user_feedback.dart" as UserFeedback
+component "rust_matrix.dart" as RustBackend
+component "size_config.dart" as SizeConfig
+component "sudoku_logging.dart" as Logging
+component "data_provider.dart" as DataProvider
+component "app.dart" as App
+component "home_page.dart" as HomePage
+component "add_remove_toggle.dart" as AddRemoveToggle
+component "app_bar_actions.dart" as AppBarActions
+component "secure_button.dart" as SecureButton
+component "top_action_buttons.dart" as TopActionButtons
+component "sudoku_grid.dart" as SudokuGrid
+component "sudoku_block.dart" as SudokuBlock
+component "sudoku_element.dart" as SudokuElement
+component "toggle_buttons.dart" as ToggleButtons
+component "number_buttons.dart" as NumberButtons
+component "pattern_buttons.dart" as PatternButtons
+component "set_reset_buttons.dart" as SetResetButtons
+
+' Main export file
+component "export.dart" as ExportFile
+
+' Dependencies
+ExportFile --> SharedTypes
+ExportFile --> HelpPage
+ExportFile --> UserFeedback
+ExportFile --> RustBackend
+ExportFile --> SizeConfig
+ExportFile --> Logging
+ExportFile --> DataProvider
+ExportFile --> App
+ExportFile --> HomePage
+ExportFile --> AddRemoveToggle
+ExportFile --> AppBarActions
+ExportFile --> SecureButton
+ExportFile --> TopActionButtons
+ExportFile --> SudokuGrid
+ExportFile --> SudokuBlock
+ExportFile --> SudokuElement
+ExportFile --> ToggleButtons
+ExportFile --> NumberButtons
+ExportFile --> PatternButtons
+ExportFile --> SetResetButtons
+
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+title SudokuBlock Widget
+
+skinparam classAttributeIconSize 0
+
+class StatelessWidget
+
+class SudokuBlock {
+    - int block_id
+    --
+    + SudokuBlock({required int block_id})
+    + Widget build(BuildContext context)
+}
+
+SudokuBlock --|> StatelessWidget
+SudokuBlock --> SudokuElement : "creates 9 elements"
+
+@enduml
