@@ -32,3 +32,6 @@
 **/values.dev.yaml
 LICENSE
 README.md
+# Iginore local Android SDK config file, so that there are no NDK version conflicts 
+# between Windows and the Docker container.
+android/local.properties

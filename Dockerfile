@@ -90,6 +90,8 @@
 # 3. adb connect <PHONE_IP>
 # 4. adb devices to verify connection
 
+
+
 FROM ubuntu:22.04
 
 # ------------------------------------------------------------
@@ -100,14 +102,27 @@ ENV FLUTTER_HOME=/opt/flutter
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
 ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
 ENV RUST_BACKTRACE=1
+ENV DOCKER_ENV=1
 
-# PATH will be fully correct AFTER rust install
+# ------------------------------------------------------------
+# Locked versions (reproducible)
+# ------------------------------------------------------------
+ENV FLUTTER_VERSION=3.35.7
+ENV FLUTTER_CHANNEL=stable
+ENV FLUTTER_DART_VERSION=3.9.2
+ENV ANDROID_SDK_TOOLS_VERSION=9477386
+ENV ANDROID_NDK_VERSION=29.0.14206865
+ENV GRADLE_VERSION=8.7
+ENV CMAKE_VERSION=3.28.3
+ENV RUST_VERSION=1.91.1
+
+# PATH (updated again after Rust install)
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
 WORKDIR /app
 
 # ------------------------------------------------------------
-# Install essential packages (root)
+# Essential packages
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     curl git unzip xz-utils zip libglu1-mesa build-essential \
@@ -116,10 +131,11 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Install Chrome (headless, root)
+# Install headless Chrome
 # ------------------------------------------------------------
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+       > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
@@ -129,29 +145,35 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
 # ------------------------------------------------------------
 ARG USER_ID=1000
 ARG GROUP_ID=1000
+
 RUN groupadd -g $GROUP_ID flutteruser \
     && useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash flutteruser
 
 ENV HOME=/home/flutteruser
 
 # ------------------------------------------------------------
-# Install Flutter (root)
+# Install Flutter
 # ------------------------------------------------------------
 RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
     && git config --system --add safe.directory $FLUTTER_HOME \
     && chown -R flutteruser:flutteruser $FLUTTER_HOME
 
 # ------------------------------------------------------------
-# Install Android SDK + NDK (root)
+# Install Android SDK + fixed NDK
 # ------------------------------------------------------------
 RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
-    && curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip \
+    && curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip \
     && unzip sdk-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools \
     && mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest \
     && rm sdk-tools.zip \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
-    && AVAILABLE_NDK=$($ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --list | grep "ndk;" | tail -1 | awk '{print $1}') \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "$AVAILABLE_NDK" \
+    && rm -rf $ANDROID_SDK_ROOT/ndk/* \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "patcher;v4" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_VERSION}" \
+    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${ANDROID_NDK_VERSION}" \
     && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
 
 # ------------------------------------------------------------
@@ -160,11 +182,11 @@ RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
 USER flutteruser
 WORKDIR /app
 
-# Add Rust to PATH for this user
+# Add Rust PATH
 ENV PATH="$HOME/.cargo/bin:$PATH"
 
 # ------------------------------------------------------------
-# Generate Flutter cache (needed for chmod)
+# Pre-warm Flutter (creates cache)
 # ------------------------------------------------------------
 RUN flutter --version
 
@@ -173,11 +195,12 @@ RUN flutter --version
 # ------------------------------------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && . "$HOME/.cargo/env" \
+    && rustup default ${RUST_VERSION} \
     && rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android \
     && cargo install cargo-ndk
 
 # ------------------------------------------------------------
-# Fix writable directories (user)
+# Permissions fix
 # ------------------------------------------------------------
 RUN chmod -R a+w $FLUTTER_HOME/bin/cache $ANDROID_SDK_ROOT
 
@@ -185,4 +208,3 @@ RUN chmod -R a+w $FLUTTER_HOME/bin/cache $ANDROID_SDK_ROOT
 # Default command
 # ------------------------------------------------------------
 CMD ["bash", "-c", "flutter --version && rustc --version"]
-
