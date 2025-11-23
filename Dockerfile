@@ -36,7 +36,8 @@
 
 # Build the environment image once:
 # docker build -t flutter_rust_env .
-#
+# or as delta build : docker build . -t sudoku:latest
+
 # Run the container with your local project mounted:
 # docker run --rm \
 # -v ${PWD}:/app \
@@ -113,7 +114,7 @@ ENV FLUTTER_DART_VERSION=3.9.2
 ENV ANDROID_SDK_TOOLS_VERSION=9477386
 ENV ANDROID_NDK_VERSION=29.0.14206865
 ENV GRADLE_VERSION=8.7
-ENV CMAKE_VERSION=3.28.3
+ENV CMAKE_VERSION=3.30.0
 ENV RUST_VERSION=1.91.1
 
 # PATH (updated again after Rust install)
@@ -171,7 +172,6 @@ RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "patcher;v4" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_VERSION}" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${ANDROID_NDK_VERSION}" \
     && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
