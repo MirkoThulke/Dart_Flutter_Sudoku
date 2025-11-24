@@ -53,38 +53,6 @@ import 'package:ffi/ffi.dart'; // for toNativeUtf8()
         var snapshot = toDartList(matrix.ptr, matrix.numRows, matrix.numCols);
 */
 
-////////////////////////////////////////////////////////////
-/// @startuml
-/// class Cell {
-/// + int row
-/// + int col
-/// + int selectedNum
-/// + selectedCandState : bool[9]
-/// + highLightCandRequest: bool[9]
-/// + highLightTypeRequest: bool[constSelectedPatternListSize]
-/// }
-///
-/// note right of Cell::row
-///   row number
-/// end note
-/// note right of Cell::col
-///   collumn number
-/// end note
-/// note right of Cell::selectedNum
-///   selected final number choice for this cell: [1...9]
-///   [0] : no number set
-/// end note
-/// note right of Cell::selectedCandState
-///   selected candidates for this cell
-/// end note
-/// note right of Cell::highLightCandRequest
-///   request to highlight canidates depending on the highlighting patter which the user has chosen
-/// end note
-/// note right of Cell::highLightTypeRequest
-///   requested highlighting-pattern which the user has chosen
-/// end note
-/// @enduml
-
 /* Dart class to map Dart matrix data to the Rust structure
 This mirrors your Rust struct.
 Each Array<Bool> is native memory, so you cannot assign a Dart list directly.
