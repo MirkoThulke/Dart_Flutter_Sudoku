@@ -1,0 +1,162 @@
+@startuml
+title Dart ↔ Rust FFI Architektur – Sudoku Solver
+
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam shadowing false
+skinparam dpi 150
+
+' ===========================
+' Dart Layer
+' ===========================
+
+package "Dart Layer" #LightBlue {
+    
+    class SudokuGrid {
+        + List<List<int>> cells
+        + updateCell(int row, int col, int value)
+        + requestSolve()
+        + loadPuzzle(String path)
+        + savePuzzle(String path)
+        --
+        + RustMatrix nativeMatrix
+    }
+
+    class RustMatrix {
+        - Pointer<Void> ptr
+        --
+        + RustMatrix.fromSize(int size)
+        + setValue(int row, int col, int value)
+        + getValue(int row, int col) : int
+        + solve() : bool
+        + dispose()
+    }
+
+    class FfiBindings {
+        + Pointer<Void> matrix_create(int size)
+        + void matrix_free(Pointer<Void> ptr)
+        + void matrix_set(Pointer<Void> ptr, int r, int c, int v)
+        + int matrix_get(Pointer<Void> ptr, int r, int c)
+        + int matrix_solve(Pointer<Void> ptr)
+        + Pointer<Utf8> matrix_load(String path)
+        + void matrix_save(Pointer<Void> ptr, String path)
+    }
+
+    SudokuGrid --> RustMatrix : owns
+    RustMatrix --> FfiBindings : uses via FFI
+}
+
+' ===========================
+' Rust Layer
+' ===========================
+
+package "Rust Layer" #LightGreen {
+
+    class Matrix {
+        - Vec<Vec<u8>> cells
+        --
+        + new(size: usize)
+        + set(r: usize, c: usize, v: u8)
+        + get(r: usize, c: usize) : u8
+        + solve() : bool
+        + load(path: &str) : Result<Matrix, Error>
+        + save(path: &str) : Result<(), Error>
+    }
+
+    class FfiApi {
+        + matrix_create(size: c_int) : *mut Matrix
+        + matrix_free(ptr: *mut Matrix)
+        + matrix_set(ptr: *mut Matrix, r: c_int, c: c_int, v: c_int)
+        + matrix_get(ptr: *mut Matrix, r: c_int, c: c_int) : c_int
+        + matrix_solve(ptr: *mut Matrix) : c_int
+        + matrix_load(path: *const c_char) : *mut Matrix
+        + matrix_save(ptr: *mut Matrix, path: *const c_char) : c_int
+    }
+
+    class Error {
+        + message : String
+    }
+
+    Matrix <.. FfiApi : exposed via FFI
+}
+
+' Ownership
+RustMatrix --> Matrix : owns pointer (*mut Matrix)
+
+
+title C – Pointer & Memory Lifecycle (Dart ↔ Rust FFI)
+
+skinparam dpi 150
+skinparam shadowing false
+
+actor "Dart VM" as Dart
+participant "RustMatrix (Dart wrapper)" as Wrapper
+participant "FFI Bindings" as FFI
+participant "Rust FFI API" as RustAPI
+participant "Matrix Struct\n(Rust Heap)" as Matrix
+
+== Allocation ==
+Dart -> Wrapper: new RustMatrix(size)
+Wrapper -> FFI: matrix_create(size)
+FFI -> RustAPI: call matrix_create
+RustAPI -> Matrix: allocate Matrix on heap
+RustAPI --> FFI: return *mut Matrix
+FFI --> Wrapper: Pointer<Void>
+Wrapper -> Wrapper: store ptr\n(register finalizer)
+
+== Use ==
+Wrapper -> FFI: matrix_set(ptr, r, c, v)
+FFI -> RustAPI: call matrix_set\n(mut &Matrix)
+
+Wrapper -> FFI: matrix_get(ptr, r, c)
+FFI -> RustAPI: read cell
+
+Wrapper -> FFI: matrix_solve(ptr)
+FFI -> RustAPI: consume &mut Matrix
+
+== Dispose ==
+Dart -> Wrapper: dispose/manual free?
+Wrapper -> FFI: matrix_free(ptr)
+FFI -> RustAPI: free(Box<Matrix>)
+RustAPI -> Matrix: drop()
+
+== OR Auto Clean ==
+Dart -> Wrapper: GC runs finalizer
+Wrapper -> FFI: matrix_free(ptr)
+
+
+title D – Sequenzdiagramm Solve-Ablauf (Dart ↔ Rust)
+
+skinparam dpi 150
+skinparam shadowing false
+
+actor User
+
+participant "Flutter UI" as UI
+participant "SudokuGrid\n(Dart)" as Grid
+participant "RustMatrix\n(Dart wrapper)" as Wrapper
+participant "FFI Bindings" as FFI
+participant "Rust FFI API" as API
+participant "Matrix Struct\n(Rust)" as Matrix
+
+== User triggers solve ==
+User -> UI: press "Solve"
+UI -> Grid: requestSolve()
+
+== Dart → Rust ==
+Grid -> Wrapper: solve()
+Wrapper -> FFI: matrix_solve(ptr)
+FFI -> API: call matrix_solve
+API -> Matrix: run solver algorithm
+
+Matrix --> API: solved(bool)
+API --> FFI: return int (1/0)
+FFI --> Wrapper: return success flag
+Wrapper --> Grid: true/false
+
+== Dart updates UI ==
+Grid -> UI: update grid cells
+UI -> User: display solved puzzle
+
+@enduml
+
