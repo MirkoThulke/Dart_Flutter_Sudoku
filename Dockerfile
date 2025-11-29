@@ -35,16 +35,22 @@
 # ------------------------------------------------------------
 
 # Build the environment image once:
-# docker build -t flutter_rust_env .
+#   docker build -t flutter_rust_env .
 # or as delta build : docker build . -t sudoku:latest
 
+# start an existing container interactively:
+#   docker start -ai flutter_rust_env
+# enter the docker container interactively:
+#   docker run -it --name flutter_rust_env ubuntu:22.04 /bin/bash
+
 # Run the container with your local project mounted:
-# docker run --rm \
+#   docker run --rm \
 # -v ${PWD}:/app \
 # -w /app \
-# flutter_rust_env \
-# bash -c "./scripts/build_all.sh release"
+#   flutter_rust_env \
+#   bash -c "./scripts/build_all.sh release"
 # ------------------------------------------------------------
+
 
 # ------------------------------------------------------------
 # Install essential packages
@@ -92,12 +98,11 @@
 # 4. adb devices to verify connection
 
 
-
+# ------------------------------------------------------------
+# Base image
+# ------------------------------------------------------------
 FROM ubuntu:22.04
 
-# ------------------------------------------------------------
-# Basic environment
-# ------------------------------------------------------------
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
@@ -113,7 +118,7 @@ ENV FLUTTER_CHANNEL=stable
 ENV FLUTTER_DART_VERSION=3.9.2
 ENV ANDROID_SDK_TOOLS_VERSION=9477386
 ENV ANDROID_NDK_VERSION=26.1.10909125
-ENV GRADLE_VERSION=8.7
+ENV GRADLE_VERSION=8.9
 ENV CMAKE_VERSION=3.22.1
 ENV RUST_VERSION=1.91.1
 
@@ -125,14 +130,14 @@ WORKDIR /app
 # ------------------------------------------------------------
 # Essential packages
 # ------------------------------------------------------------
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl git unzip xz-utils zip libglu1-mesa build-essential \
-    cmake ninja-build python3 python3-pip clang pkg-config openjdk-17-jdk \
-    wget gnupg2 ca-certificates xvfb adb \
+    cmake ninja-build python3 python3-pip clang pkg-config \
+    openjdk-17-jdk wget gnupg2 ca-certificates xvfb adb \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Install headless Chrome
+# Headless Chrome (optional)
 # ------------------------------------------------------------
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
@@ -146,21 +151,19 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
 # ------------------------------------------------------------
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-
 RUN groupadd -g $GROUP_ID flutteruser \
     && useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash flutteruser
-
 ENV HOME=/home/flutteruser
 
 # ------------------------------------------------------------
-# Install Flutter
+# Install Flutter (system-wide)
 # ------------------------------------------------------------
 RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
     && git config --system --add safe.directory $FLUTTER_HOME \
     && chown -R flutteruser:flutteruser $FLUTTER_HOME
 
 # ------------------------------------------------------------
-# Install Android SDK + fixed NDK
+# Install Android SDK + NDK
 # ------------------------------------------------------------
 RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
     && curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip \
@@ -168,13 +171,21 @@ RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
     && mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest \
     && rm sdk-tools.zip \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
-    && rm -rf $ANDROID_SDK_ROOT/ndk/* \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_VERSION}" \
     && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${ANDROID_NDK_VERSION}" \
     && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
+
+# ------------------------------------------------------------
+# Install SYSTEM-WIDE Gradle 8.7 (BEFORE changing user)
+# ------------------------------------------------------------
+RUN wget https://services.gradle.org/distributions/gradle-8.7-all.zip -O /tmp/gradle-8.7-all.zip \
+    && mkdir -p /opt/gradle \
+    && unzip /tmp/gradle-8.7-all.zip -d /opt/gradle \
+    && rm /tmp/gradle-8.7-all.zip
+ENV PATH="/opt/gradle/gradle-8.7/bin:$PATH"
 
 # ------------------------------------------------------------
 # Switch to non-root user
@@ -186,7 +197,12 @@ WORKDIR /app
 ENV PATH="$HOME/.cargo/bin:$PATH"
 
 # ------------------------------------------------------------
-# Pre-warm Flutter (creates cache)
+# Copy project into container
+# ------------------------------------------------------------
+COPY . /app
+
+# ------------------------------------------------------------
+# Pre-warm Flutter
 # ------------------------------------------------------------
 RUN flutter --version
 
@@ -200,11 +216,21 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && cargo install cargo-ndk
 
 # ------------------------------------------------------------
-# Permissions fix
+# Permissions fixes
 # ------------------------------------------------------------
+RUN chmod -R a+w $HOME/.gradle || true
 RUN chmod -R a+w $FLUTTER_HOME/bin/cache $ANDROID_SDK_ROOT
 
 # ------------------------------------------------------------
-# Default command
+# Pre-download Gradle Wrapper (8.7)
 # ------------------------------------------------------------
-CMD ["bash", "-c", "flutter --version && rustc --version"]
+WORKDIR /app/android
+RUN ./gradlew --version || true
+
+# Back to project
+WORKDIR /app
+
+# ------------------------------------------------------------
+# Default command for testing environment
+# ------------------------------------------------------------
+CMD ["bash", "-c", "java -version && flutter --version && cd android && ./gradlew --version"]

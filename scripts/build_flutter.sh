@@ -47,6 +47,17 @@ echo "📂 Current directory: $(pwd)"
 
 
 # =====================================================================
+# This script detects whether it runs inside:
+# Docker
+# WSL2
+# Linux host
+# … and generates android/local.properties accordingly.
+# =====================================================================
+echo "🔧 Generating android/local.properties..."
+./scripts/generate_local_properties.sh
+
+
+# =====================================================================
 # 📌 DOCKER FIX — auto-detect NDK version (no hardcoded values)
 # =====================================================================
 if grep -qi "docker" /proc/1/cgroup || [ -f /.dockerenv ]; then
