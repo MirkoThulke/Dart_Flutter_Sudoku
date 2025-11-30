@@ -1,0 +1,77 @@
+@startuml
+' Package for Flutter framework basics
+package "Flutter Framework" {
+    class StatefulWidget {
+        +createState(): State
+    }
+
+    class State<T extends StatefulWidget> {
+        +build(BuildContext context): Widget
+        +setState(VoidCallback fn)
+        +mounted: bool
+        +context: BuildContext
+    }
+
+    class Widget
+    class BuildContext
+    class Padding
+    class Column
+    class Row
+    class Expanded
+    class SizedBox
+    class ElevatedButton
+    class FittedBox
+    class Icon
+    class Text
+    class ScaffoldMessenger
+    class SnackBar
+    class Color
+}
+
+package "My App Widgets" {
+    class AddRemoveToggle {
+        +AddRemoveToggle({key})
+        +createState(): _AddRemoveToggleState
+    }
+
+    class _AddRemoveToggleState {
+        -List<bool> _selected
+        -DateTime? _lastPressed
+        -DateTime? _eraseAllConfirmedAt
+        -bool _eraseAllJustConfirmed
+        -DateTime? _savedGivensConfirmedAt
+        -bool _savedGivensJustConfirmed
+        -DateTime? _isResetToGivensConfirmedAt
+        -bool _isResetToGivensJustConfirmed
+        -DateTime? _isSelectAllCandConfirmedAt
+        -bool _isSelectAllCandJustConfirmed
+        -Color _iconColor
+
+        +build(BuildContext context): Widget
+        +buildElevatedToggle(int index): Widget
+        +_handleEraseAll(bool isDoubleTap): Future<void>
+        +_handleSaveGivens(bool isDoubleTap): Future<void>
+        +_handleResetToGivens(bool isDoubleTap): Future<void>
+        +_handleSelectAllCand(bool isDoubleTap): Future<void>
+    }
+}
+
+' Inheritance
+AddRemoveToggle -|> StatefulWidget
+_AddRemoveToggleState -|> State
+
+' Composition/Usage relationships
+_AddRemoveToggleState --> Padding
+_AddRemoveToggleState --> Column
+_AddRemoveToggleState --> Row
+_AddRemoveToggleState --> Expanded
+_AddRemoveToggleState --> SizedBox
+_AddRemoveToggleState --> ElevatedButton
+_AddRemoveToggleState --> FittedBox
+_AddRemoveToggleState --> Icon
+_AddRemoveToggleState --> Text
+_AddRemoveToggleState --> ScaffoldMessenger
+_AddRemoveToggleState --> SnackBar
+_AddRemoveToggleState --> Color
+
+@enduml

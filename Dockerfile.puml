@@ -1,0 +1,88 @@
+@startuml
+title Flutter + Rust + Android + Web Dockerfile Overview
+
+start
+
+:Base image: Ubuntu 22.04;
+note right
+Linux base for cross-platform builds
+Flutter, Rust, Android SDK/NDK, Web
+end note
+
+' ----------------------------------------
+:Set environment variables;
+:FLUTTER_HOME=/opt/flutter;
+:ANDROID_SDK_ROOT=/opt/android/sdk;
+:ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk;
+:RUST_BACKTRACE=1;
+:DOCKER_ENV=1;
+' Locked versions for reproducibility
+:FLUTTER_VERSION=3.35.7;
+:ANDROID_NDK_VERSION=28.0.13004108;
+:GRADLE_VERSION=8.9;
+:CMAKE_VERSION=3.22.1;
+:RUST_VERSION=1.91.1;
+
+' ----------------------------------------
+:Install essential packages;
+note right
+curl, git, unzip, xz-utils, zip, libglu1-mesa
+build-essential, cmake, ninja-build
+python3, python3-pip, clang, pkg-config
+openjdk-17-jdk, adb, xvfb, wget, gnupg2
+end note
+
+' ----------------------------------------
+:Install headless Chrome (optional);
+note right
+For web testing
+end note
+
+' ----------------------------------------
+:Create non-root user flutteruser;
+note right
+USER_ID=1000, GROUP_ID=1000
+end note
+
+' ----------------------------------------
+:Install Flutter (system-wide);
+:git clone Flutter stable branch;
+:Configure Flutter permissions;
+
+' ----------------------------------------
+:Install Android SDK + NDK;
+:Download command-line tools;
+:Install platforms, build-tools, platform-tools, cmake, ndk;
+:Set ownership to flutteruser;
+
+' ----------------------------------------
+:Install system-wide Gradle 8.7;
+
+' ----------------------------------------
+:Switch to non-root user flutteruser;
+:Add Rust to PATH;
+
+' ----------------------------------------
+:Copy project files into /app;
+
+' ----------------------------------------
+:Pre-warm Flutter (flutter --version);
+
+' ----------------------------------------
+:Install Rust + cargo-ndk;
+:rustup install targets for Android;
+:cargo install cargo-ndk;
+
+' ----------------------------------------
+:Fix permissions for Gradle, Flutter cache, Android SDK;
+
+' ----------------------------------------
+:Pre-download Gradle Wrapper (gradlew --version);
+
+' ----------------------------------------
+:Default command for container:
+:java -version && flutter --version && ./gradlew --version;
+
+stop
+
+@enduml

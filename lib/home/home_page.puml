@@ -1,0 +1,75 @@
+@startuml
+' Flutter framework package
+package "Flutter Framework" {
+    class StatelessWidget {
+        +build(BuildContext context)
+    }
+
+    class Widget
+    class BuildContext
+    class Scaffold
+    class AnimatedSwitcher
+    class SafeArea
+    class Column
+    class Row
+    class Expanded
+    class Center
+    class LayoutBuilder
+    class SizedBox
+    class Container
+    class Material
+    class Colors
+}
+
+package "My App Widgets" {
+    class MyHomePage {
+        +MyHomePage({key})
+        +build(BuildContext context): Widget
+        -_buildPortraitLayout(SizeConfig sizeConfig): Widget
+        -_buildLandscapeLayout(SizeConfig sizeConfig): Widget
+    }
+
+    class CustomAppBar
+    class SudokuGrid
+    class ToggleButtonsSample
+}
+
+package "My App Utils" {
+    class SizeConfig {
+        +safeBlockTopHMIGridVertical
+        +safeBlockBottomHMIGridVertical
+        +safeBlockTopHMIGridHorizontal
+        +screenWidth
+        +orientation
+        +init(BuildContext context)
+    }
+
+    enum Orientation {
+        +portrait
+        +landscape
+    }
+}
+
+' Inheritance
+MyHomePage -|> StatelessWidget
+
+' Usage / composition
+MyHomePage --> Scaffold
+MyHomePage --> AnimatedSwitcher
+MyHomePage --> SafeArea
+MyHomePage --> Column
+MyHomePage --> Row
+MyHomePage --> Expanded
+MyHomePage --> Center
+MyHomePage --> LayoutBuilder
+MyHomePage --> SizedBox
+MyHomePage --> Container
+MyHomePage --> Material
+MyHomePage --> Colors
+MyHomePage --> CustomAppBar
+MyHomePage --> SudokuGrid
+MyHomePage --> ToggleButtonsSample
+MyHomePage --> SizeConfig
+MyHomePage --> Orientation
+
+@enduml

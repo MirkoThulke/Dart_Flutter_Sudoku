@@ -1,0 +1,144 @@
+@startuml
+|WSL ADB Setup Script|
+start
+
+:DEVICE_IP_FILE="$HOME/.adb_device_ip";
+:PORT=5555;
+
+' 1️⃣ Detect Windows host IP
+:WIN_IP=$(grep nameserver /etc/resolv.conf);
+if (WIN_IP detected?) then (yes)
+    :Print "Detected Windows host IP: $WIN_IP";
+else (no)
+    :Print "❌ Could not detect Windows host IP";
+    stop
+endif
+
+' 2️⃣ Set ADB command for WSL
+if (Running in WSL?) then (yes)
+    :export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037;
+    :ADB_CMD="adb.exe -a -P 5037";
+    :Print "✅ Set ADB_SERVER_SOCKET";
+else (no)
+    :ADB_CMD="adb";
+endif
+
+' Persist ADB_SERVER_SOCKET in ~/.bashrc
+if ("ADB_SERVER_SOCKET" not in ~/.bashrc?) then (yes)
+    :Append export ADB_SERVER_SOCKET to ~/.bashrc;
+endif
+
+' 3️⃣ Ensure adb installed
+if (adb command exists?) then (yes)
+    :Print "✅ adb installed";
+else (no)
+    :Print "❌ adb not found";
+    stop
+endif
+
+' Check Windows adb.exe process
+if (adb.exe running on Windows?) then (yes)
+    :Print "✅ Windows adb.exe detected";
+else (no)
+    :Attempt to start adb.exe via PowerShell;
+    :sleep 3;
+    if (adb.exe started?) then (yes)
+        :Print "✅ adb.exe successfully started";
+    else (no)
+        :Print "❌ Failed to start adb.exe";
+    endif
+endif
+
+' Check ADB port binding
+:BIND_STATUS=$(powershell netstat 5037);
+if (Bound to 127.0.0.1:5037?) then (yes)
+    :Print "✅ Correct binding";
+elseif (Bound to 0.0.0.0:5037?) then (yes)
+    :Restart adb.exe with correct binding;
+    :sleep 3;
+else (no)
+    :Print "⚠️ adb.exe not listening on 5037";
+endif
+
+' Test connectivity
+if (nc -z WIN_IP 5037) then (yes)
+    :Print "✅ ADB reachable";
+else (no)
+    :Print "⚠️ ADB might not be listening";
+endif
+
+' 4️⃣ Ensure no WSL adb server running
+:pkill -f "adb";
+
+' Verify Windows adb connectivity
+if (adb devices successful?) then (yes)
+    :Print "✅ Connected to Windows adb.exe";
+else (no)
+    :Print "⚠️ Cannot connect to Windows adb.exe";
+endif
+
+' 7️⃣ Detect USB device
+:USB_DEVICE=$($ADB_CMD devices ...);
+if (USB_DEVICE detected?) then (yes)
+    if (DEVICE_IP_FILE not exists?) then (yes)
+        :Switch device to TCP/IP mode on port $PORT;
+    endif
+else (no)
+    :Print "⚠️ No USB device detected";
+endif
+
+' 8️⃣ Detect device IP
+if (DEVICE_IP_FILE exists?) then (yes)
+    :DEVICE_IP=$(cat $DEVICE_IP_FILE);
+else (no)
+    :Attempt to detect device IP via adb shell;
+    if (not found?) then (yes)
+        :Prompt user to enter DEVICE_IP;
+    endif
+    :Save DEVICE_IP to DEVICE_IP_FILE;
+endif
+
+' 9️⃣ Optional firewall/device connectivity check
+if (ping DEVICE_IP fails?) then (yes)
+    :Print "⚠️ Cannot reach device, check firewall";
+endif
+
+' TCP/IP connection loop
+:RETRY_COUNT=0; CONNECTED_TCP=0;
+while (RETRY_COUNT < MAX_RETRIES)
+    :adb connect DEVICE_IP:PORT;
+    if (DEVICE_IP connected?) then (yes)
+        :Print "✅ Wi-Fi device connected";
+        :CONNECTED_TCP=1;
+        break;
+    endif
+    :sleep SLEEP_INTERVAL;
+    :RETRY_COUNT++;
+endwhile
+
+' Final verification
+if (DEVICE_IP connected?) then (yes)
+    :Print "🎉 TCP/IP ADB active";
+else (no)
+    :Print "⚠️ Could not connect after MAX_RETRIES";
+endif
+
+' 11️⃣ List devices
+:Print devices via adb devices -l;
+
+' 12️⃣ Configure WSL CMake
+:WSL_CMAKE=$(which cmake);
+if (WSL_CMAKE found?) then (yes)
+    :export ANDROID_CMAKE=$WSL_CMAKE;
+    :export ORG_GRADLE_PROJECT_android_cmake_path=$WSL_CMAKE;
+    :Append ANDROID_CMAKE to ~/.bashrc if not exists;
+else (no)
+    :Print "❌ CMake not found in WSL";
+endif
+
+' 13️⃣ Persist DEVICE_IP for future sessions
+:Append export DEVICE_IP=$DEVICE_IP to ~/.bashrc;
+
+:Print "✅ WSL configured for adb TCP/IP and Flutter/Gradle CMake";
+stop
+@enduml

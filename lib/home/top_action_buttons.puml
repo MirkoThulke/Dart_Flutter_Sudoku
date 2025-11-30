@@ -1,0 +1,76 @@
+@startuml
+' Flutter framework package
+package "Flutter Framework" {
+    class StatelessWidget {
+        +build(BuildContext context)
+    }
+
+    class Widget
+    class BuildContext
+    class Row
+    class Center
+    class ConstrainedBox
+    class IconButton
+    class ElevatedButton
+    class Icon
+    class Text
+    class SizedBox
+    class MaterialPageRoute
+    class Navigator
+    class Colors
+    class Duration
+}
+
+package "My App Utils" {
+    class SizeConfig {
+        +init(BuildContext context)
+    }
+
+    class DataProvider {
+        +shutdown(): Future<void>
+    }
+
+    class FeedbackHelper {
+        +sendFeedback(BuildContext context)
+    }
+
+    class HelpPage
+}
+
+package "My App Widgets" {
+    class TopActionButtons {
+        +TopActionButtons({key})
+        +build(BuildContext context): Widget
+    }
+
+    note right of TopActionButtons
+        shutdownApp(BuildContext context)
+        is a separate helper function
+    end note
+}
+
+' Inheritance
+TopActionButtons -|> StatelessWidget
+
+' Composition / usage relationships
+TopActionButtons --> Row
+TopActionButtons --> Center
+TopActionButtons --> ConstrainedBox
+TopActionButtons --> IconButton
+TopActionButtons --> ElevatedButton
+TopActionButtons --> Icon
+TopActionButtons --> Text
+TopActionButtons --> SizedBox
+TopActionButtons --> Navigator
+TopActionButtons --> MaterialPageRoute
+TopActionButtons --> Colors
+TopActionButtons --> SizeConfig
+TopActionButtons --> HelpPage
+TopActionButtons --> FeedbackHelper
+TopActionButtons --> shutdownApp
+
+shutdownApp --> DataProvider
+shutdownApp --> BuildContext
+shutdownApp --> Duration
+
+@enduml

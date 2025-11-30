@@ -1,0 +1,44 @@
+@startuml
+' Define Dart/Flutter classes and relationships
+
+package "Flutter Framework" {
+    class StatelessWidget {
+        +build(BuildContext context)
+    }
+
+    class MaterialApp {
+        +title: String
+        +theme: ThemeData
+        +home: Widget
+    }
+
+    class ThemeData {
+        +primarySwatch: Colors
+    }
+
+    class Colors {
+        +blue
+    }
+
+    class Widget
+}
+
+package "My App" {
+    class MyApp {
+        +MyApp({key})
+        +build(BuildContext context)
+    }
+
+    class MyHomePage {
+        +MyHomePage()
+    }
+}
+
+' Relationships
+MyApp -|> StatelessWidget
+MyApp --> MaterialApp : returns
+MaterialApp --> ThemeData
+ThemeData --> Colors
+MaterialApp --> MyHomePage : home
+
+@enduml

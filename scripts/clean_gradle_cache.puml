@@ -1,0 +1,40 @@
+@startuml
+|Shell Script|
+start
+:Print "🧹 Cleaning Flutter & Gradle caches...";
+
+:Detect script directory;
+:Determine PROJECT_ROOT;
+:cd "$PROJECT_ROOT" or exit;
+
+if (android/gradlew exists?) then (yes)
+    :Print "Stopping Gradle daemons...";
+    :bash android/gradlew --stop;
+else (no)
+    :Print "⚠️ gradlew not found, skipping daemon stop.";
+endif
+
+:Print "Removing global Gradle caches...";
+:GRADLE_HOME="$HOME/.gradle/caches";
+
+if (GRADLE_HOME exists?) then (yes)
+    :rm -rf "$GRADLE_HOME/transforms-4";
+    :rm -rf "$GRADLE_HOME/modules-2";
+    :rm -rf "$GRADLE_HOME/jars-9";
+    :rm -rf "$GRADLE_HOME/daemon";
+else (no)
+    :Print "⚠️ No global Gradle caches found at $GRADLE_HOME";
+endif
+
+:Print "Removing local project build folders...";
+:rm -rf "$PROJECT_ROOT/.gradle" "$PROJECT_ROOT/build" "$PROJECT_ROOT/android/build";
+
+:Print "Running flutter clean...";
+:flutter clean;
+
+:Print "Fetching Flutter dependencies...";
+:flutter pub get;
+
+:Print "✅ Flutter & Gradle caches fully reset.";
+stop
+@enduml

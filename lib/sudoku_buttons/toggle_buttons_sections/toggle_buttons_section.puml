@@ -1,0 +1,106 @@
+@startuml
+title Unified Class Diagram – Sudoku UI Widgets
+
+' ----------------------------------------------------------
+' Flutter base classes
+' ----------------------------------------------------------
+class StatelessWidget
+class StatefulWidget
+class State
+class Widget
+class BuildContext
+class Scaffold
+class GridView
+class Column
+class SizedBox
+class Center
+
+' ----------------------------------------------------------
+' Core app utility classes
+' ----------------------------------------------------------
+class SizeConfig {
+    +safeBlockBottomHMIGridVertical : double?
+    +safeBlockBottomHMIGridHorizontal : double?
+    +init(BuildContext) : void
+}
+
+class DataProvider {
+    +updateDataNumberlist(List<bool>) : void
+    +updateDataselectedSetResetList(List<bool>) : void
+    +updateDataselectedPatternList(List<bool>) : void
+}
+
+class SudokuBlock {
+    +int block_id
+}
+
+' ----------------------------------------------------------
+' SudokuGrid widget
+' ----------------------------------------------------------
+class SudokuGrid {
+    +SudokuGrid({key})
+    +build(BuildContext) : Widget
+}
+
+SudokuGrid --> StatelessWidget
+SudokuGrid --> SizeConfig : watch<SizeConfig>()
+SudokuGrid --> GridView : creates
+GridView --> SudokuBlock : contains 9 blocks
+
+' ----------------------------------------------------------
+' ToggleButtonsSample widget
+' ----------------------------------------------------------
+class ToggleButtonsSample {
+    +ToggleButtonsSample({key})
+    +createState() : _ToggleButtonsSampleState
+}
+
+class _ToggleButtonsSampleState {
+    -SelectedNumberList _selectedNumberList
+    -SelectedSetResetList _selectedSetResetList
+    -SelectedPatternList _selectedPatternList
+    -bool _vertical
+    --
+    +build(BuildContext) : Widget
+}
+
+ToggleButtonsSample --> StatefulWidget
+_ToggleButtonsSampleState --> State
+ToggleButtonsSample --> _ToggleButtonsSampleState : creates
+
+_ToggleButtonsSampleState --> SizeConfig : watch<SizeConfig>()
+_ToggleButtonsSampleState --> DataProvider : updates via Provider
+
+' ----------------------------------------------------------
+' Button widget classes (from your uploaded files)
+' ----------------------------------------------------------
+class NumberButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +Function(List<bool>) onUpdate
+}
+
+class PatternButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +Function(List<bool>) onUpdate
+}
+
+class SetResetButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +Function(List<bool>) onUpdate
+}
+
+_ToggleButtonsSampleState --> NumberButtons : builds
+_ToggleButtonsSampleState --> PatternButtons : builds
+_ToggleButtonsSampleState --> SetResetButtons : builds
+
+NumberButtons --> DataProvider : triggers update
+PatternButtons --> DataProvider : triggers update
+SetResetButtons --> DataProvider : triggers update
+
+@enduml

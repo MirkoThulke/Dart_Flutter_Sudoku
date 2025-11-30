@@ -80,9 +80,6 @@ package "Rust Layer" #LightGreen {
     Matrix <.. FfiApi : exposed via FFI
 }
 
-' Ownership
-RustMatrix --> Matrix : owns pointer (*mut Matrix)
-
 
 title C – Pointer & Memory Lifecycle (Dart ↔ Rust FFI)
 
@@ -94,6 +91,9 @@ participant "RustMatrix (Dart wrapper)" as Wrapper
 participant "FFI Bindings" as FFI
 participant "Rust FFI API" as RustAPI
 participant "Matrix Struct\n(Rust Heap)" as Matrix
+
+' Ownership
+Wrapper --> Matrix : owns pointer (*mut Matrix)
 
 == Allocation ==
 Dart -> Wrapper: new RustMatrix(size)

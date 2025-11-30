@@ -1,0 +1,89 @@
+@startuml
+title ToggleButtonsSample Class Diagram
+
+' ----------------------------------------------------------
+' Flutter base classes
+' ----------------------------------------------------------
+class StatefulWidget
+class State
+class StatelessWidget
+class Widget
+class BuildContext
+class Scaffold
+class Column
+class SizedBox
+class Center
+class SingleChildScrollView
+
+' ----------------------------------------------------------
+' External components from your project
+' ----------------------------------------------------------
+class SizeConfig {
+    +safeBlockBottomHMIGridVertical : double?
+    +safeBlockBottomHMIGridHorizontal : double?
+    +init(BuildContext) : void
+}
+
+class DataProvider {
+    +updateDataselectedSetResetList(list)
+    +updateDataNumberlist(list)
+    +updateDataselectedPatternList(list)
+}
+
+class SetResetButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +onUpdate(List<bool>) : void
+}
+
+class NumberButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +onUpdate(List<bool>) : void
+}
+
+class PatternButtons {
+    +bool isVertical
+    +List<bool> selectedList
+    +double maxWidth
+    +onUpdate(List<bool>) : void
+}
+
+' Simplified typedef-like lists
+class SelectedNumberList
+class SelectedSetResetList
+class SelectedPatternList
+
+' ----------------------------------------------------------
+' ToggleButtonsSample widget
+' ----------------------------------------------------------
+class ToggleButtonsSample {
+    +ToggleButtonsSample({key})
+    +createState() : _ToggleButtonsSampleState
+}
+
+class _ToggleButtonsSampleState {
+    -SelectedNumberList _selectedNumberList
+    -SelectedSetResetList _selectedSetResetList
+    -SelectedPatternList _selectedPatternList
+    -bool _vertical
+    --
+    +build(BuildContext) : Widget
+}
+
+' ----------------------------------------------------------
+' Relationships
+' ----------------------------------------------------------
+ToggleButtonsSample --> StatefulWidget
+ToggleButtonsSample "1" *-- "1" _ToggleButtonsSampleState
+_ToggleButtonsSampleState --> SizeConfig : watch()
+_ToggleButtonsSampleState --> DataProvider : via Provider.of
+
+' Buttons used in layout
+_ToggleButtonsSampleState --> SetResetButtons
+_ToggleButtonsSampleState --> NumberButtons
+_ToggleButtonsSampleState --> PatternButtons
+
+@enduml

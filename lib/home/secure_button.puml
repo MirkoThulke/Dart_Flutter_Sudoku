@@ -1,0 +1,52 @@
+@startuml
+' Flutter framework package
+package "Flutter Framework" {
+    class StatefulWidget {
+        +createState(): State
+    }
+
+    class State<T extends StatefulWidget> {
+        +build(BuildContext context): Widget
+        +setState(VoidCallback fn)
+        +mounted: bool
+        +context: BuildContext
+    }
+
+    class Widget
+    class BuildContext
+    class ElevatedButton
+    class Text
+    class ScaffoldMessenger
+    class SnackBar
+    class DateTime
+    class Duration
+}
+
+package "My App Widgets" {
+    class SecureButton {
+        +SecureButton({key, required onConfirmed})
+        +createState(): _SecureButtonState
+        +onConfirmed: VoidCallback
+    }
+
+    class _SecureButtonState {
+        -DateTime? _lastPressed
+        +_handlePress(): void
+        +build(BuildContext context): Widget
+    }
+}
+
+' Inheritance
+SecureButton -|> StatefulWidget
+_SecureButtonState -|> State
+
+' Composition / usage relationships
+_SecureButtonState --> ElevatedButton
+_SecureButtonState --> Text
+_SecureButtonState --> ScaffoldMessenger
+_SecureButtonState --> SnackBar
+_SecureButtonState --> DateTime
+_SecureButtonState --> Duration
+_SecureButtonState --> SecureButton : widget
+
+@enduml

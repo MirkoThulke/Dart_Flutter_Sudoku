@@ -1,0 +1,44 @@
+@startuml
+title SudokuGrid Class Diagram
+
+' ----------------------------------------------------------
+' Flutter base classes
+' ----------------------------------------------------------
+class StatelessWidget
+class Widget
+class BuildContext
+class Scaffold
+class GridView
+class SudokuBlock {
+    +int block_id
+}
+
+class SizeConfig {
+    +init(BuildContext) : void
+}
+
+' ----------------------------------------------------------
+' SudokuGrid widget
+' ----------------------------------------------------------
+class SudokuGrid {
+    --
+    +SudokuGrid({key})
+    +build(BuildContext) : Widget
+}
+
+' ----------------------------------------------------------
+' Inheritance
+' ----------------------------------------------------------
+SudokuGrid --> StatelessWidget
+
+' ----------------------------------------------------------
+' Internal widget relationships
+' ----------------------------------------------------------
+SudokuGrid --> GridView : creates
+SudokuGrid --> Scaffold : creates
+GridView --> SudokuBlock : contains 9 blocks
+
+' Provider / Watch relationships
+SudokuGrid --> SizeConfig : watch<SizeConfig>()
+
+@enduml

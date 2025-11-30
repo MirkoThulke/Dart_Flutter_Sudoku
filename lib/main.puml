@@ -1,0 +1,24 @@
+' ----------------------------------------------------------
+' main.dart – Application root
+' ----------------------------------------------------------
+
+class MyApp {
+    +build(BuildContext) : Widget
+}
+
+class MultiProvider
+class ChangeNotifierProvider
+class runApp
+
+' Providers
+DataProvider --> ChangeNotifierProvider
+SizeConfig --> ChangeNotifierProvider
+
+' main() creates providers and MyApp
+runApp --> MultiProvider
+MultiProvider --> DataProvider : provides
+MultiProvider --> SizeConfig : provides
+MultiProvider --> MyApp : wraps
+
+' MyApp is a widget
+MyApp --> StatelessWidget

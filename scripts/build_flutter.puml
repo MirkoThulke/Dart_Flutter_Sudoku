@@ -1,0 +1,110 @@
+@startuml
+|Build Script|
+start
+:Load DEVICE_IP from $HOME/.adb_device_ip;
+if (DEVICE_IP file exists?) then (yes)
+    :DEVICE_IP=$(cat $DEVICE_IP_FILE);
+    :Print "📡 Loaded device IP";
+else (no)
+    :Print "⚠️ No saved device IP found";
+endif
+
+:Detect environment type;
+if (WSL detected?) then (yes)
+    :ENV_TYPE="WSL";
+elseif (Windows detected?) then (yes)
+    :ENV_TYPE="WINDOWS";
+else (Linux)
+    :ENV_TYPE="LINUX";
+endif
+:Print "Detected environment: $ENV_TYPE";
+
+if (ENV_TYPE=="WSL") then (yes)
+    :WIN_IP=$(grep nameserver /etc/resolv.conf);
+    :export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037;
+    :ADB_CMD="adb.exe -a -P 5037";
+else (no)
+    :ADB_CMD="adb";
+endif
+
+:Parse arguments for FLUTTER_MODE and CLEAN_BUILD;
+
+:Resolve PROJECT_ROOT and cd into it;
+:Print current directory;
+
+' Regenerate local.properties
+:chmod +x ./scripts/generate_local_properties.sh;
+:./scripts/generate_local_properties.sh;
+
+' Docker NDK fix
+if (Running inside Docker?) then (yes)
+    :LOCAL_PROPS="$PROJECT_ROOT/android/local.properties";
+    :Remove previous sdk.dir and ndk.dir entries;
+    :Detect installed NDK version;
+    if (NDK_VERSION found?) then (yes)
+        :Write sdk.dir and ndk.dir to local.properties;
+    else (no)
+        :Print "❌ No NDK installation found";
+        stop
+    endif
+    :Print "✅ Docker SDK + NDK paths configured";
+endif
+
+' WSL CMake fix
+if (ENV_TYPE=="WSL") then (yes)
+    :Ensure cmake.dir=/usr/bin in local.properties;
+endif
+
+' Verify Flutter installation
+if (flutter command exists?) then (yes)
+    :Print "Flutter found";
+else (no)
+    :Print "❌ Flutter not found";
+    stop
+endif
+
+:Fetch Flutter dependencies (flutter pub get);
+
+if (CLEAN_BUILD==true) then (yes)
+    :flutter clean;
+endif
+
+:Build APK (flutter build apk --$FLUTTER_MODE);
+:Locate APK at build path;
+if (APK exists?) then (yes)
+    :Print APK path;
+else (no)
+    :Print "❌ APK not found";
+    stop
+endif
+
+' USB / TCP-IP device detection
+:USB_DEVICE=$($ADB_CMD devices | awk ...);
+if (USB_DEVICE detected?) then (yes)
+    :Enable TCP/IP mode on USB device (port $PORT);
+endif
+
+if (No device connected?) then (yes)
+    :Attempt reconnect to DEVICE_IP:$PORT;
+    :sleep 2;
+endif
+
+:Check connection mode;
+if (Connected via Wi-Fi?) then (yes)
+    :Print "🌐 Connected over Wi-Fi";
+else
+    :Print "🔌 Connected via USB";
+endif
+
+' Install APK
+if (Device connected?) then (yes)
+    :Install APK using adb;
+    if (Install fails?) then (yes)
+        :Uninstall package and reinstall;
+    endif
+else (no)
+    :Print "❌ No device connected, skipping install";
+endif
+
+stop
+@enduml

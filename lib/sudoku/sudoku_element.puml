@@ -1,0 +1,101 @@
+@startuml
+title SudokuElement Class Diagram
+
+' ----------------------------------------------------------
+' Widgets and Flutter hierarchy
+' ----------------------------------------------------------
+class StatefulWidget
+class State
+
+class SudokuElement {
+    +int element_id
+    --
+    +SudokuElement({key, required element_id})
+    +createState() : _SudokuElementState
+}
+
+class _SudokuElementState {
+    -- HMI input variables --
+    -SelectedNumberList _selectedNumberListNewData
+    -SelectedSetResetList _selectedSetResetListNewData
+    -SelectedPatternList _selectedPatternListNewData
+    -SelectedUndoIconList _selectedUndoIconListNewData
+    -SelectedAddRemoveList _selectedAddRemoveListNewData
+    --
+    -- State variables --
+    -bool _subelementChoiceState
+    -int _subelementNumberChoice
+    -SelectedNumStateList _selectedNumStateListNewData
+    -Color _numberBackGroundColor
+    -SelectedCandList _subelementlistCandidateChoice
+    -RequestedCandHighLightType _requestedCandHighLightTypeNewData
+    -bool _initialized
+    --
+    .. Lifecycle ..
+    +initState() : void
+    +didChangeDependencies() : void
+    --
+    .. JSON / Provider Initialization ..
+    -initializeFromJSON() : void
+    -returnCellFromDartMirror(int) : DartToRustElement
+    -checkCellFromDartMirrorForNumberChange(int) : bool
+    --
+    .. Number/Candidate Handling ..
+    -_readNumberFromList(SelectedNumberList) : int
+    -_setNumber(int) : void
+    -_resetNumber(int) : void
+    -_setCandidate(int) : void
+    -_resetCandidate(int) : void
+    -_checkCandidate(int) : bool
+    -_checkCandidatePatternRequestType(int, int) : bool
+    --
+    .. UI Coloring ..
+    -_getNumberBackgroundColor(int) : Color
+    -_getNumberColor(int=0) : Color
+    --
+    .. HMI Update ..
+    -_updateElementState(SelectedNumberList, SelectedSetResetList) : void
+    --
+    .. Widget build ..
+    +build(BuildContext) : Widget
+}
+
+' ----------------------------------------------------------
+' External classes used by SudokuElement
+' ----------------------------------------------------------
+class DataProvider {
+    +dartMatrix : List<List<DartToRustElement>>
+    +DataStatus status
+    +writeCellToRust(row, col, rows, cols)
+    +callRustCellUpdate(row, col, rows, cols)
+    +readRequestedCandHighLightTypeFromRust(...)
+}
+
+class DartToRustElement {
+    +int selectedNum
+    +SelectedNumStateList selectedNumStateList
+    +SelectedCandList selectedCandList
+    +RequestedCandHighLightType requestedCandHighLightType
+}
+
+class GridPosition {
+    +int row
+    +int col
+}
+
+enum DataStatus {
+    ready
+}
+
+' ----------------------------------------------------------
+' Relationships
+' ----------------------------------------------------------
+SudokuElement --> StatefulWidget
+_SudokuElementState --> State
+
+SudokuElement "1" *-- "1" _SudokuElementState
+_SudokuElementState --> DataProvider
+_SudokuElementState --> DartToRustElement
+_SudokuElementState --> GridPosition
+
+@enduml

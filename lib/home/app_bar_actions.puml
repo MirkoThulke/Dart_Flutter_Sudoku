@@ -1,0 +1,57 @@
+@startuml
+' Flutter framework package
+package "Flutter Framework" {
+    class StatelessWidget {
+        +build(BuildContext context)
+    }
+
+    class PreferredSizeWidget {
+        +preferredSize: Size
+    }
+
+    class Widget
+    class BuildContext
+    class Material
+    class SafeArea
+    class SizedBox
+    class Column
+    class SizedBox
+    class Colors
+    class Size
+}
+
+package "My App Widgets" {
+    class CustomAppBar {
+        +CustomAppBar({key})
+        +build(BuildContext context): Widget
+        +preferredSize: Size
+    }
+
+    class TopActionButtons
+    class AddRemoveToggle
+}
+
+package "My App Utils" {
+    class SizeConfig {
+        +safeBlockTopHMIGridVertical
+        +safeBlockTopHMIGridHorizontal
+        +init(BuildContext context)
+    }
+}
+
+' Inheritance
+CustomAppBar -|> StatelessWidget
+CustomAppBar -|> PreferredSizeWidget
+
+' Usage / composition relationships
+CustomAppBar --> SizeConfig
+CustomAppBar --> Material
+CustomAppBar --> SafeArea
+CustomAppBar --> SizedBox
+CustomAppBar --> Column
+CustomAppBar --> TopActionButtons
+CustomAppBar --> AddRemoveToggle
+CustomAppBar --> Colors
+CustomAppBar --> Size
+
+@enduml
