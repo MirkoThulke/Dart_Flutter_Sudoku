@@ -188,13 +188,27 @@ RUN wget https://services.gradle.org/distributions/gradle-8.7-all.zip -O /tmp/gr
 ENV PATH="/opt/gradle/gradle-8.7/bin:$PATH"
 
 # ------------------------------------------------------------
+# Install Rust + cargo-ndk (as root)
+# ------------------------------------------------------------
+ENV CARGO_HOME=/opt/cargo
+ENV RUSTUP_HOME=/opt/rustup
+ENV PATH=$CARGO_HOME/bin:$PATH
+
+RUN mkdir -p $CARGO_HOME $RUSTUP_HOME \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
+    && rustup default ${RUST_VERSION} \
+    && rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android \
+    && cargo install cargo-ndk \
+    && chmod -R a+w $CARGO_HOME $RUSTUP_HOME
+
+# ------------------------------------------------------------
 # Switch to non-root user
 # ------------------------------------------------------------
 USER flutteruser
 WORKDIR /app
 
-# Add Rust PATH
-ENV PATH="$HOME/.cargo/bin:$PATH"
+# Add Rust PATH for non-root
+ENV PATH=$CARGO_HOME/bin:$PATH
 
 # ------------------------------------------------------------
 # Copy project into container
@@ -205,15 +219,6 @@ COPY . /app
 # Pre-warm Flutter
 # ------------------------------------------------------------
 RUN flutter --version
-
-# ------------------------------------------------------------
-# Install Rust + cargo-ndk
-# ------------------------------------------------------------
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
-    && . "$HOME/.cargo/env" \
-    && rustup default ${RUST_VERSION} \
-    && rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android \
-    && cargo install cargo-ndk
 
 # ------------------------------------------------------------
 # Permissions fixes
@@ -231,6 +236,6 @@ RUN ./gradlew --version || true
 WORKDIR /app
 
 # ------------------------------------------------------------
-# Default command for testing environment
+# Default command
 # ------------------------------------------------------------
 CMD ["bash", "-c", "java -version && flutter --version && cd android && ./gradlew --version"]
