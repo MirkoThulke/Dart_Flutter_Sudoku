@@ -53,7 +53,8 @@ echo "📂 Current directory: $(pwd)"
 # Linux host
 # … and generates android/local.properties accordingly.
 # =====================================================================
-echo "🔧 Generating android/local.properties..."
+echo "🔧 Regenerating local.properties..."
+chmod +x ./scripts/generate_local_properties.sh
 ./scripts/generate_local_properties.sh
 
 

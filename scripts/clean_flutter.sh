@@ -2,9 +2,7 @@
 set -e
 
 # ------------------------------------------------------------
-
 # Resolve project root
-
 # ------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -13,9 +11,7 @@ cd "$PROJECT_ROOT"
 echo "Project root is defined as: $PROJECT_ROOT"
 
 # ------------------------------------------------------------
-
 # Set Gradle cache path depending on environment
-
 # ------------------------------------------------------------
 
 if [ -n "$DOCKER_ENV" ]; then
@@ -26,31 +22,15 @@ fi
 echo "Using GRADLE_USER_HOME: $GRADLE_USER_HOME"
 
 # ------------------------------------------------------------
-
 # Update android/local.properties
-
 # ------------------------------------------------------------
 
-LOCAL_PROPERTIES_FILE="$PROJECT_ROOT/android/local.properties"
-NDK_VERSION=$(ls -d $ANDROID_SDK_ROOT/ndk/* | sort -V | tail -1 | xargs -n 1 basename)
-
-cat > "$LOCAL_PROPERTIES_FILE" <<EOF
-sdk.dir=$ANDROID_SDK_ROOT
-ndk.dir=$ANDROID_SDK_ROOT/ndk/$NDK_VERSION
-cmake.dir=/usr/bin
-flutter.sdk=$FLUTTER_HOME
-flutter.buildMode=release
-flutter.versionName=1.0.1
-flutter.versionCode=1
-EOF
-
-echo "Updated android/local.properties:"
-cat "$LOCAL_PROPERTIES_FILE"
+echo "🔧 Regenerating local.properties..."
+chmod +x ./scripts/generate_local_properties.sh
+./scripts/generate_local_properties.sh
 
 # ------------------------------------------------------------
-
 # Ensure integration_test is in dev_dependencies
-
 # ------------------------------------------------------------
 
 PUBSPEC_FILE="$PROJECT_ROOT/pubspec.yaml"
@@ -69,9 +49,7 @@ echo "integration_test already present in pubspec.yaml"
 fi
 
 # ------------------------------------------------------------
-
 # Clean and fetch dependencies
-
 # ------------------------------------------------------------
 
 echo "Performing a clean build..."
