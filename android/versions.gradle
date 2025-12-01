@@ -1,0 +1,10 @@
+ext {
+    ndkMain = "28.0.13004108"        // Your Rust-compatible NDK
+    ndkLegacy = "26.1.10909125"     // Needed by older plugins
+    cmakeMain = "3.27.0"
+    cmakeLegacy = "3.22.1"
+
+    compileSdkVersion = 36
+    targetSdkVersion = 36
+    minSdkVersion = 21
+}
