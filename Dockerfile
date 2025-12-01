@@ -103,6 +103,7 @@
 # ------------------------------------------------------------
 FROM ubuntu:22.04
 
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
@@ -110,16 +111,24 @@ ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
 ENV RUST_BACKTRACE=1
 ENV DOCKER_ENV=1
 
+
 # ------------------------------------------------------------
 # Locked versions (reproducible)
 # ------------------------------------------------------------
+ARG NDK_MAIN=28.0.13004108
+ARG NDK_LEGACY=26.1.10909125
+ARG CMAKE_MAIN=3.22.1
+ARG CMAKE_LEGACY=3.22.1
+
 ENV FLUTTER_VERSION=3.35.7
 ENV FLUTTER_CHANNEL=stable
 ENV FLUTTER_DART_VERSION=3.9.2
 ENV ANDROID_SDK_TOOLS_VERSION=9477386
-ENV ANDROID_NDK_VERSION=28.0.13004108
+ENV ANDROID_NDK_VERSION=${NDK_MAIN}
+ENV ANDROID_NDK_LEGACY=${NDK_LEGACY}
 ENV GRADLE_VERSION=8.9
-ENV CMAKE_VERSION=3.22.1
+ENV CMAKE_VERSION=${CMAKE_MAIN}
+ENV CMAKE_VERSION_LEGACY=${CMAKE_LEGACY}
 ENV RUST_VERSION=1.91.1
 
 # PATH (updated again after Rust install)
@@ -162,21 +171,59 @@ RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
     && git config --system --add safe.directory $FLUTTER_HOME \
     && chown -R flutteruser:flutteruser $FLUTTER_HOME
 
+
 # ------------------------------------------------------------
-# Install Android SDK + NDK
+# Install Android commandline-tools (robust version)
 # ------------------------------------------------------------
-RUN mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
-    && curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip \
-    && unzip sdk-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools \
-    && mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools $ANDROID_SDK_ROOT/cmdline-tools/latest \
-    && rm sdk-tools.zip \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_VERSION}" \
-    && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${ANDROID_NDK_VERSION}" \
-    && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
+RUN set -e \
+ && mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
+ \
+ # Download commandline-tools (known stable version)
+ && curl -L -o /tmp/commandlinetools.zip \
+      https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
+ \
+ # Check ZIP is valid
+ && unzip -t /tmp/commandlinetools.zip > /dev/null \
+ \
+ # Extract
+ && unzip /tmp/commandlinetools.zip -d $ANDROID_SDK_ROOT/cmdline-tools \
+ && rm /tmp/commandlinetools.zip \
+ \
+ # Google sometimes uses cmdline-tools/ or tools/ — normalize it
+ && if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then \
+        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" \
+           "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
+    elif [ -d "$ANDROID_SDK_ROOT/cmdline-tools/tools" ]; then \
+        mv "$ANDROID_SDK_ROOT/cmdline-tools/tools" \
+           "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
+    else \
+        echo "❌ ERROR: commandline-tools folder not found after unzip"; \
+        ls -R $ANDROID_SDK_ROOT/cmdline-tools; \
+        exit 1; \
+    fi \
+ \
+ # Ensure sdkmanager exists
+ && if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then \
+        echo '❌ ERROR: sdkmanager not found — installation failed'; \
+        exit 1; \
+    fi \
+ \
+ # Install Android SDK components
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
+ \
+ # Install requested CMake
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_MAIN}" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_LEGACY}" \
+ \
+ # Install NDK
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${NDK_MAIN}" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${NDK_LEGACY}" \
+ \
+ && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
+
 
 # ------------------------------------------------------------
 # Install SYSTEM-WIDE Gradle 8.7 (BEFORE changing user)

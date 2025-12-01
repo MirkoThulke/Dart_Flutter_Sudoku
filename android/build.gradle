@@ -1,23 +1,73 @@
-// 1. Plugins block must come first
+// ============================================================
+// Load Versions FIRST — must be the first line
+// ============================================================
+apply from: "versions.gradle"
+
+// ============================================================
+// Plugins
+// ============================================================
 plugins {
     id "com.android.application" apply false
     id "org.jetbrains.kotlin.android" apply false
     id "dev.flutter.flutter-gradle-plugin" apply false
 }
 
-// 2. Optional buildDir customization after plugins
-rootProject.buildDir = '../build'
+// ============================================================
+// Build dirs
+// ============================================================
+rootProject.buildDir = "../build"
 
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-    project.evaluationDependsOn(':app')
+    project.evaluationDependsOn(":app")
 }
 
-// 3. Clean task
+
+// ============================================================
+// Global forced SDK config
+// ============================================================
+subprojects { sub ->
+    afterEvaluate {
+        def androidExt = sub.extensions.findByType(
+            com.android.build.gradle.BaseExtension
+        )
+
+        if (androidExt != null) {
+            println("🔧 Applying SDK versions to ${sub.name}")
+
+            androidExt.compileSdkVersion compileSdkVersion
+
+            androidExt.defaultConfig {
+                minSdk minSdkVersion
+                targetSdk targetSdkVersion
+            }
+        }
+    }
+}
+
+// ============================================================
+// Force legacy NDK for integration_test + path_provider
+// ============================================================
+subprojects { sub ->
+    afterEvaluate {
+        if (sub.name.contains("integration_test") ||
+            sub.name.contains("path_provider_android")) {
+
+            println("⚠ Overriding NDK to legacy ${ndkLegacy} for ${sub.name}")
+
+            def androidExt = sub.extensions.findByType(
+                com.android.build.gradle.BaseExtension
+            )
+
+            if (androidExt != null) {
+                androidExt.ndkVersion ndkLegacy
+            }
+        }
+    }
+}
+
+// Clean task
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-
-
-
 

@@ -4,25 +4,30 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+apply from: "../versions.gradle"      // ✅ moved BELOW the plugins{} block
+
 // =====================================================
-// 🐧 WSL CMake Fix (MUST be placed BEFORE android { ... })
+// 🐧 WSL CMake Fix (allowed here, AFTER plugins)
 // =====================================================
 def isWSL = System.getenv("WSL_DISTRO_NAME") != null
 if (isWSL) {
-    println("🐧 Detected WSL — forcing Gradle to use Linux cmake")
+    println("🐧 Detected WSL — forcing Linux CMake")
     def localPropsFile = rootProject.file("local.properties")
     def props = new Properties()
     if (localPropsFile.exists()) {
         localPropsFile.withInputStream { props.load(it) }
     }
-    props.setProperty("cmake.dir", "/usr")   // ✅ change here
+    props.setProperty("cmake.dir", "/usr")
     localPropsFile.withOutputStream { props.store(it, null) }
     println("✅ Patched local.properties → cmake.dir=/usr")
 }
 
+
 android {
     namespace = "com.example.sudoku"
-    compileSdk = 36
+    compileSdk = compileSdkVersion
+
+    ndkVersion ndkMain
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -35,10 +40,20 @@ android {
 
     defaultConfig {
         applicationId = "com.example.sudoku"
-        minSdkVersion = flutter.minSdkVersion
-        targetSdk = 36
+        minSdk = minSdkVersion
+        targetSdk = targetSdkVersion
         versionCode = 1
         versionName = "1.0.2"
+
+        // =====================================================
+        // 🔧 WORKAROUND: Force Rust / CMake behavior
+        // =====================================================
+        externalNativeBuild {
+            cmake {
+                cppFlags "-DANDROID_STL=c++_static"
+                arguments "-DANDROID_ARM_NEON=TRUE"
+            }
+        }
     }
 
     buildTypes {
@@ -47,11 +62,9 @@ android {
         }
     }
 
-    // ✅ Linux-native CMakeLists.txt path
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
-            // remove any version = "3.22.1"
         }
     }
 }
@@ -66,12 +79,11 @@ afterEvaluate {
         def apkTargetDir = file("${rootDir}/build/app/outputs/flutter-apk")
         from(apkSource)
         into(apkTargetDir)
-        doFirst {
-            apkTargetDir.mkdirs()
-        }
+        doFirst { apkTargetDir.mkdirs() }
     }
 
     tasks.named("assembleDebug") {
         finalizedBy("copyDebugApk")
     }
 }
+

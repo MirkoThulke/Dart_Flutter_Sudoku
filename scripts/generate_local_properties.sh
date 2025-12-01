@@ -5,14 +5,15 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 ANDROID_DIR="$PROJECT_DIR/android"
 LOCAL_PROPERTIES="$ANDROID_DIR/local.properties"
 
-# Centralized version settings (keep in sync with versions.gradle)
-NDK_MAIN_VERSION="28.0.13004108"
-NDK_LEGACY_VERSION="26.1.10909125"
+# Centralized versions (keep in sync with versions.gradle)
+NDK_MAIN="28.0.13004108"      # Used in Docker & native Linux
+NDK_LEGACY="26.1.10909125"    # Used in WSL2
 CMAKE_VERSION="3.22.1"
 
 echo "🔧 Generating android/local.properties..."
 
 rm -f "$LOCAL_PROPERTIES"
+
 
 ##############################################
 # Detect Docker
@@ -23,7 +24,7 @@ if [ -f "/.dockerenv" ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
 fi
 
 ##############################################
-# Detect WSL
+# Detect WSL2
 ##############################################
 IS_WSL=false
 if grep -qi "microsoft" /proc/version; then
@@ -38,11 +39,11 @@ if $IS_DOCKER; then
     SDK_DIR="/opt/android/sdk"
 
 elif $IS_WSL; then
-    echo "🐧 Running in WSL → using Linux Android SDK"
+    echo "🐧 Running in WSL2 → using Linux Android SDK"
     SDK_DIR="$HOME/Android/Sdk"
 
 else
-    echo "🐧 Native Linux environment"
+    echo "🐧 Native Linux environment → using $HOME/Android/Sdk"
     SDK_DIR="$HOME/Android/Sdk"
 fi
 
@@ -60,20 +61,28 @@ if [ ! -d "$SDK_DIR/ndk" ]; then
 fi
 
 ##############################################
-# Use explicit main NDK version
+# Select NDK based on environment
 ##############################################
-MAIN_NDK_DIR="$SDK_DIR/ndk/$NDK_MAIN_VERSION"
+if $IS_DOCKER; then
+    NDK_VERSION="$NDK_MAIN"
+elif $IS_WSL; then
+    NDK_VERSION="$NDK_LEGACY"
+else
+    NDK_VERSION="$NDK_MAIN"
+fi
 
-if [ ! -d "$MAIN_NDK_DIR/toolchains/llvm" ]; then
-    echo "❌ ERROR: Main NDK not found or invalid:"
-    echo "   $MAIN_NDK_DIR"
+NDK_DIR="$SDK_DIR/ndk/$NDK_VERSION"
+
+if [ ! -d "$NDK_DIR/toolchains/llvm" ]; then
+    echo "❌ ERROR: NDK not found or invalid:"
+    echo "   $NDK_DIR"
     exit 1
 fi
 
-echo "✅ Using MAIN NDK: $MAIN_NDK_DIR"
+echo "✅ Using NDK: $NDK_DIR"
 
 ##############################################
-# Detect cmake folder if available
+# Detect CMake folder
 ##############################################
 CMAKE_DIR="$SDK_DIR/cmake/$CMAKE_VERSION"
 
@@ -81,7 +90,7 @@ if [ -d "$CMAKE_DIR/bin" ]; then
     echo "🔧 Using CMake: $CMAKE_DIR"
     WRITE_CMAKE="cmake.dir=$CMAKE_DIR"
 else
-    echo "⚠️ No CMake inside SDK, skipping cmake.dir"
+    echo "⚠️ CMake $CMAKE_VERSION not found inside SDK, skipping cmake.dir"
     WRITE_CMAKE=""
 fi
 
@@ -90,9 +99,10 @@ fi
 ##############################################
 {
 echo "sdk.dir=$SDK_DIR"
-echo "ndk.dir=$MAIN_NDK_DIR"
+echo "ndk.dir=$NDK_DIR"
 [ -n "$WRITE_CMAKE" ] && echo "$WRITE_CMAKE"
 } > "$LOCAL_PROPERTIES"
 
 echo "✅ Generated android/local.properties:"
 cat "$LOCAL_PROPERTIES"
+

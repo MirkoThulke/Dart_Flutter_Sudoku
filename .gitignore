@@ -116,8 +116,8 @@ Thumbs.db
 # Custom project scripts
 # =========================================
 # ✅ Keep your automation scripts
-!scripts/
-scripts/*.sh
+
+
 
 # =========================================
 # Temporary / Cache / WSL files
