@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tulli Sudoku',
+      title: 'MTulli Sudoku',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MyHomePage(),
     );

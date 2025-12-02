@@ -1,55 +1,46 @@
-// ============================================================
-// Load Versions FIRST — must be the first line
-// ============================================================
-apply from: "versions.gradle"
-
-// ============================================================
-// Plugins
-// ============================================================
 plugins {
     id "com.android.application" apply false
     id "org.jetbrains.kotlin.android" apply false
     id "dev.flutter.flutter-gradle-plugin" apply false
 }
 
-// ============================================================
-// Build dirs
-// ============================================================
 rootProject.buildDir = "../build"
+
+apply from: "${rootDir}/versions.gradle"
 
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
     project.evaluationDependsOn(":app")
 }
 
-
 // ============================================================
-// Global forced SDK config
+// 🔧 GLOBAL ENFORCED ANDROID CONFIG (NO afterEvaluate)
 // ============================================================
 subprojects { sub ->
-    afterEvaluate {
-        def androidExt = sub.extensions.findByType(
-            com.android.build.gradle.BaseExtension
-        )
+    def androidExt = sub.extensions.findByType(
+        com.android.build.gradle.BaseExtension
+    )
 
-        if (androidExt != null) {
-            println("🔧 Applying SDK versions to ${sub.name}")
+    if (androidExt != null) {
+        println("🔧 Applying SDK versions to ${sub.name}")
 
-            androidExt.compileSdkVersion compileSdkVersion
+        androidExt.compileSdkVersion compileSdkVersion
 
-            androidExt.defaultConfig {
-                minSdk minSdkVersion
-                targetSdk targetSdkVersion
-            }
+        androidExt.defaultConfig {
+            minSdk minSdkVersion
+            targetSdk targetSdkVersion
         }
     }
 }
 
 // ============================================================
-// Force legacy NDK for integration_test + path_provider
+// 🔧 Force legacy NDK for integration_test + path_provider
+//    (SAFE block — runs after all projects are fully loaded)
 // ============================================================
-subprojects { sub ->
-    afterEvaluate {
+gradle.projectsEvaluated {
+
+    subprojects { sub ->
+
         if (sub.name.contains("integration_test") ||
             sub.name.contains("path_provider_android")) {
 
@@ -70,4 +61,3 @@ subprojects { sub ->
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-

@@ -1,89 +1,55 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
+    id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-apply from: "../versions.gradle"      // ✅ moved BELOW the plugins{} block
-
-// =====================================================
-// 🐧 WSL CMake Fix (allowed here, AFTER plugins)
-// =====================================================
-def isWSL = System.getenv("WSL_DISTRO_NAME") != null
-if (isWSL) {
-    println("🐧 Detected WSL — forcing Linux CMake")
-    def localPropsFile = rootProject.file("local.properties")
-    def props = new Properties()
-    if (localPropsFile.exists()) {
-        localPropsFile.withInputStream { props.load(it) }
-    }
-    props.setProperty("cmake.dir", "/usr")
-    localPropsFile.withOutputStream { props.store(it, null) }
-    println("✅ Patched local.properties → cmake.dir=/usr")
-}
-
+apply from: "${rootDir}/versions.gradle"
 
 android {
-    namespace = "com.example.sudoku"
-    compileSdk = compileSdkVersion
+    namespace "com.mtulli.sudoku"   // <-- update with your package name
 
-    ndkVersion ndkMain
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+    compileSdkVersion compileSdkVersion
 
     defaultConfig {
-        applicationId = "com.example.sudoku"
-        minSdk = minSdkVersion
-        targetSdk = targetSdkVersion
-        versionCode = 1
-        versionName = "1.0.2"
+        applicationId "com.mtulli.sudoku"  // <-- update this
+        minSdkVersion minSdkVersion
+        targetSdkVersion targetSdkVersion
+        versionCode flutter.versionCode.toInteger()
+        versionName flutter.versionName
+    }
 
-        // =====================================================
-        // 🔧 WORKAROUND: Force Rust / CMake behavior
-        // =====================================================
-        externalNativeBuild {
-            cmake {
-                cppFlags "-DANDROID_STL=c++_static"
-                arguments "-DANDROID_ARM_NEON=TRUE"
+    signingConfigs {
+        release {
+            if (System.getenv("KEYSTORE_PASSWORD")) {
+                storeFile file(System.getenv("KEYSTORE_PATH"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
+                          "proguard-rules.pro"
         }
     }
 
-    externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
+    // Ensure Flutter loads correctly in Gradle 8.x
+    buildFeatures {
+        buildConfig true
+    }
+
+    packagingOptions {
+        jniLibs.useLegacyPackaging = false
     }
 }
 
-flutter {
-    source = "../.."
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 }
-
-afterEvaluate {
-    tasks.register("copyDebugApk", Copy) {
-        def apkSource = file("${buildDir}/outputs/apk/debug/app-debug.apk")
-        def apkTargetDir = file("${rootDir}/build/app/outputs/flutter-apk")
-        from(apkSource)
-        into(apkTargetDir)
-        doFirst { apkTargetDir.mkdirs() }
-    }
-
-    tasks.named("assembleDebug") {
-        finalizedBy("copyDebugApk")
-    }
-}
-
