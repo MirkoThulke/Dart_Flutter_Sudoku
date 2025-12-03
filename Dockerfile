@@ -115,7 +115,7 @@ ENV DOCKER_ENV=1
 # ------------------------------------------------------------
 # Locked versions (reproducible)
 # ------------------------------------------------------------
-ARG NDK_MAIN=28.0.13004108
+ARG NDK_MAIN=28.2.13676358
 ARG NDK_LEGACY=26.1.10909125
 ARG CMAKE_MAIN=3.22.1
 ARG CMAKE_LEGACY=3.22.1

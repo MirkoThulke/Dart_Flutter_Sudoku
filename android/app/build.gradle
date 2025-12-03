@@ -9,12 +9,13 @@ apply from: "${rootDir}/versions.gradle"
 android {
     namespace "com.mtulli.sudoku"   // <-- update with your package name
 
-    compileSdkVersion compileSdkVersion
+    compileSdkVersion compileSdkVersion_ext
+    ndkVersion ndkMain_ext
 
     defaultConfig {
         applicationId "com.mtulli.sudoku"  // <-- update this
-        minSdkVersion minSdkVersion
-        targetSdkVersion targetSdkVersion
+        minSdkVersion minSdkVersion_ext
+        targetSdkVersion targetSdkVersion_ext
         versionCode flutter.versionCode.toInteger()
         versionName flutter.versionName
     }
@@ -51,5 +52,4 @@ android {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
 }

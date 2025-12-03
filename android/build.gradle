@@ -13,49 +13,6 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// ============================================================
-// 🔧 GLOBAL ENFORCED ANDROID CONFIG (NO afterEvaluate)
-// ============================================================
-subprojects { sub ->
-    def androidExt = sub.extensions.findByType(
-        com.android.build.gradle.BaseExtension
-    )
-
-    if (androidExt != null) {
-        println("🔧 Applying SDK versions to ${sub.name}")
-
-        androidExt.compileSdkVersion compileSdkVersion
-
-        androidExt.defaultConfig {
-            minSdk minSdkVersion
-            targetSdk targetSdkVersion
-        }
-    }
-}
-
-// ============================================================
-// 🔧 Force legacy NDK for integration_test + path_provider
-//    (SAFE block — runs after all projects are fully loaded)
-// ============================================================
-gradle.projectsEvaluated {
-
-    subprojects { sub ->
-
-        if (sub.name.contains("integration_test") ||
-            sub.name.contains("path_provider_android")) {
-
-            println("⚠ Overriding NDK to legacy ${ndkLegacy} for ${sub.name}")
-
-            def androidExt = sub.extensions.findByType(
-                com.android.build.gradle.BaseExtension
-            )
-
-            if (androidExt != null) {
-                androidExt.ndkVersion ndkLegacy
-            }
-        }
-    }
-}
 
 // Clean task
 tasks.register("clean", Delete) {

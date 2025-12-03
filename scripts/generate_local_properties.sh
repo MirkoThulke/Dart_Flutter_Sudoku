@@ -6,7 +6,7 @@ ANDROID_DIR="$PROJECT_DIR/android"
 LOCAL_PROPERTIES="$ANDROID_DIR/local.properties"
 
 # Centralized versions (keep in sync with versions.gradle)
-NDK_MAIN="28.0.13004108"      # Used in Docker & native Linux
+NDK_MAIN="28.2.13676358"      # Used in Docker & native Linux
 NDK_LEGACY="26.1.10909125"    # Used in WSL2
 CMAKE_VERSION="3.22.1"
 
