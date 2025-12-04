@@ -58,6 +58,14 @@ chmod +x ./scripts/generate_local_properties.sh
 ./scripts/generate_local_properties.sh
 
 
+# 🔍 Ensure CMake exists in WSL
+if [[ "$ENV_TYPE" == "WSL" ]]; then
+  if ! command -v cmake >/dev/null 2>&1; then
+    echo "❌ CMake not found in WSL. Install it with:"
+    echo "   sudo apt update && sudo apt install cmake"
+    exit 1
+  fi
+fi
 
 
 # 🧩 Force CMake path for WSL builds

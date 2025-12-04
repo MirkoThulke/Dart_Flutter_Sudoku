@@ -40,15 +40,15 @@
 
 # start an existing container interactively:
 #   docker start -ai flutter_rust_env
+# stop an existing container interactively:
+#  docker stop flutter_rust_env
+#  docker kill flutter_rust_env
+#  docker rm flutter_rust_env
 # enter the docker container interactively:
-#   docker run -it --name flutter_rust_env ubuntu:22.04 /bin/bash
-
+#   docker run -it --name flutter_rust_env -v /home/mirko/sudoku:/app ubuntu:22.04 /bin/bash
+#
 # Run the container with your local project mounted:
-#   docker run --rm \
-# -v ${PWD}:/app \
-# -w /app \
-#   flutter_rust_env \
-#   bash -c "./scripts/build_all.sh release"
+#   docker run --rm -v ${PWD}:/app -w /app flutter_rust_env bash -c "./scripts/build_all.sh release"
 # ------------------------------------------------------------
 
 
@@ -106,6 +106,7 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
+ENV FLUTTER_ROOT=/opt/flutter
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
 ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
 ENV RUST_BACKTRACE=1
@@ -133,6 +134,7 @@ ENV RUST_VERSION=1.91.1
 
 # PATH (updated again after Rust install)
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+
 
 WORKDIR /app
 
@@ -268,10 +270,17 @@ COPY . /app
 RUN flutter --version
 
 # ------------------------------------------------------------
-# Permissions fixes
+# Permissions fixes (minimal + safe)
 # ------------------------------------------------------------
-RUN chmod -R a+w $HOME/.gradle || true
-RUN chmod -R a+w $FLUTTER_HOME/bin/cache $ANDROID_SDK_ROOT
+
+# Gradle only needs write access to its OWN folder
+RUN mkdir -p $HOME/.gradle && chmod -R a+w $HOME/.gradle
+
+# Flutter only needs cache folder writeable
+RUN chmod -R a+w $FLUTTER_HOME/bin/cache/artifacts || true
+
+# Android SDK only needs the 'licenses' folder writeable
+RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
 
 # ------------------------------------------------------------
 # Pre-download Gradle Wrapper (8.7)
