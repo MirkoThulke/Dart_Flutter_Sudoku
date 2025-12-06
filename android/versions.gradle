@@ -1,4 +1,6 @@
 ext {
+    // Align with Dockerfile ARGs !!!
+
     ndkMain_ext = "28.2.13676358"        // Your Rust-compatible NDK
     ndkLegacy_ext = "26.1.10909125"     // Needed by older plugins
     cmakeMain_ext = "3.22.1"
@@ -7,6 +9,6 @@ ext {
     compileSdkVersion_ext = 36
     targetSdkVersion_ext = 36
     minSdkVersion_ext = 24
-
+    
 }
 

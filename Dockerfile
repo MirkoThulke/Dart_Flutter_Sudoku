@@ -116,23 +116,33 @@ ENV DOCKER_ENV=1
 # ------------------------------------------------------------
 # Locked versions (reproducible)
 # ------------------------------------------------------------
+
+# Align with : !!!!
+# -  .../android/versions.gradle !!!!
+# - .../android/gradle/wrapper/gradle-wrapper.properties !!!!
+# - .../android/build.gradle !!!!
+
 ARG NDK_MAIN=28.2.13676358
 ARG NDK_LEGACY=26.1.10909125
+ARG JAVA_VERSION=17
 ARG CMAKE_MAIN=3.22.1
 ARG CMAKE_LEGACY=3.22.1
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
-ARG GRADLE_VERSION=8.9
+
+# https://developer.android.com/build/releases/past-releases/agp-8-9-0-release-notes?utm_source=chatgpt.com&hl=fr
+ARG GRADLE_VERSION=8.11.1
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
+# https://blog.flutter.dev/2024/05/15/flutter-3-35-7-released/
 ENV FLUTTER_VERSION=3.35.7
 ENV FLUTTER_CHANNEL=stable
+
 ENV FLUTTER_DART_VERSION=3.9.2
 ENV ANDROID_SDK_TOOLS_VERSION=9477386
 ENV ANDROID_NDK_VERSION=${NDK_MAIN}
 ENV ANDROID_NDK_LEGACY=${NDK_LEGACY}
-ENV GRADLE_VERSION=8.9
 ENV CMAKE_VERSION=${CMAKE_MAIN}
 ENV CMAKE_VERSION_LEGACY=${CMAKE_LEGACY}
 ENV RUST_VERSION=1.91.1
@@ -149,21 +159,21 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl git unzip xz-utils zip libglu1-mesa build-essential \
     cmake ninja-build python3 python3-pip clang pkg-config \
-    openjdk-17-jdk wget gnupg2 ca-certificates xvfb adb \
     && rm -rf /var/lib/apt/lists/*
 
 
-# ------------------------------------------------------------
-# Dynamically detect Java installation and set environment
-# ------------------------------------------------------------
-RUN JAVA_PATH=$(dirname $(dirname $(readlink -f $(which java)))) \
-    && echo "Detected JAVA_HOME=$JAVA_PATH" \
-    && echo "export JAVA_HOME=$JAVA_PATH" >> /etc/profile.d/java.sh \
-    && echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile.d/java.sh
+# Install Java (OpenJDK)
+ARG JAVA_VERSION=17
+RUN apt-get update && \
+    apt-get install -y openjdk-${JAVA_VERSION}-jdk && \
+    rm -rf /var/lib/apt/lists/*
 
-# Ensure Docker build sees it in subsequent layers
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+# Set environment
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="$JAVA_HOME/bin:$PATH"
+
+# Verify
+RUN java -version
 
 
 # ------------------------------------------------------------
@@ -248,7 +258,7 @@ RUN set -e \
 
 
 # ------------------------------------------------------------
-# Install SYSTEM-WIDE Gradle 8.7 (BEFORE changing user)
+# Install SYSTEM-WIDE Gradle x.x (BEFORE changing user)
 # ------------------------------------------------------------
 
 RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip -O /tmp/gradle-${GRADLE_VERSION}-all.zip \

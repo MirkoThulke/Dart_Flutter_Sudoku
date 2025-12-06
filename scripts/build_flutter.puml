@@ -1,5 +1,94 @@
 @startuml
 |Build Script|
+
+note as DescriptionBlock
+
+AGP Version (Android Gradle Plugin) :
+Full name: Android Gradle Plugin
+What it is: A Gradle plugin developed by Google that allows Gradle to understand and build Android apps.
+Where it’s used: Declared in build.gradle (project-level or module-level) as:
+id 'com.android.application' version '8.9.0'
+Why it matters:
+Controls the Android-specific build logic (like generating APKs/AABs, resource merging, signing, etc.)
+Must be compatible with Gradle version and Kotlin plugin version
+
+Gradle Version :
+What it is: The core build tool for Java, Kotlin, and Android.
+Where it’s used: Globally, or via the Gradle wrapper in your project.
+Why it matters:
+AGP requires a minimum Gradle version
+Too old → build fails
+Too new → might not be compatible with AGP
+Example: 8.2 (compatible with AGP 8.9)
+
+Gradle Wrapper Version :
+What it is: A project-specific Gradle binary that ensures everyone building the project uses the same Gradle version.
+File: android/gradle/wrapper/gradle-wrapper.properties
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-all.zip
+Why it matters:
+Guarantees reproducible builds regardless of the Gradle installed on your machine
+Matches the AGP requirements
+
+
+Plugin Tools Version :
+Meaning: Versions of Gradle plugins your project uses, e.g.:
+com.android.application → AGP plugin
+org.jetbrains.kotlin.android → Kotlin plugin
+dev.flutter.flutter-gradle-plugin → Flutter plugin for Android
+Why it matters:
+Plugins interact with Gradle and Android SDK
+Versions must be compatible with Gradle and AGP
+
+Kotlin Version :
+What it is: Version of Kotlin used to compile Kotlin code.
+Where it’s used: Usually declared in build.gradle or versions.gradle:
+ext.kotlin_version = '1.9.10'
+Why it matters:
+Kotlin plugin must be compatible with AGP
+Mismatched Kotlin → errors like KotlinAndroidTarget
+
+Kompatibility matrix : 
+https://docs.gradle.org/8.14.3/userguide/compatibility.html
+
+Comment !! : 
+The AGP version dictates the Gradle version by allowing a minimum and maximum Gradle version range.
+The Gradle wrapper version defines the specific Gradle version, which must be inside this allowed range.
+
+Decision Workflow : 
+- Define Flutter Version
+- Check compatible AGP version
+- use AGP version to define Gradle wrapper version and hence the Gradle version .
+- Derive the Kotlin version from the AGP version
+- Derive the JAva JVM version from the Gradle minmum version requirement AND the AGP version
+- Define the SDK version based on the Flutter Version requirement and the AGP constraints
+- Define the NDK version based on the AGP version requirements
+end note
+
+[*] --> Define_Flutter_Version
+
+Define_Flutter_Version --> Check_Compatible_AGP : Determine AGP from Flutter
+
+Check_Compatible_AGP --> Define_Gradle_Version : Use AGP to select Gradle wrapper
+Check_Compatible_AGP --> Derive_Kotlin_Version : Kotlin plugin depends on AGP
+Check_Compatible_AGP --> Derive_NDK_Version : NDK version depends on AGP
+
+Define_Gradle_Version --> Derive_JVM_Version : JVM depends on Gradle & AGP
+
+Define_Flutter_Version --> Define_SDK_Version : Flutter sets minimum SDK
+Check_Compatible_AGP --> Define_SDK_Version : AGP constraints on SDK
+
+Derive_Kotlin_Version --> [*]
+Derive_JVM_Version --> [*]
+Define_SDK_Version --> [*]
+Derive_NDK_Version --> [*]
+
+note as DescriptionBlock
+[ * ] represents start and end points.
+Arrows show dependency flow.
+Decisions like AGP → Gradle/Kotlin/NDK and Flutter → SDK are captured.
+This diagram is modular: each block could be expanded for CI/CD setup if needed.
+end note
+
 start
 :Load DEVICE_IP from $HOME/.adb_device_ip;
 if (DEVICE_IP file exists?) then (yes)

@@ -1,0 +1,15 @@
+# Jenkins LTS image
+FROM jenkins/jenkins:lts
+
+# Install Docker CLI (for running build containers)
+USER root
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    usermod -aG docker jenkins
+
+# Switch back to Jenkins user
+USER jenkins
+
+# Pre-install pipeline plugins if you want
+# COPY plugins.txt /usr/share/jenkins/plugins.txt
+# RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/plugins.txt

@@ -1,6 +1,7 @@
 plugins {
     id "com.android.application"
-    id "org.jetbrains.kotlin.android"
+    // below kotlin definition is a duplicate, since kotlin is already defined in the root build.gradle
+    // id "org.jetbrains.kotlin.android"
     id "dev.flutter.flutter-gradle-plugin"
 }
 

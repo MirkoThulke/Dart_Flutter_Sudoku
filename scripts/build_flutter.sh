@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+
+
 # =========================================
 # Cross-platform Flutter build script
 # =========================================
@@ -89,14 +91,24 @@ echo "📦 Fetching Flutter dependencies..."
 flutter pub get
 
 # Clean build if requested
-if [ "$CLEAN_BUILD" = true ]; then
-  echo "🧹 Performing a clean build..."
-  flutter clean
+# Always clean for release builds
+if [[ "$FLUTTER_MODE" == "release" ]] || [ "$CLEAN_BUILD" = true ]; then
+    echo "🧹 Performing a clean build..."
+    ./scripts/clean_flutter.sh
 fi
+
 
 # Build APK
 echo "🏗️ Building Flutter APK in $FLUTTER_MODE mode..."
-flutter build apk --$FLUTTER_MODE
+
+# Set extra Gradle options only for debug builds
+GRADLE_EXTRA_OPTS=""
+if [[ "$FLUTTER_MODE" == "debug" ]]; then
+    GRADLE_EXTRA_OPTS="--stacktrace --info --debug --scan"
+fi
+
+# Run Flutter build with optional Gradle options
+flutter build apk --$FLUTTER_MODE ${GRADLE_EXTRA_OPTS:+-- $GRADLE_EXTRA_OPTS}
 
 # Locate APK
 APK_PATH="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-$FLUTTER_MODE.apk"
