@@ -21,6 +21,14 @@
       "noDebug": true
     },
     {
+      "name": "sudoku (gradle clean cache - host)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/scripts/clean_gradle_cache.dart",
+      "preLaunchTask": "clean-gradle-cache-host",
+      "noDebug": true
+    },
+    {
       "name": "sudoku (usb debug flutter - host)",
       "request": "launch",
       "type": "dart",
@@ -53,6 +61,14 @@
       "type": "dart",
       "program": "${workspaceFolder}/scripts/clean_flutter.dart",
       "preLaunchTask": "clean-flutter-docker",
+      "noDebug": true
+    },
+    {
+      "name": "sudoku (gradle clean cache - docker)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/scripts/clean_gradle_cache.dart",
+      "preLaunchTask": "clean-gradle-cache-docker",
       "noDebug": true
     },
     {

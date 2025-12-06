@@ -18,6 +18,14 @@
       "options": { "cwd": "/home/mirko/sudoku" },
       "problemMatcher": []
     },
+        {
+      "label": "clean-gradle-cache-host",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-i", "/home/mirko/sudoku/scripts/clean_gradle_cache.sh"],
+      "options": { "cwd": "/home/mirko/sudoku" },
+      "problemMatcher": []
+    },
     {
       "label": "build-flutter-host-debug",
       "type": "shell",
@@ -67,6 +75,16 @@
       "args": [
         "-c",
         "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/clean_flutter.sh'"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "clean-gradle-cache-docker",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "docker run --rm -v /home/mirko/sudoku:/app -w /app flutter_rust_env bash -lc './scripts/clean_gradle_cache.sh'"
       ],
       "problemMatcher": []
     },
