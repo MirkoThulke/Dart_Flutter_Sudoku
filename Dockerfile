@@ -120,6 +120,11 @@ ARG NDK_MAIN=28.2.13676358
 ARG NDK_LEGACY=26.1.10909125
 ARG CMAKE_MAIN=3.22.1
 ARG CMAKE_LEGACY=3.22.1
+ARG COMPILE_SDK=36
+ARG BUILD_TOOLS=36.0.0
+ARG GRADLE_VERSION=8.9
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 
 ENV FLUTTER_VERSION=3.35.7
 ENV FLUTTER_CHANNEL=stable
@@ -147,6 +152,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-17-jdk wget gnupg2 ca-certificates xvfb adb \
     && rm -rf /var/lib/apt/lists/*
 
+
+# ------------------------------------------------------------
+# Dynamically detect Java installation and set environment
+# ------------------------------------------------------------
+RUN JAVA_PATH=$(dirname $(dirname $(readlink -f $(which java)))) \
+    && echo "Detected JAVA_HOME=$JAVA_PATH" \
+    && echo "export JAVA_HOME=$JAVA_PATH" >> /etc/profile.d/java.sh \
+    && echo "export PATH=\$JAVA_HOME/bin:\$PATH" >> /etc/profile.d/java.sh
+
+# Ensure Docker build sees it in subsequent layers
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
+
+
 # ------------------------------------------------------------
 # Headless Chrome (optional)
 # ------------------------------------------------------------
@@ -160,8 +179,7 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add
 # ------------------------------------------------------------
 # Create non-root user
 # ------------------------------------------------------------
-ARG USER_ID=1000
-ARG GROUP_ID=1000
+
 RUN groupadd -g $GROUP_ID flutteruser \
     && useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash flutteruser
 ENV HOME=/home/flutteruser
@@ -169,11 +187,13 @@ ENV HOME=/home/flutteruser
 # ------------------------------------------------------------
 # Install Flutter (system-wide)
 # ------------------------------------------------------------
-RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME -b stable \
-    && git config --system --add safe.directory $FLUTTER_HOME \
+RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME \
+    && cd $FLUTTER_HOME \
+    && git checkout $FLUTTER_VERSION \
     && chown -R flutteruser:flutteruser $FLUTTER_HOME
 
-
+ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
+    
 # ------------------------------------------------------------
 # Install Android commandline-tools (robust version)
 # ------------------------------------------------------------
@@ -184,14 +204,14 @@ RUN set -e \
  && curl -L -o /tmp/commandlinetools.zip \
       https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
  \
- # Check ZIP is valid
+ # Validate ZIP
  && unzip -t /tmp/commandlinetools.zip > /dev/null \
  \
  # Extract
  && unzip /tmp/commandlinetools.zip -d $ANDROID_SDK_ROOT/cmdline-tools \
  && rm /tmp/commandlinetools.zip \
  \
- # Google sometimes uses cmdline-tools/ or tools/ — normalize it
+ # Normalize folder name
  && if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then \
         mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" \
            "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
@@ -199,8 +219,7 @@ RUN set -e \
         mv "$ANDROID_SDK_ROOT/cmdline-tools/tools" \
            "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
     else \
-        echo "❌ ERROR: commandline-tools folder not found after unzip"; \
-        ls -R $ANDROID_SDK_ROOT/cmdline-tools; \
+        echo "❌ ERROR: commandline-tools folder not found"; \
         exit 1; \
     fi \
  \
@@ -210,13 +229,13 @@ RUN set -e \
         exit 1; \
     fi \
  \
- # Install Android SDK components
+ # Install SDK components
  && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-34" \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;34.0.0" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-${COMPILE_SDK}" \
+ && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;${BUILD_TOOLS}" \
  && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
  \
- # Install requested CMake
+ # Install CMake
  && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_MAIN}" \
  && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_LEGACY}" \
  \
@@ -227,14 +246,16 @@ RUN set -e \
  && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
 
 
+
 # ------------------------------------------------------------
 # Install SYSTEM-WIDE Gradle 8.7 (BEFORE changing user)
 # ------------------------------------------------------------
-RUN wget https://services.gradle.org/distributions/gradle-8.7-all.zip -O /tmp/gradle-8.7-all.zip \
+
+RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip -O /tmp/gradle-${GRADLE_VERSION}-all.zip \
     && mkdir -p /opt/gradle \
-    && unzip /tmp/gradle-8.7-all.zip -d /opt/gradle \
-    && rm /tmp/gradle-8.7-all.zip
-ENV PATH="/opt/gradle/gradle-8.7/bin:$PATH"
+    && unzip /tmp/gradle-${GRADLE_VERSION}-all.zip -d /opt/gradle \
+    && rm /tmp/gradle-${GRADLE_VERSION}-all.zip
+ENV PATH="/opt/gradle/gradle-${GRADLE_VERSION}/bin:$PATH"
 
 # ------------------------------------------------------------
 # Install Rust + cargo-ndk (as root)
@@ -255,6 +276,8 @@ RUN mkdir -p $CARGO_HOME $RUSTUP_HOME \
 # ------------------------------------------------------------
 USER flutteruser
 WORKDIR /app
+
+ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
 # Add Rust PATH for non-root
 ENV PATH=$CARGO_HOME/bin:$PATH

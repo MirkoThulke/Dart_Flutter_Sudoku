@@ -1,24 +1,21 @@
 pluginManagement {
+    def flutterSdkPath = System.getenv("FLUTTER_ROOT")
+    assert flutterSdkPath != null : "❌ FLUTTER_ROOT environment variable is not set!"
+
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
-        // Important for Flutter plugins inside the SDK
-        maven { url = uri("${System.getenv("FLUTTER_ROOT")}/packages/flutter_tools/gradle") }
+
+        // Required so Gradle can see Flutter’s local plugins
+        maven { url = uri("$flutterSdkPath/packages/flutter_tools/gradle") }
     }
 }
 
-
 plugins {
-        // Flutter plugin loader
-        id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-
-        // Android Gradle Plugin
-        id("com.android.application") version "8.9.0"  apply false
-        id("com.android.library") version "8.9.0"  apply false
-
-        // Kotlin
-        id("org.jetbrains.kotlin.android") version "2.0.21"  apply false
+    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
 }
 
 include(":app")

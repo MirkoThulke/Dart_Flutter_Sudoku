@@ -7,13 +7,13 @@ plugins {
 apply from: "${rootDir}/versions.gradle"
 
 android {
-    namespace "com.mtulli.sudoku"   // <-- update with your package name
+    namespace "com.mtulli.sudoku"
 
     compileSdkVersion compileSdkVersion_ext
     ndkVersion ndkMain_ext
 
     defaultConfig {
-        applicationId "com.mtulli.sudoku"  // <-- update this
+        applicationId "com.mtulli.sudoku"
         minSdkVersion minSdkVersion_ext
         targetSdkVersion targetSdkVersion_ext
         versionCode flutter.versionCode.toInteger()
@@ -36,12 +36,15 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"),
-                          "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+
+            // Required in Flutter 3.16+
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
-    // Ensure Flutter loads correctly in Gradle 8.x
     buildFeatures {
         buildConfig true
     }
@@ -52,4 +55,5 @@ android {
 }
 
 dependencies {
+    // Nothing needed here, Flutter injects dependencies automatically.
 }
