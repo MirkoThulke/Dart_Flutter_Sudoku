@@ -175,6 +175,14 @@ ENV PATH="$JAVA_HOME/bin:$PATH"
 # Verify
 RUN java -version
 
+# Install prerequisites for adding Google Chrome repo
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
 
 # ------------------------------------------------------------
 # Headless Chrome (optional)
@@ -316,8 +324,9 @@ RUN set -eux; \
     flutter --version; \
     flutter precache; \
     echo "🛠 Pre-warming Gradle..."; \
+    cd android; \
     gradle --version; \
-    gradle help --no-daemon
+    gradle help --no-daemon;
 
 
 # ------------------------------------------------------------
