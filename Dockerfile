@@ -343,29 +343,6 @@ RUN ./gradlew --version || true
 
 
 
-# ------------------------------------------------------------
-# Pre-warm Flutter and Gradle (combined)
-# ------------------------------------------------------------
-# This step does several things:
-#  Initializes Flutter cache (bin/cache), downloads engine artifacts if missing.
-#  Prepares Dart SDK and Flutter tools for faster builds.
-# 
-#  warms the host Gradle caches (/home/mirko/.gradle)
-#  warms host Flutter pub cache
-#  warms host Cargo registry (if also mounted)
-#  warms the project-level Gradle caches (/app/.gradle)
-#  builds your actual APK
-# ------------------------------------------------------------
-RUN set -eux; \
-    echo "🛠 Pre-warming Flutter..."; \
-    flutter --version; \
-    flutter precache; \
-    echo "🛠 Pre-warming Gradle..."; \
-    cd android; \
-    gradle --version; \
-    gradle help --no-daemon;
-
-
 # Back to project
 WORKDIR /app
 
