@@ -306,6 +306,31 @@ ENV PATH=$CARGO_HOME/bin:$PATH
 # ------------------------------------------------------------
 COPY . /app
 
+
+# ------------------------------------------------------------
+# Permissions fixes (must happen BEFORE warm-up)
+# ------------------------------------------------------------
+
+# Gradle home (inside /home/flutteruser)
+RUN mkdir -p $HOME/.gradle && chmod -R a+w $HOME/.gradle
+
+# Flutter cache
+RUN chmod -R a+w $FLUTTER_HOME/bin/cache || true
+
+# Android SDK licenses
+RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
+
+# Project-level android/.gradle
+RUN mkdir -p /app/android/.gradle && chmod -R a+w /app/android/.gradle
+
+# ------------------------------------------------------------
+# Pre-download Gradle Wrapper (8.7)
+# ------------------------------------------------------------
+WORKDIR /app/android
+RUN ./gradlew --version || true
+
+
+
 # ------------------------------------------------------------
 # Pre-warm Flutter and Gradle (combined)
 # ------------------------------------------------------------
@@ -329,24 +354,6 @@ RUN set -eux; \
     gradle help --no-daemon;
 
 
-# ------------------------------------------------------------
-# Permissions fixes (minimal + safe)
-# ------------------------------------------------------------
-
-# Gradle only needs write access to its OWN folder
-RUN mkdir -p $HOME/.gradle && chmod -R a+w $HOME/.gradle
-
-# Flutter only needs cache folder writeable
-RUN chmod -R a+w $FLUTTER_HOME/bin/cache/artifacts || true
-
-# Android SDK only needs the 'licenses' folder writeable
-RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
-
-# ------------------------------------------------------------
-# Pre-download Gradle Wrapper (8.7)
-# ------------------------------------------------------------
-WORKDIR /app/android
-RUN ./gradlew --version || true
 
 # Back to project
 WORKDIR /app
