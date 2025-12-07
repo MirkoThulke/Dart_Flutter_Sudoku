@@ -260,12 +260,13 @@ RUN set -e \
 # ------------------------------------------------------------
 # Install SYSTEM-WIDE Gradle x.x (BEFORE changing user)
 # ------------------------------------------------------------
-
 RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip -O /tmp/gradle-${GRADLE_VERSION}-all.zip \
     && mkdir -p /opt/gradle \
     && unzip /tmp/gradle-${GRADLE_VERSION}-all.zip -d /opt/gradle \
     && rm /tmp/gradle-${GRADLE_VERSION}-all.zip
 ENV PATH="/opt/gradle/gradle-${GRADLE_VERSION}/bin:$PATH"
+
+
 
 # ------------------------------------------------------------
 # Install Rust + cargo-ndk (as root)
@@ -298,9 +299,26 @@ ENV PATH=$CARGO_HOME/bin:$PATH
 COPY . /app
 
 # ------------------------------------------------------------
-# Pre-warm Flutter
+# Pre-warm Flutter and Gradle (combined)
 # ------------------------------------------------------------
-RUN flutter --version
+# This step does several things:
+#  Initializes Flutter cache (bin/cache), downloads engine artifacts if missing.
+#  Prepares Dart SDK and Flutter tools for faster builds.
+# 
+#  warms the host Gradle caches (/home/mirko/.gradle)
+#  warms host Flutter pub cache
+#  warms host Cargo registry (if also mounted)
+#  warms the project-level Gradle caches (/app/.gradle)
+#  builds your actual APK
+# ------------------------------------------------------------
+RUN set -eux; \
+    echo "🛠 Pre-warming Flutter..."; \
+    flutter --version; \
+    flutter precache; \
+    echo "🛠 Pre-warming Gradle..."; \
+    gradle --version; \
+    gradle help --no-daemon
+
 
 # ------------------------------------------------------------
 # Permissions fixes (minimal + safe)
