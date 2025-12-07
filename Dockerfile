@@ -292,6 +292,14 @@ RUN mkdir -p $CARGO_HOME $RUSTUP_HOME \
 
 # ------------------------------------------------------------
 # Switch to non-root user
+# Use root ONLY for actions that require system-level access
+# Use flutteruser for:
+#   Running Flutter
+#   Running Gradle
+#   Running Cargo
+#   Running any build
+#   Running scripts
+#   Modifying project files
 # ------------------------------------------------------------
 USER flutteruser
 WORKDIR /app
@@ -320,13 +328,17 @@ RUN chmod -R a+w $FLUTTER_HOME/bin/cache || true
 # Android SDK licenses
 RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
 
-# Project-level android/.gradle
-RUN mkdir -p /app/android/.gradle && chmod -R a+w /app/android/.gradle
 
 # ------------------------------------------------------------
 # Pre-download Gradle Wrapper (8.7)
 # ------------------------------------------------------------
+# Ensure project-level Gradle cache exists with correct permissions
 WORKDIR /app/android
+
+RUN mkdir -p /app/android/.gradle \
+    && chmod -R a+w /app/android/.gradle || true
+
+# Pre-download Gradle wrapper (run after .gradle folder exists)
 RUN ./gradlew --version || true
 
 
@@ -352,7 +364,6 @@ RUN set -eux; \
     cd android; \
     gradle --version; \
     gradle help --no-daemon;
-
 
 
 # Back to project
