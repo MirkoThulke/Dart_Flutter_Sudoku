@@ -20,7 +20,7 @@ fi
 # 1️⃣ Diagnostics
 # -----------------------------------------------------------
 echo "🧪 Flutter doctor:"
-flutter doctor -v || true
+flutter doctor -v
 
 echo "🧪 Installed devices:"
 flutter devices || true
@@ -29,7 +29,7 @@ flutter devices || true
 # 2️⃣ Run integration tests on Linux desktop (WidgetTester)
 # -----------------------------------------------------------
 echo "🖥️ Running Linux desktop integration tests..."
-flutter test --machine $TEST_FILES > "$DESKTOP_RESULT" 2>&1
+flutter test --machine $TEST_FILES 1> "$DESKTOP_RESULT" 2> desktop_test_errors.log
 DESKTOP_STATUS=${PIPESTATUS[0]:-1}
 
 if [ $DESKTOP_STATUS -eq 0 ]; then
@@ -49,27 +49,27 @@ fi
 # -----------------------------------------------------------
 echo "🌐 Running headless Chrome web integration tests..."
 
+WEB_STATUS=1  # default (fail-safe)
+
 if ! command -v google-chrome >/dev/null 2>&1; then
   echo "⚠️ Chrome not found, skipping web tests"
   WEB_STATUS=0
 else
+  # Keep your flutter drive invocation, just safer handling
   flutter drive \
     --driver=integration_test/driver.dart \
     --target=integration_test/basic_app_flow_test.dart \
     -d web-server \
-    --browser-name=chrome > "$WEB_RESULT" 2>&1
-  WEB_STATUS=${PIPESTATUS[0]:-1}
+    --browser-name=chrome \
+    1> "$WEB_RESULT" \
+    2> "$ERROR_DIR/web_errors.log" || WEB_STATUS=$?
 
   if [ $WEB_STATUS -eq 0 ]; then
     echo "✅ Web tests passed"
   else
     echo "❌ Web tests failed (exit $WEB_STATUS)"
-  fi
-
-  if [ -f "$WEB_RESULT" ]; then
-    echo "📄 Web JSON report created: $WEB_RESULT"
-    echo "📊 Preview (first 20 lines):"
-    head -n 20 "$WEB_RESULT"
+    echo "📄 First 20 lines of web error log:"
+    head -n 20 "$ERROR_DIR/web_errors.log"
   fi
 fi
 

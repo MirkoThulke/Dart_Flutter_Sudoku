@@ -45,9 +45,8 @@
 #  docker kill flutter_rust_env
 #  docker rm flutter_rust_env
 # enter the docker container interactively:
-#   docker run -it --name flutter_rust_env -v /home/mirko/sudoku:/app ubuntu:22.04 /bin/bash
-#
-# Run the container with your local project mounted:
+#   docker run -it --rm -v /home/mirko/sudoku:/app flutter_rust_env /bin/bash
+# Run the container with your local project mounted and build the project:
 #   docker run --rm -v ${PWD}:/app -w /app flutter_rust_env bash -c "./scripts/build_all.sh release"
 # ------------------------------------------------------------
 
@@ -107,10 +106,15 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FLUTTER_HOME=/opt/flutter
 ENV FLUTTER_ROOT=/opt/flutter
+ENV ANDROID_HOME=/opt/android/sdk
 ENV ANDROID_SDK_ROOT=/opt/android/sdk
 ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
 ENV RUST_BACKTRACE=1
 ENV DOCKER_ENV=1
+
+
+ENV PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
 
 # ------------------------------------------------------------
@@ -304,10 +308,21 @@ RUN mkdir -p $CARGO_HOME $RUSTUP_HOME \
 USER flutteruser
 WORKDIR /app
 
+ENV ANDROID_SDK_ROOT=/opt/android/sdk
+ENV ANDROID_HOME=/opt/android/sdk
+ENV PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
 
 # Add Rust PATH for non-root
 ENV PATH=$CARGO_HOME/bin:$PATH
+
+# Optional: remove cached Flutter settings pointing to wrong SDK
+RUN rm -rf $FLUTTER_HOME/.flutter_settings \
+    && rm -rf $HOME/.android \
+    && rm -rf $HOME/.config/flutter
+
+# Configure Flutter to use the correct SDK
+RUN flutter config --android-sdk /opt/android/sdk
 
 # ------------------------------------------------------------
 # Copy project into container
@@ -330,16 +345,12 @@ RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
 
 
 # ------------------------------------------------------------
-# Pre-download Gradle Wrapper (8.7)
-# ------------------------------------------------------------
 # Ensure project-level Gradle cache exists with correct permissions
 WORKDIR /app/android
 
+# Just ensure the Gradle cache folder exists with correct permissions
 RUN mkdir -p /app/android/.gradle \
     && chmod -R a+w /app/android/.gradle || true
-
-# Pre-download Gradle wrapper (run after .gradle folder exists)
-RUN ./gradlew --version || true
 
 
 
@@ -349,4 +360,4 @@ WORKDIR /app
 # ------------------------------------------------------------
 # Default command
 # ------------------------------------------------------------
-CMD ["bash", "-c", "java -version && flutter --version && cd android && ./gradlew --version"]
+# CMD ["bash", "-c", "java -version && flutter --version && cd android && ./gradlew --version"]
