@@ -44,6 +44,15 @@
 #  docker stop flutter_rust_env
 #  docker kill flutter_rust_env
 #  docker rm flutter_rust_env
+# 
+# Clean build cache only :              docker builder prune
+# To force:                             docker builder prune -f
+# remove all builds for all builders:   docker builder prune --all -f
+#
+# Factory reset !! (removes all images, containers, volumes, networks not in use):
+#  docker system prune -a --volumes -f
+#  docker buildx prune --all --force
+#
 # enter the docker container interactively:
 #   docker run -it --rm -v /home/mirko/sudoku:/app flutter_rust_env /bin/bash
 # Run the container with your local project mounted and build the project:
@@ -96,268 +105,195 @@
 # 3. adb connect <PHONE_IP>
 # 4. adb devices to verify connection
 
+# ---------- Multi-stage Dockerfile: Flutter + Android + Rust + Chrome ----------
+# Build with BuildKit enabled for cache mounts:
+#   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
+# ---------- Multi-stage Dockerfile: Flutter + Android + Rust + Chrome ----------
+# Build with BuildKit enabled for cache mounts:
+#   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
 
-# ------------------------------------------------------------
-# Base image
-# ------------------------------------------------------------
-FROM ubuntu:22.04
-
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV FLUTTER_HOME=/opt/flutter
-ENV FLUTTER_ROOT=/opt/flutter
-ENV ANDROID_HOME=/opt/android/sdk
-ENV ANDROID_SDK_ROOT=/opt/android/sdk
-ENV ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk
-ENV RUST_BACKTRACE=1
-ENV DOCKER_ENV=1
-
-
-ENV PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
-
-
-# ------------------------------------------------------------
-# Locked versions (reproducible)
-# ------------------------------------------------------------
-
-# Align with : !!!!
-# -  .../android/versions.gradle !!!!
-# - .../android/gradle/wrapper/gradle-wrapper.properties !!!!
-# - .../android/build.gradle !!!!
+# ============================================================
+# Global Arguments
+# ============================================================
+ARG JAVA_VERSION=17
+ARG ANDROID_SDK_TOOLS_VERSION=11076708
+ARG ANDROID_SDK_ROOT=/opt/android/sdk
+ARG FLUTTER_VERSION=3.35.7
+ARG RUST_VERSION=1.91.1
 
 ARG NDK_MAIN=28.2.13676358
 ARG NDK_LEGACY=26.1.10909125
-ARG JAVA_VERSION=17
 ARG CMAKE_MAIN=3.22.1
-ARG CMAKE_LEGACY=3.22.1
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
 
-# https://developer.android.com/build/releases/past-releases/agp-8-9-0-release-notes?utm_source=chatgpt.com&hl=fr
-ARG GRADLE_VERSION=8.11.1
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-# https://blog.flutter.dev/2024/05/15/flutter-3-35-7-released/
-ENV FLUTTER_VERSION=3.35.7
-ENV FLUTTER_CHANNEL=stable
+# ============================================================
+# Stage: base
+# ============================================================
+FROM ubuntu:22.04 AS base
 
-ENV FLUTTER_DART_VERSION=3.9.2
-ENV ANDROID_SDK_TOOLS_VERSION=9477386
-ENV ANDROID_NDK_VERSION=${NDK_MAIN}
-ENV ANDROID_NDK_LEGACY=${NDK_LEGACY}
-ENV CMAKE_VERSION=${CMAKE_MAIN}
-ENV CMAKE_VERSION_LEGACY=${CMAKE_LEGACY}
-ENV RUST_VERSION=1.91.1
+ARG JAVA_VERSION
+ARG ANDROID_SDK_ROOT
 
-# PATH (updated again after Rust install)
-ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 
-
-WORKDIR /app
-
-# ------------------------------------------------------------
-# Essential packages
-# ------------------------------------------------------------
+# Install essential packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl git unzip xz-utils zip libglu1-mesa build-essential \
-    cmake ninja-build python3 python3-pip clang pkg-config \
+      curl wget unzip git xz-utils zip ca-certificates \
+      build-essential pkg-config libglu1-mesa clang ninja-build \
+      gnupg2 fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Java
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openjdk-${JAVA_VERSION}-jdk \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install Java (OpenJDK)
-ARG JAVA_VERSION=17
-RUN apt-get update && \
-    apt-get install -y openjdk-${JAVA_VERSION}-jdk && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set environment
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV PATH="$JAVA_HOME/bin:$PATH"
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
-# Verify
-RUN java -version
+RUN mkdir -p ${ANDROID_SDK_ROOT}
 
-# Install prerequisites for adding Google Chrome repo
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    ca-certificates \
-    --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+# ============================================================
+# Stage: chrome
+# ============================================================
+FROM base AS chrome
 
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+    | gpg --dearmor -o /usr/share/keyrings/google.gpg \
+ && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    >/etc/apt/sources.list.d/google-chrome.list \
+ && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless --disable-software-rasterizer"
+
+# ============================================================
+# Stage: android
+# ============================================================
+FROM base AS android
+
+ARG ANDROID_SDK_TOOLS_VERSION
+ARG ANDROID_SDK_ROOT
+ARG JAVA_VERSION
+ARG COMPILE_SDK
+ARG BUILD_TOOLS
+ARG NDK_MAIN
+ARG CMAKE_MAIN
+
+ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Required 32-bit libs
+RUN dpkg --add-architecture i386 \
+ && apt-get update && apt-get install -y --no-install-recommends \
+      libc6:i386 libncurses5:i386 libstdc++6:i386 zlib1g:i386 \
+      wget unzip ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Headless Chrome (optional)
+# Install Android commandline-tools WITH AUTO-DETECTION
 # ------------------------------------------------------------
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
-       > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
+RUN set -eux; \
+    mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"; \
+    cd /tmp; \
+    wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
+    unzip -q tools.zip -d tools; rm tools.zip; \
+    SDKMANAGER_BIN="$(find tools -type f -name sdkmanager -print -quit)"; \
+    echo "Found sdkmanager at: ${SDKMANAGER_BIN}"; \
+    if [ -z "${SDKMANAGER_BIN}" ]; then echo "ERROR: sdkmanager not found in ZIP"; exit 1; fi; \
+    SDKROOT_DIR="$(dirname $(dirname "${SDKMANAGER_BIN}"))"; \
+    mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools/latest"; \
+    cp -a "${SDKROOT_DIR}/." "${ANDROID_SDK_ROOT}/cmdline-tools/latest/"; \
+    chmod -R +x "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin"
+
+ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
+ENV SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+
+# Accept licenses
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+    yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
+
+# Install packages
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+    ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+      "platform-tools" \
+      "platforms;android-${COMPILE_SDK}" \
+      "build-tools;${BUILD_TOOLS}" \
+      "ndk;${NDK_MAIN}" \
+      "cmake;${CMAKE_MAIN}"
+
+# ============================================================
+# Stage: flutter
+# ============================================================
+FROM base AS flutter
+
+ARG FLUTTER_VERSION
+ENV FLUTTER_ROOT=/opt/flutter
+ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
+
+RUN git clone https://github.com/flutter/flutter.git ${FLUTTER_ROOT} -b stable --depth 1 \
+ && cd ${FLUTTER_ROOT} \
+ && git checkout ${FLUTTER_VERSION} || true
+
+RUN --mount=type=cache,target=/var/cache/flutter \
+    flutter config --no-analytics \
+ && flutter precache --android --web
+
+# ============================================================
+# Stage: rust
+# ============================================================
+FROM base AS rust
+
+ARG RUST_VERSION
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION}
+
+RUN /root/.cargo/bin/rustup target add \
+      aarch64-linux-android \
+      armv7-linux-androideabi \
+      x86_64-linux-android \
+      i686-linux-android
+
+# ============================================================
+# Stage: final
+# ============================================================
+FROM ubuntu:22.04 AS final
+
+ARG JAVA_VERSION
+ARG ANDROID_SDK_ROOT
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV FLUTTER_ROOT=/opt/flutter
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:/root/.cargo/bin:${PATH}"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      curl unzip git xz-utils zip ca-certificates \
+      openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
     && rm -rf /var/lib/apt/lists/*
 
-# ------------------------------------------------------------
-# Create non-root user
-# ------------------------------------------------------------
+COPY --from=flutter /opt/flutter /opt/flutter
+COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
+COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
+COPY --from=chrome /opt/google /opt/google || true
+COPY --from=rust /root/.cargo /root/.cargo
+COPY --from=rust /root/.rustup /root/.rustup || true
 
-RUN groupadd -g $GROUP_ID flutteruser \
-    && useradd -m -u $USER_ID -g $GROUP_ID -s /bin/bash flutteruser
-ENV HOME=/home/flutteruser
+RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo || true
 
-# ------------------------------------------------------------
-# Install Flutter (system-wide)
-# ------------------------------------------------------------
-RUN git clone https://github.com/flutter/flutter.git $FLUTTER_HOME \
-    && cd $FLUTTER_HOME \
-    && git checkout $FLUTTER_VERSION \
-    && chown -R flutteruser:flutteruser $FLUTTER_HOME
+RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics || true
+RUN yes | flutter doctor --android-licenses || true
+RUN flutter doctor || true
 
-ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
-    
-# ------------------------------------------------------------
-# Install Android commandline-tools (robust version)
-# ------------------------------------------------------------
-RUN set -e \
- && mkdir -p $ANDROID_SDK_ROOT/cmdline-tools \
- \
- # Download commandline-tools (known stable version)
- && curl -L -o /tmp/commandlinetools.zip \
-      https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
- \
- # Validate ZIP
- && unzip -t /tmp/commandlinetools.zip > /dev/null \
- \
- # Extract
- && unzip /tmp/commandlinetools.zip -d $ANDROID_SDK_ROOT/cmdline-tools \
- && rm /tmp/commandlinetools.zip \
- \
- # Normalize folder name
- && if [ -d "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" ]; then \
-        mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" \
-           "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
-    elif [ -d "$ANDROID_SDK_ROOT/cmdline-tools/tools" ]; then \
-        mv "$ANDROID_SDK_ROOT/cmdline-tools/tools" \
-           "$ANDROID_SDK_ROOT/cmdline-tools/latest"; \
-    else \
-        echo "❌ ERROR: commandline-tools folder not found"; \
-        exit 1; \
-    fi \
- \
- # Ensure sdkmanager exists
- && if [ ! -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then \
-        echo '❌ ERROR: sdkmanager not found — installation failed'; \
-        exit 1; \
-    fi \
- \
- # Install SDK components
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platforms;android-${COMPILE_SDK}" \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "build-tools;${BUILD_TOOLS}" \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" \
- \
- # Install CMake
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_MAIN}" \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "cmake;${CMAKE_LEGACY}" \
- \
- # Install NDK
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${NDK_MAIN}" \
- && yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "ndk;${NDK_LEGACY}" \
- \
- && chown -R flutteruser:flutteruser $ANDROID_SDK_ROOT
-
-
-
-# ------------------------------------------------------------
-# Install SYSTEM-WIDE Gradle x.x (BEFORE changing user)
-# ------------------------------------------------------------
-RUN wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip -O /tmp/gradle-${GRADLE_VERSION}-all.zip \
-    && mkdir -p /opt/gradle \
-    && unzip /tmp/gradle-${GRADLE_VERSION}-all.zip -d /opt/gradle \
-    && rm /tmp/gradle-${GRADLE_VERSION}-all.zip
-ENV PATH="/opt/gradle/gradle-${GRADLE_VERSION}/bin:$PATH"
-
-
-
-# ------------------------------------------------------------
-# Install Rust + cargo-ndk (as root)
-# ------------------------------------------------------------
-ENV CARGO_HOME=/opt/cargo
-ENV RUSTUP_HOME=/opt/rustup
-ENV PATH=$CARGO_HOME/bin:$PATH
-
-RUN mkdir -p $CARGO_HOME $RUSTUP_HOME \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
-    && rustup default ${RUST_VERSION} \
-    && rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android \
-    && cargo install cargo-ndk \
-    && chmod -R a+w $CARGO_HOME $RUSTUP_HOME
-
-# ------------------------------------------------------------
-# Switch to non-root user
-# Use root ONLY for actions that require system-level access
-# Use flutteruser for:
-#   Running Flutter
-#   Running Gradle
-#   Running Cargo
-#   Running any build
-#   Running scripts
-#   Modifying project files
-# ------------------------------------------------------------
-USER flutteruser
 WORKDIR /app
-
-ENV ANDROID_SDK_ROOT=/opt/android/sdk
-ENV ANDROID_HOME=/opt/android/sdk
-ENV PATH="$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-ENV PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$PATH"
-
-# Add Rust PATH for non-root
-ENV PATH=$CARGO_HOME/bin:$PATH
-
-# Optional: remove cached Flutter settings pointing to wrong SDK
-RUN rm -rf $FLUTTER_HOME/.flutter_settings \
-    && rm -rf $HOME/.android \
-    && rm -rf $HOME/.config/flutter
-
-# Configure Flutter to use the correct SDK
-RUN flutter config --android-sdk /opt/android/sdk
-
-# ------------------------------------------------------------
-# Copy project into container
-# ------------------------------------------------------------
-COPY . /app
-
-
-# ------------------------------------------------------------
-# Permissions fixes (must happen BEFORE warm-up)
-# ------------------------------------------------------------
-
-# Gradle home (inside /home/flutteruser)
-RUN mkdir -p $HOME/.gradle && chmod -R a+w $HOME/.gradle
-
-# Flutter cache
-RUN chmod -R a+w $FLUTTER_HOME/bin/cache || true
-
-# Android SDK licenses
-RUN chmod -R a+w $ANDROID_SDK_ROOT/licenses || true
-
-
-# ------------------------------------------------------------
-# Ensure project-level Gradle cache exists with correct permissions
-WORKDIR /app/android
-
-# Just ensure the Gradle cache folder exists with correct permissions
-RUN mkdir -p /app/android/.gradle \
-    && chmod -R a+w /app/android/.gradle || true
-
-
-
-# Back to project
-WORKDIR /app
-
-# ------------------------------------------------------------
-# Default command
-# ------------------------------------------------------------
-# CMD ["bash", "-c", "java -version && flutter --version && cd android && ./gradlew --version"]
+CMD ["/bin/bash"]

@@ -5,46 +5,85 @@
 # Run container:
 # docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock  my-jenkins:latest
 # ------------------------------------------------------------
-
 # ------------------------------------------------------------
 # Jenkins LTS base image
 # ------------------------------------------------------------
 FROM jenkins/jenkins:lts
 
-# Switch to root to install tools
 USER root
 
 # ------------------------------------------------------------
-# Install Docker CLI (NOT the daemon)
+# Set docker tool versions (pinned for reproducibility)
 # ------------------------------------------------------------
-RUN apt-get update && \
-    apt-get install -y ca-certificates curl gnupg lsb-release && \
+ARG DOCKER_VERSION=24.0.7
+ARG DOCKER_BUILDX_VERSION=0.13.1
+ARG DOCKER_COMPOSE_VERSION=2.22.0
+
+# ------------------------------------------------------------
+# Install required base utilities (minimal)
+# Install docker CLI as static binary
+# Install buildx plugin
+# Install compose plugin
+# Cleanup everything for minimal size
+# ------------------------------------------------------------
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        jq \
+        tini; \
+    \
+    # -----------------------------
+    # Docker CLI (static binary)
+    # -----------------------------
+    curl -fsSL "https://download.docker.com/linux/static/stable/$(uname -m)/docker-${DOCKER_VERSION}.tgz" \
+        -o /tmp/docker.tgz; \
+    tar -xzf /tmp/docker.tgz -C /usr/local/bin --strip 1 docker/docker; \
+    rm -f /tmp/docker.tgz; \
+    \
+    # -----------------------------
+    # Docker Buildx plugin
+    # -----------------------------
+    mkdir -p /usr/local/lib/docker/cli-plugins/; \
+    curl -fsSL \
+      "https://github.com/docker/buildx/releases/download/v${DOCKER_BUILDX_VERSION}/buildx-v${DOCKER_BUILDX_VERSION}.linux-$(uname -m)" \
+      -o /usr/local/lib/docker/cli-plugins/docker-buildx; \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx; \
+    \
+    # -----------------------------
+    # Docker Compose plugin
+    # -----------------------------
+    curl -fsSL \
+      "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-$(uname -m)" \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose; \
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose; \
+    \
+    # -----------------------------
+    # Cleanup to minimize image size
+    # -----------------------------
+    apt-get purge -y --auto-remove curl; \
     rm -rf /var/lib/apt/lists/*
 
-# Add Docker official GPG key & repository
-RUN install -m 0755 -d /etc/apt/keyrings && \
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-        | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-    chmod a+r /etc/apt/keyrings/docker.gpg && \
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-      https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" \
-      > /etc/apt/sources.list.d/docker.list
-
-# Install Docker CLI only
-RUN apt-get update && \
-    apt-get install -y docker-ce-cli && \
-    rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Add Jenkins user to docker group
-# (Host will mount /var/run/docker.sock)
+# Add Jenkins user to 'docker' group
+# Enables host docker.sock or docker-in-docker (DinD sidecar)
 # ------------------------------------------------------------
-RUN groupadd -f docker && \
-    usermod -aG docker jenkins
+RUN groupadd -f docker && usermod -aG docker jenkins
 
 # ------------------------------------------------------------
-# Switch back to Jenkins user
+# Harden permissions and runtime environment
 # ------------------------------------------------------------
+RUN chmod 755 /usr/local/bin/docker /usr/local/lib/docker/cli-plugins/*
+
+# ------------------------------------------------------------
+# Cloud Best Practice:
+# Use tini as PID 1 for proper process handling inside k8s/containers
+# ------------------------------------------------------------
+ENTRYPOINT ["/usr/bin/tini", "--"]
+
+# Default Jenkins start
+CMD ["/usr/local/bin/jenkins.sh"]
+
 USER jenkins
