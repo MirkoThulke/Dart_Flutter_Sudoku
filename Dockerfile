@@ -201,20 +201,18 @@ RUN dpkg --add-architecture i386 \
 # Install Android commandline-tools WITH AUTO-DETECTION
 # ------------------------------------------------------------
 RUN set -eux; \
-    mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools"; \
+    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools; \
     cd /tmp; \
     wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
-    unzip -q tools.zip -d tools; rm tools.zip; \
-    SDKMANAGER_BIN="$(find tools -type f -name sdkmanager -print -quit)"; \
-    echo "Found sdkmanager at: ${SDKMANAGER_BIN}"; \
-    if [ -z "${SDKMANAGER_BIN}" ]; then echo "ERROR: sdkmanager not found in ZIP"; exit 1; fi; \
-    SDKROOT_DIR="$(dirname $(dirname "${SDKMANAGER_BIN}"))"; \
-    mkdir -p "${ANDROID_SDK_ROOT}/cmdline-tools/latest"; \
-    cp -a "${SDKROOT_DIR}/." "${ANDROID_SDK_ROOT}/cmdline-tools/latest/"; \
-    chmod -R +x "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin"
+    unzip tools.zip -d cmdtools; \
+    rm tools.zip; \
+    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
+    mv cmdtools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
+    rm -rf cmdtools; \
+    chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest
 
-ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
-ENV SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/cmdline-tools/bin:${PATH}"
+ENV SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/cmdline-tools/bin/sdkmanager"
 
 # Accept licenses
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
