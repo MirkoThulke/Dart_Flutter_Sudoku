@@ -113,16 +113,15 @@
 #   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
 
 # ============================================================
-# Global Arguments
+# Global Build Arguments
 # ============================================================
 ARG JAVA_VERSION=17
-ARG ANDROID_SDK_TOOLS_VERSION=11076708
+ARG ANDROID_SDK_TOOLS_VERSION=9477386
 ARG ANDROID_SDK_ROOT=/opt/android/sdk
 ARG FLUTTER_VERSION=3.35.7
 ARG RUST_VERSION=1.91.1
 
 ARG NDK_MAIN=28.2.13676358
-ARG NDK_LEGACY=26.1.10909125
 ARG CMAKE_MAIN=3.22.1
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
@@ -141,36 +140,25 @@ ARG ANDROID_SDK_ROOT
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 
-# Install essential packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Essential tools
+RUN dpkg --add-architecture i386 \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
       curl wget unzip git xz-utils zip ca-certificates \
       build-essential pkg-config libglu1-mesa clang ninja-build \
       gnupg2 fonts-liberation \
-    && rm -rf /var/lib/apt/lists/*
+      libc6:i386 libncurses6:i386 libstdc++6:i386 zlib1g:i386 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Install Java
+# Java
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-${JAVA_VERSION}-jdk \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 RUN mkdir -p ${ANDROID_SDK_ROOT}
-
-# ============================================================
-# Stage: chrome
-# ============================================================
-FROM base AS chrome
-
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
-    | gpg --dearmor -o /usr/share/keyrings/google.gpg \
- && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
-    >/etc/apt/sources.list.d/google-chrome.list \
- && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
- && rm -rf /var/lib/apt/lists/*
-
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless --disable-software-rasterizer"
 
 # ============================================================
 # Stage: android
@@ -179,48 +167,37 @@ FROM base AS android
 
 ARG ANDROID_SDK_TOOLS_VERSION
 ARG ANDROID_SDK_ROOT
-ARG JAVA_VERSION
 ARG COMPILE_SDK
 ARG BUILD_TOOLS
 ARG NDK_MAIN
 ARG CMAKE_MAIN
 
-ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
+ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
-# Required 32-bit libs
-RUN dpkg --add-architecture i386 \
- && apt-get update && apt-get install -y --no-install-recommends \
-      libc6:i386 libncurses5:i386 libstdc++6:i386 zlib1g:i386 \
-      wget unzip ca-certificates \
- && rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------------
-# Install Android commandline-tools WITH AUTO-DETECTION
-# ------------------------------------------------------------
+# Install Android command-line tools
 RUN set -eux; \
-    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools; \
     cd /tmp; \
     wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
-    unzip tools.zip -d cmdtools; \
+    unzip -q tools.zip -d tools; \
     rm tools.zip; \
+    SDKMANAGER_PATH="$(find tools -type f -name sdkmanager -print -quit)"; \
+    if [ -z "$SDKMANAGER_PATH" ]; then echo "sdkmanager not found" && exit 1; fi; \
+    SDKBIN_DIR="$(dirname "$SDKMANAGER_PATH")"; \
     mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
-    mv cmdtools/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
-    rm -rf cmdtools; \
-    chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+    cp -r "$SDKBIN_DIR/.."/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
+    chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
 
-ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/cmdline-tools/bin:${PATH}"
-ENV SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/cmdline-tools/bin/sdkmanager"
+# Debug check
+RUN ls -l ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
 
 # Accept licenses
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
-    yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
+    yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
 
-# Install packages
+# Install Android SDK packages
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
-    ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
       "platform-tools" \
       "platforms;android-${COMPILE_SDK}" \
       "build-tools;${BUILD_TOOLS}" \
@@ -230,13 +207,13 @@ RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
 # ============================================================
 # Stage: flutter
 # ============================================================
-FROM base AS flutter
+FROM android AS flutter
 
 ARG FLUTTER_VERSION
 ENV FLUTTER_ROOT=/opt/flutter
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
 
-RUN git clone https://github.com/flutter/flutter.git ${FLUTTER_ROOT} -b stable --depth 1 \
+RUN git clone -b stable --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT} \
  && cd ${FLUTTER_ROOT} \
  && git checkout ${FLUTTER_VERSION} || true
 
@@ -252,13 +229,26 @@ FROM base AS rust
 ARG RUST_VERSION
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION}
-
-RUN /root/.cargo/bin/rustup target add \
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} \
+ && /root/.cargo/bin/rustup target add \
       aarch64-linux-android \
       armv7-linux-androideabi \
       x86_64-linux-android \
       i686-linux-android
+
+# ============================================================
+# Stage: chrome
+# ============================================================
+FROM base AS chrome
+
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
+    | gpg --dearmor -o /usr/share/keyrings/google.gpg \
+ && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    >/etc/apt/sources.list.d/google-chrome.list \
+ && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless --disable-software-rasterizer"
 
 # ============================================================
 # Stage: final
@@ -280,6 +270,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy artifacts from previous stages
 COPY --from=flutter /opt/flutter /opt/flutter
 COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
 COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
@@ -289,6 +280,7 @@ COPY --from=rust /root/.rustup /root/.rustup || true
 
 RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo || true
 
+# Flutter setup
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics || true
 RUN yes | flutter doctor --android-licenses || true
 RUN flutter doctor || true
