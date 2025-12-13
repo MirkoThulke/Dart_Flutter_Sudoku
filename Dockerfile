@@ -185,7 +185,6 @@ ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
-RUN /usr/local/bin/print_paths.sh
 
 # Retry helper
 RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
