@@ -115,7 +115,10 @@
 
 # ============================================================
 # Global Build Arguments
+#   Use ARG for build-time configuration (like versions of Java, Flutter, SDK tools).
+#   Use ENV for runtime configuration (like paths, SDK roots, API keys for running container, PATH additions).
 # ============================================================
+
 
 ARG JAVA_VERSION=17
 ARG ANDROID_SDK_TOOLS_VERSION=9477386
@@ -164,6 +167,7 @@ ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 RUN mkdir -p ${ANDROID_SDK_ROOT}
 
+
 # ============================================================
 # Stage: android
 # ============================================================
@@ -178,7 +182,10 @@ ARG NDK_MAIN
 ARG CMAKE_MAIN
 
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
+
+RUN /usr/local/bin/print_paths.sh
 
 # Retry helper
 RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
@@ -187,26 +194,32 @@ RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i
 
 # Install Android command-line tools (correct layout)
 RUN set -eux; \
- cd /tmp; \
- wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip -O tools.zip; \
- unzip -q tools.zip; \
- mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
- cp -r cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
- chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin; \
- rm -rf /tmp/*
+    cd /tmp; \
+    wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
+    unzip -q tools.zip -d cmdline-tools-temp; \
+    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
+    # Move contents directly to 'latest'
+    mv cmdline-tools-temp/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
+    chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin; \
+    rm -rf /tmp/* cmdline-tools-temp
 
 
-ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
 # Accept licenses (cached)
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
  yes | retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
 
+
+
 # Safe packages grouped
+# ARG ANDROID_SDK_ROOT=/opt/android/sdk
+# SDKMANAGER=/opt/android/sdk/cmdline-tools/latest/bin/sdkmanager
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
  retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
    "platform-tools" \
    "platforms;android-${COMPILE_SDK}"
+
+
 
 # Risky packages isolated
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
@@ -217,6 +230,8 @@ RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
 
 RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
  retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "cmake;${CMAKE_MAIN}"
+
+
 
 # ============================================================
 # Stage: flutter
@@ -238,6 +253,8 @@ RUN --mount=type=cache,target=/root/.pub-cache \
  flutter config --no-analytics \
  && flutter precache --android --web
 
+
+
 # ============================================================
 # Stage: rust
 # ============================================================
@@ -254,6 +271,8 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VE
       x86_64-linux-android \
       i686-linux-android
 
+
+
 # ============================================================
 # Stage: chrome
 # ============================================================
@@ -269,6 +288,8 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
  && rm -rf /var/lib/apt/lists/*
 
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
+
+
 
 # ============================================================
 # Stage: final
@@ -304,6 +325,7 @@ RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
  && flutter doctor
+
 
 WORKDIR /app
 CMD ["/bin/bash"]
