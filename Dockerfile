@@ -126,9 +126,6 @@ ARG CMAKE_MAIN=3.22.1
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
 
-ARG USER_ID=1000
-ARG GROUP_ID=1000
-
 # ============================================================
 # Stage: base
 # ============================================================
@@ -140,7 +137,7 @@ ARG ANDROID_SDK_ROOT
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 
-# Essential tools
+# Essential + 32-bit libraries for sdkmanager
 RUN dpkg --add-architecture i386 \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -148,12 +145,14 @@ RUN dpkg --add-architecture i386 \
       build-essential pkg-config libglu1-mesa clang ninja-build \
       gnupg2 fonts-liberation \
       libc6:i386 libncurses6:i386 libstdc++6:i386 zlib1g:i386 \
+      lib32z1 lib32ncurses6 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
 
 # Java
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openjdk-${JAVA_VERSION}-jdk \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      openjdk-${JAVA_VERSION}-jdk \
+ && rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
@@ -175,29 +174,24 @@ ARG CMAKE_MAIN
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
-# Install Android command-line tools
+# Install Android command-line tools (clean + correct)
 RUN set -eux; \
     cd /tmp; \
     wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
     unzip -q tools.zip -d tools; \
     rm tools.zip; \
-    SDKMANAGER_PATH="$(find tools -type f -name sdkmanager -print -quit)"; \
-    if [ -z "$SDKMANAGER_PATH" ]; then echo "sdkmanager not found" && exit 1; fi; \
-    SDKBIN_DIR="$(dirname "$SDKMANAGER_PATH")"; \
     mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
-    cp -r "$SDKBIN_DIR/.."/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
+    cp -r tools/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
     chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
 
 # Debug check
 RUN ls -l ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
 
 # Accept licenses
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
-    yes | ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
+RUN yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
 
-# Install Android SDK packages
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
-    ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
+# Install Android SDK components
+RUN sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
       "platform-tools" \
       "platforms;android-${COMPILE_SDK}" \
       "build-tools;${BUILD_TOOLS}" \
@@ -213,12 +207,12 @@ ARG FLUTTER_VERSION
 ENV FLUTTER_ROOT=/opt/flutter
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
 
-RUN git clone -b stable --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT} \
+RUN git clone --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT} \
  && cd ${FLUTTER_ROOT} \
- && git checkout ${FLUTTER_VERSION} || true
+ && git fetch --tags \
+ && git checkout ${FLUTTER_VERSION}
 
-RUN --mount=type=cache,target=/var/cache/flutter \
-    flutter config --no-analytics \
+RUN flutter config --no-analytics \
  && flutter precache --android --web
 
 # ============================================================
@@ -270,20 +264,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy artifacts from previous stages
+# Copy artifacts
 COPY --from=flutter /opt/flutter /opt/flutter
 COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
 COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
-COPY --from=chrome /opt/google /opt/google || true
+COPY --from=chrome /opt/google /opt/google
 COPY --from=rust /root/.cargo /root/.cargo
-COPY --from=rust /root/.rustup /root/.rustup || true
+COPY --from=rust /root/.rustup /root/.rustup
 
-RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo || true
+RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo
 
-# Flutter setup
-RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics || true
-RUN yes | flutter doctor --android-licenses || true
-RUN flutter doctor || true
+# Flutter final setup
+RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
+RUN yes | flutter doctor --android-licenses
+RUN flutter doctor
 
 WORKDIR /app
 CMD ["/bin/bash"]
