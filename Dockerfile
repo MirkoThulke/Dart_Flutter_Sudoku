@@ -112,9 +112,11 @@
 # Build with BuildKit enabled for cache mounts:
 #   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
 
+
 # ============================================================
 # Global Build Arguments
 # ============================================================
+
 ARG JAVA_VERSION=17
 ARG ANDROID_SDK_TOOLS_VERSION=9477386
 ARG ANDROID_SDK_ROOT=/opt/android/sdk
@@ -126,9 +128,12 @@ ARG CMAKE_MAIN=3.22.1
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
 
+ARG BUILD_MODE=ci
+
 # ============================================================
 # Stage: base
 # ============================================================
+
 FROM ubuntu:22.04 AS base
 
 ARG JAVA_VERSION
@@ -137,7 +142,7 @@ ARG ANDROID_SDK_ROOT
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 
-# Essential + 32-bit libraries for sdkmanager
+# Essential + 32-bit libraries
 RUN dpkg --add-architecture i386 \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -162,6 +167,7 @@ RUN mkdir -p ${ANDROID_SDK_ROOT}
 # ============================================================
 # Stage: android
 # ============================================================
+
 FROM base AS android
 
 ARG ANDROID_SDK_TOOLS_VERSION
@@ -174,36 +180,52 @@ ARG CMAKE_MAIN
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
-# Install Android command-line tools (clean + correct)
+# Retry helper
+RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
+ > /usr/local/bin/retry \
+ && chmod +x /usr/local/bin/retry
+
+# Install Android command-line tools (correct layout)
 RUN set -eux; \
-    cd /tmp; \
-    wget -q "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip" -O tools.zip; \
-    unzip -q tools.zip -d tools; \
-    rm tools.zip; \
-    mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
-    cp -r tools/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
-    chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
+ cd /tmp; \
+ wget -q https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip -O tools.zip; \
+ unzip -q tools.zip; \
+ mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest; \
+ cp -r cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/; \
+ chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin; \
+ rm -rf /tmp/*
 
-# Debug check
-RUN ls -l ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
 
-# Accept licenses
-RUN yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
+ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
-# Install Android SDK components
-RUN sdkmanager --sdk_root=${ANDROID_SDK_ROOT} \
-      "platform-tools" \
-      "platforms;android-${COMPILE_SDK}" \
-      "build-tools;${BUILD_TOOLS}" \
-      "ndk;${NDK_MAIN}" \
-      "cmake;${CMAKE_MAIN}"
+# Accept licenses (cached)
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+ yes | retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
+
+# Safe packages grouped
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+ retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+   "platform-tools" \
+   "platforms;android-${COMPILE_SDK}"
+
+# Risky packages isolated
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+ retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "build-tools;${BUILD_TOOLS}"
+
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+ retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "ndk;${NDK_MAIN}"
+
+RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
+ retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "cmake;${CMAKE_MAIN}"
 
 # ============================================================
 # Stage: flutter
 # ============================================================
+
 FROM android AS flutter
 
 ARG FLUTTER_VERSION
+
 ENV FLUTTER_ROOT=/opt/flutter
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
 
@@ -212,12 +234,14 @@ RUN git clone --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT} \
  && git fetch --tags \
  && git checkout ${FLUTTER_VERSION}
 
-RUN flutter config --no-analytics \
+RUN --mount=type=cache,target=/root/.pub-cache \
+ flutter config --no-analytics \
  && flutter precache --android --web
 
 # ============================================================
 # Stage: rust
 # ============================================================
+
 FROM base AS rust
 
 ARG RUST_VERSION
@@ -233,20 +257,23 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VE
 # ============================================================
 # Stage: chrome
 # ============================================================
+
 FROM base AS chrome
 
 RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
-    | gpg --dearmor -o /usr/share/keyrings/google.gpg \
+ | gpg --dearmor -o /usr/share/keyrings/google.gpg \
  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
-    >/etc/apt/sources.list.d/google-chrome.list \
- && apt-get update && apt-get install -y --no-install-recommends google-chrome-stable \
+ > /etc/apt/sources.list.d/google-chrome.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends google-chrome-stable \
  && rm -rf /var/lib/apt/lists/*
 
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless --disable-software-rasterizer"
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
 # ============================================================
 # Stage: final
 # ============================================================
+
 FROM ubuntu:22.04 AS final
 
 ARG JAVA_VERSION
@@ -259,12 +286,12 @@ ENV FLUTTER_ROOT=/opt/flutter
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:/root/.cargo/bin:${PATH}"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
       curl unzip git xz-utils zip ca-certificates \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy artifacts
 COPY --from=flutter /opt/flutter /opt/flutter
 COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
 COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
@@ -274,10 +301,9 @@ COPY --from=rust /root/.rustup /root/.rustup
 
 RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo
 
-# Flutter final setup
-RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
-RUN yes | flutter doctor --android-licenses
-RUN flutter doctor
+RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
+ && yes | flutter doctor --android-licenses \
+ && flutter doctor
 
 WORKDIR /app
 CMD ["/bin/bash"]
