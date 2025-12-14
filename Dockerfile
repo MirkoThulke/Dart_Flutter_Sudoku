@@ -224,15 +224,21 @@ RUN set -eux; \
     chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin; \
     rm -rf /tmp/* cmdline-tools-temp
 
-RUN --mount=type=cache,target=/root/.android \
-    yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
-RUN --mount=type=cache,target=/root/.android \
-    ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
-      "platform-tools" \
-      "platforms;android-${COMPILE_SDK}"
+# Accept licenses (cache optional, commits to image)
+RUN yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
-     
+
+# Install essential SDK packages and ensure they are in the image
+RUN ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "platform-tools" \
+    "platforms;android-${COMPILE_SDK}" \
+    "build-tools;${BUILD_TOOLS}" \
+    "ndk;${NDK_MAIN}" \
+    "cmake;${CMAKE_MAIN}"
+
+
+
 # ============================================================
 # Stage: flutter
 # ============================================================
@@ -244,15 +250,18 @@ ARG FLUTTER_VERSION
 ENV FLUTTER_ROOT=/opt/flutter
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
 
-RUN git clone --depth 1 https://github.com/flutter/flutter.git ${FLUTTER_ROOT} \
- && cd ${FLUTTER_ROOT} \
- && git fetch --tags \
- && git checkout ${FLUTTER_VERSION}
 
+# Download Flutter release archive instead of git clone
+RUN set -eux; \
+    cd /opt; \
+    wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
+    tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
+    rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
+
+# Configure Flutter & pre-cache required artifacts
 RUN --mount=type=cache,target=/root/.pub-cache \
- flutter config --no-analytics \
- && flutter precache --android --web
-
+    flutter config --no-analytics \
+    && flutter precache --android --web
 
 
 # ============================================================
