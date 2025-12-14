@@ -272,7 +272,6 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VE
       i686-linux-android
 
 
-
 # ============================================================
 # Stage: chrome
 # ============================================================
@@ -335,14 +334,30 @@ RUN apt-get update \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=flutter /opt/flutter /opt/flutter
-COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
+
+# Copy from Android SDK stage to final image
+COPY --from=android ${ANDROID_SDK_ROOT}/platform-tools \
+                       ${ANDROID_SDK_ROOT}/platform-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/platforms/android-${COMPILE_SDK} \
+                       ${ANDROID_SDK_ROOT}/platforms/android-${COMPILE_SDK}
+COPY --from=android ${ANDROID_SDK_ROOT}/build-tools/${BUILD_TOOLS} \
+                       ${ANDROID_SDK_ROOT}/build-tools/${BUILD_TOOLS}
+COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools/latest \
+                       ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+
+# Copy from Flutter stage to final image
+COPY --from=flutter /opt/flutter/bin /opt/flutter/bin
+COPY --from=flutter /opt/flutter/packages /opt/flutter/packages
+COPY --from=flutter /opt/flutter/version /opt/flutter/version
+
+# Copy from Chrome stage to final image
 COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
 COPY --from=chrome /opt/google /opt/google
+
+# Copy from Rust stage to final image (cargo and rustup)
 COPY --from=rust /root/.cargo /root/.cargo
 COPY --from=rust /root/.rustup /root/.rustup
 
-RUN chmod -R a+rX /opt/flutter ${ANDROID_SDK_ROOT} /root/.cargo
 
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
