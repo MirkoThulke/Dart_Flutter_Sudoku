@@ -71,7 +71,6 @@
 # - openjdk-17-jdk: Android Java SDK
 
 
-
 # ------------------------------------------------------------
 # Add to Dockerfile after installing essential packages // for debugging on phone
 #       Connect Your Android Phone (Windows Host)
@@ -108,9 +107,25 @@
 # ---------- Multi-stage Dockerfile: Flutter + Android + Rust + Chrome ----------
 # Build with BuildKit enabled for cache mounts:
 #   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
-# ---------- Multi-stage Dockerfile: Flutter + Android + Rust + Chrome ----------
-# Build with BuildKit enabled for cache mounts:
-#   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
+#
+# Build with log print to shell ON:
+#   docker build --progress=plain -t flutter_rust_env .
+#   DOCKER_BUILDKIT=0 docker build -t flutter_rust_env .
+#   DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain -t flutter_rust_env .
+
+# ---------- Debugg into the built image on docker image layer level ----------
+#   DOCKER_BUILDKIT=0 docker build -t flutter_rust_env . # (disable buildkit for layer inspection)
+#   -> check internemage layers hash IDs .... then
+#   docker run -it --rm <IMAGE_ID> /bin/bash
+
+# ----------- docker debug my-app -----------
+#   docker debug my-app
+# --------------------------------------------
+
+# ---------- Lint Dockerfile ---------
+#   docker build --check .  # check rules without building
+#   docker build --debug .  # 
+# ------------------------------------
 
 
 # ============================================================
@@ -121,7 +136,10 @@
 
 
 ARG JAVA_VERSION=17
-ARG ANDROID_SDK_TOOLS_VERSION=9477386
+
+# check for updates on https://developer.android.com/studio#command-line-tools-only
+ARG ANDROID_SDK_TOOLS_VERSION=13114758
+
 ARG ANDROID_SDK_ROOT=/opt/android/sdk
 ARG FLUTTER_VERSION=3.35.7
 ARG RUST_VERSION=1.91.1
@@ -132,6 +150,7 @@ ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
 
 ARG BUILD_MODE=ci
+
 
 # ============================================================
 # Stage: base
@@ -156,14 +175,14 @@ RUN dpkg --add-architecture i386 \
       lib32z1 lib32ncurses6 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
 
+
+
 # Java
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       openjdk-${JAVA_VERSION}-jdk \
  && rm -rf /var/lib/apt/lists/*
 
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 RUN mkdir -p ${ANDROID_SDK_ROOT}
 
@@ -174,17 +193,20 @@ RUN mkdir -p ${ANDROID_SDK_ROOT}
 
 FROM base AS android
 
+
 ARG ANDROID_SDK_TOOLS_VERSION
 ARG ANDROID_SDK_ROOT
 ARG COMPILE_SDK
 ARG BUILD_TOOLS
 ARG NDK_MAIN
 ARG CMAKE_MAIN
+ARG JAVA_VERSION
 
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
-ENV PATH="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
 # Retry helper
 RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
@@ -202,36 +224,15 @@ RUN set -eux; \
     chmod -R +x ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin; \
     rm -rf /tmp/* cmdline-tools-temp
 
+RUN --mount=type=cache,target=/root/.android \
+    yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
+RUN --mount=type=cache,target=/root/.android \
+    ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+      "platform-tools" \
+      "platforms;android-${COMPILE_SDK}"
 
-# Accept licenses (cached)
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
- yes | retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --sdk_root=${ANDROID_SDK_ROOT} --licenses || true
-
-
-
-# Safe packages grouped
-# ARG ANDROID_SDK_ROOT=/opt/android/sdk
-# SDKMANAGER=/opt/android/sdk/cmdline-tools/latest/bin/sdkmanager
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
- retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
-   "platform-tools" \
-   "platforms;android-${COMPILE_SDK}"
-
-
-
-# Risky packages isolated
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
- retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "build-tools;${BUILD_TOOLS}"
-
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
- retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "ndk;${NDK_MAIN}"
-
-RUN --mount=type=cache,target=${ANDROID_SDK_ROOT} \
- retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "cmake;${CMAKE_MAIN}"
-
-
-
+     
 # ============================================================
 # Stage: flutter
 # ============================================================
@@ -278,6 +279,8 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VE
 
 FROM base AS chrome
 
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
+
 RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
  | gpg --dearmor -o /usr/share/keyrings/google.gpg \
  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
@@ -285,8 +288,6 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
  && apt-get update \
  && apt-get install -y --no-install-recommends google-chrome-stable \
  && rm -rf /var/lib/apt/lists/*
-
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
 
 
@@ -296,15 +297,37 @@ ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
 FROM ubuntu:22.04 AS final
 
-ARG JAVA_VERSION
+ARG ANDROID_SDK_TOOLS_VERSION
 ARG ANDROID_SDK_ROOT
+ARG COMPILE_SDK
+ARG BUILD_TOOLS
+ARG NDK_MAIN
+ARG CMAKE_MAIN
+ARG JAVA_VERSION
+ARG RUST_VERSION
+ARG FLUTTER_VERSION
+
+ARG BUILD_MODE=ci
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV FLUTTER_ROOT=/opt/flutter
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:/root/.cargo/bin:${PATH}"
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
+
+
+ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
+
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
