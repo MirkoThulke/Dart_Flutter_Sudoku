@@ -281,8 +281,8 @@ RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VE
       aarch64-linux-android \
       armv7-linux-androideabi \
       x86_64-linux-android \
-      i686-linux-android
-
+      i686-linux-android \
+ && /root/.cargo/bin/cargo install cargo-ndk
 
 # ============================================================
 # Stage: chrome
@@ -321,23 +321,25 @@ ARG FLUTTER_VERSION
 ARG BUILD_MODE=ci
 
 ENV DEBIAN_FRONTEND=noninteractive
+
 ENV FLUTTER_SUPPRESS_ANALYTICS=true
 ENV FLUTTER_ALLOW_ROOT=true
-
-ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
-ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
+ENV FLUTTER_ROOT=/opt/flutter
 
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
-ENV FLUTTER_ROOT=/opt/flutter
+
+
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
+
+
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
-
 ENV PATH="/root/.cargo/bin:${PATH}"
-
+ENV PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
 
 
@@ -345,6 +347,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       curl unzip git xz-utils zip ca-certificates \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
+      build-essential pkg-config clang \
  && rm -rf /var/lib/apt/lists/*
 
 
@@ -357,7 +360,7 @@ COPY --from=android ${ANDROID_SDK_ROOT}/platforms ${ANDROID_SDK_ROOT}/platforms
 COPY --from=android ${ANDROID_SDK_ROOT}/build-tools ${ANDROID_SDK_ROOT}/build-tools
 COPY --from=android ${ANDROID_SDK_ROOT}/ndk ${ANDROID_SDK_ROOT}/ndk
 COPY --from=android ${ANDROID_SDK_ROOT}/cmake ${ANDROID_SDK_ROOT}/cmake
-
+COPY --from=android ${ANDROID_SDK_ROOT}/licenses ${ANDROID_SDK_ROOT}/licenses
 
 # Copy from Flutter stage to final image
 COPY --from=flutter /opt/flutter /opt/flutter
@@ -367,9 +370,10 @@ COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
 COPY --from=chrome /opt/google /opt/google
 
 # Copy from Rust stage to final image (cargo and rustup)
-COPY --from=rust /root/.cargo/bin /root/.cargo/bin
+COPY --from=rust /root/.cargo /root/.cargo
 COPY --from=rust /root/.rustup/toolchains /root/.rustup/toolchains
 COPY --from=rust /root/.rustup/settings.toml /root/.rustup/settings.toml
+
 
 RUN git config --global --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
