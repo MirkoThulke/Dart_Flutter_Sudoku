@@ -19,6 +19,7 @@ ARG DOCKER_VERSION=24.0.7
 ARG DOCKER_BUILDX_VERSION=0.13.1
 ARG DOCKER_COMPOSE_VERSION=2.22.0
 
+
 # ------------------------------------------------------------
 # Install required base utilities (minimal)
 # Install docker CLI as static binary
@@ -35,10 +36,30 @@ RUN set -eux; \
         tini; \
     \
     # -----------------------------
+    # Detect architecture
+    # -----------------------------
+    UNAME_ARCH="$(uname -m)"; \
+    case "$UNAME_ARCH" in \
+      x86_64) \
+        BUILDX_ARCH=amd64; \
+        COMPOSE_ARCH=x86_64; \
+        ;; \
+      aarch64) \
+        BUILDX_ARCH=arm64; \
+        COMPOSE_ARCH=aarch64; \
+        ;; \
+      *) \
+        echo "Unsupported architecture: $UNAME_ARCH" >&2; \
+        exit 1; \
+        ;; \
+    esac; \
+    \
+    # -----------------------------
     # Docker CLI (static binary)
     # -----------------------------
-    curl -fsSL "https://download.docker.com/linux/static/stable/$(uname -m)/docker-${DOCKER_VERSION}.tgz" \
-        -o /tmp/docker.tgz; \
+    curl -fsSL \
+      "https://download.docker.com/linux/static/stable/${UNAME_ARCH}/docker-${DOCKER_VERSION}.tgz" \
+      -o /tmp/docker.tgz; \
     tar -xzf /tmp/docker.tgz -C /usr/local/bin --strip 1 docker/docker; \
     rm -f /tmp/docker.tgz; \
     \
@@ -47,7 +68,7 @@ RUN set -eux; \
     # -----------------------------
     mkdir -p /usr/local/lib/docker/cli-plugins/; \
     curl -fsSL \
-      "https://github.com/docker/buildx/releases/download/v${DOCKER_BUILDX_VERSION}/buildx-v${DOCKER_BUILDX_VERSION}.linux-$(uname -m)" \
+      "https://github.com/docker/buildx/releases/download/v${DOCKER_BUILDX_VERSION}/buildx-v${DOCKER_BUILDX_VERSION}.linux-${BUILDX_ARCH}" \
       -o /usr/local/lib/docker/cli-plugins/docker-buildx; \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx; \
     \
@@ -55,7 +76,7 @@ RUN set -eux; \
     # Docker Compose plugin
     # -----------------------------
     curl -fsSL \
-      "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-$(uname -m)" \
+      "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" \
       -o /usr/local/lib/docker/cli-plugins/docker-compose; \
     chmod +x /usr/local/lib/docker/cli-plugins/docker-compose; \
     \
@@ -64,6 +85,7 @@ RUN set -eux; \
     # -----------------------------
     apt-get purge -y --auto-remove curl; \
     rm -rf /var/lib/apt/lists/*
+
 
 
 # ------------------------------------------------------------
