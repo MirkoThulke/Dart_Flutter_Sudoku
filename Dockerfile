@@ -249,16 +249,19 @@ ARG FLUTTER_VERSION
 
 ENV FLUTTER_ROOT=/opt/flutter
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
+ENV FLUTTER_SUPPRESS_ANALYTICS=true
 
-
-# Download Flutter release archive instead of git clone
+# Download Flutter SDK tarball
 RUN set -eux; \
     cd /opt; \
     wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
-# Configure Flutter & pre-cache required artifacts
+# Allow flutter git repo to run as root
+RUN git config --global --add safe.directory /opt/flutter
+
+# Pre-cache Flutter artifacts
 RUN --mount=type=cache,target=/root/.pub-cache \
     flutter config --no-analytics \
     && flutter precache --android --web
@@ -318,17 +321,18 @@ ARG FLUTTER_VERSION
 ARG BUILD_MODE=ci
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV FLUTTER_SUPPRESS_ANALYTICS=true
+ENV FLUTTER_ALLOW_ROOT=true
 
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 
-ENV DEBIAN_FRONTEND=noninteractive
 ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
 ENV FLUTTER_ROOT=/opt/flutter
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
-
 
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
@@ -345,29 +349,29 @@ RUN apt-get update \
 
 
 # Copy from Android SDK stage to final image
-COPY --from=android ${ANDROID_SDK_ROOT}/platform-tools \
-                       ${ANDROID_SDK_ROOT}/platform-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/platforms/android-${COMPILE_SDK} \
-                       ${ANDROID_SDK_ROOT}/platforms/android-${COMPILE_SDK}
-COPY --from=android ${ANDROID_SDK_ROOT}/build-tools/${BUILD_TOOLS} \
-                       ${ANDROID_SDK_ROOT}/build-tools/${BUILD_TOOLS}
-COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools/latest \
-                       ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+# COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
+
+COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/platforms ${ANDROID_SDK_ROOT}/platforms
+COPY --from=android ${ANDROID_SDK_ROOT}/build-tools ${ANDROID_SDK_ROOT}/build-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/ndk ${ANDROID_SDK_ROOT}/ndk
+COPY --from=android ${ANDROID_SDK_ROOT}/cmake ${ANDROID_SDK_ROOT}/cmake
+
 
 # Copy from Flutter stage to final image
-COPY --from=flutter /opt/flutter/bin /opt/flutter/bin
-COPY --from=flutter /opt/flutter/packages /opt/flutter/packages
-COPY --from=flutter /opt/flutter/version /opt/flutter/version
+COPY --from=flutter /opt/flutter /opt/flutter
 
 # Copy from Chrome stage to final image
 COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
 COPY --from=chrome /opt/google /opt/google
 
 # Copy from Rust stage to final image (cargo and rustup)
-COPY --from=rust /root/.cargo /root/.cargo
-COPY --from=rust /root/.rustup /root/.rustup
+COPY --from=rust /root/.cargo/bin /root/.cargo/bin
+COPY --from=rust /root/.rustup/toolchains /root/.rustup/toolchains
+COPY --from=rust /root/.rustup/settings.toml /root/.rustup/settings.toml
 
-
+RUN git config --global --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
  && flutter doctor
