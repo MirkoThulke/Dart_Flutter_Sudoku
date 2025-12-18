@@ -5,6 +5,19 @@ set -e
 # Cross-platform Flutter build script
 # =========================================
 
+# Environment detection section
+if [ -f /.dockerenv ]; then
+    ENV_TYPE="DOCKER"
+elif grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
+    ENV_TYPE="WSL"
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    ENV_TYPE="WINDOWS"
+else
+    ENV_TYPE="LINUX"
+fi
+
+echo "Detected environment: $ENV_TYPE"
+
 # Load previously saved device info from setup script
 DEVICE_IP_FILE="$HOME/.adb_device_ip"
 PORT=5555
@@ -15,15 +28,7 @@ else
     echo "⚠️ No saved device IP found. Run your setup script first."
 fi
 
-# Detect environment
-if grep -qEi "(Microsoft|WSL)" /proc/version &> /dev/null; then
-    ENV_TYPE="WSL"
-elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-    ENV_TYPE="WINDOWS"
-else
-    ENV_TYPE="LINUX"
-fi
-echo "Detected environment: $ENV_TYPE"
+
 
 # Select proper ADB command
 if [[ "$ENV_TYPE" == "WSL" ]]; then
@@ -59,23 +64,23 @@ chmod +x ./scripts/generate_local_properties.sh
 
 
 # 🔍 Ensure CMake exists in WSL
-if [[ "$ENV_TYPE" == "WSL" ]]; then
+if [[ "$ENV_TYPE" == "WSL" ]] && [ ! -f /.dockerenv ]; then
   if ! command -v cmake >/dev/null 2>&1; then
-    echo "❌ CMake not found in WSL. Install it with:"
-    echo "   sudo apt update && sudo apt install cmake"
+    echo "❌ CMake not found in WSL host."
     exit 1
   fi
 fi
 
 
-# 🧩 Force CMake path for WSL builds
+# 🧩 Force CMake path ONLY for WSL-on-host (NOT Docker)
 if [[ "$ENV_TYPE" == "WSL" ]]; then
-  echo "🐧 Running inside WSL – ensuring Gradle uses Linux cmake"
-  LOCAL_PROPS="$PROJECT_ROOT/android/local.properties"
-  mkdir -p "$(dirname "$LOCAL_PROPS")"
-  grep -q '^cmake\.dir=' "$LOCAL_PROPS" 2>/dev/null && sed -i '/^cmake\.dir=/d' "$LOCAL_PROPS"
-  echo "cmake.dir=/usr/bin" >> "$LOCAL_PROPS"
-  echo "✅ Ensured local.properties has cmake.dir=/usr/bin"
+  if [ ! -f /.dockerenv ]; then
+    echo "🐧 WSL host detected – forcing system CMake for Gradle"
+    LOCAL_PROPS="$PROJECT_ROOT/android/local.properties"
+    mkdir -p "$(dirname "$LOCAL_PROPS")"
+    sed -i '/^cmake\.dir=/d' "$LOCAL_PROPS"
+    echo "cmake.dir=/usr/bin" >> "$LOCAL_PROPS"
+  fi
 fi
 
 # Verify Flutter
@@ -145,6 +150,7 @@ if $ADB_CMD devices | grep -E "device$|:5555\s*device" >/dev/null; then
     echo "📲 Installing app..."
     if ! $ADB_CMD install -r "$APK_PATH"; then
         echo "⚠️ Failed to install. Trying uninstall + reinstall..."
+        command -v aapt >/dev/null || echo "⚠️ aapt not found, skipping uninstall fallback"
         PACKAGE_NAME=$(aapt dump badging "$APK_PATH" | grep "package: name=" | awk -F"'" '{print $2}')
         $ADB_CMD uninstall "$PACKAGE_NAME" || true
         $ADB_CMD install -r "$APK_PATH"

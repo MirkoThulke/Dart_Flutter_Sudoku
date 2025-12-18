@@ -45,6 +45,14 @@
 #  docker kill flutter_rust_env
 #  docker rm flutter_rust_env
 # 
+# list all docker images / containers:
+#   docker image ls
+#   docker container ls
+#
+# remove docker images / containers:
+#  docker rmi <image_id>
+#  docker rm <container_id>
+#
 # Clean build cache only :              docker builder prune
 # To force:                             docker builder prune -f
 # remove all builds for all builders:   docker builder prune --all -f
