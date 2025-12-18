@@ -347,7 +347,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       curl unzip git xz-utils zip ca-certificates \
       openjdk-${JAVA_VERSION}-jre-headless libglu1-mesa \
-      build-essential pkg-config clang \
+      build-essential pkg-config clang cmake \
  && rm -rf /var/lib/apt/lists/*
 
 
