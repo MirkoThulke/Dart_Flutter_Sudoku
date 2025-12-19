@@ -47,35 +47,30 @@
 #   exit
 # ------------------------------------------------------------
 
+
 # ------------------------------------------------------------
-# Jenkins LTS base image
+# Jenkins LTS with Docker CLI (host daemon via socket)
 # ------------------------------------------------------------
 FROM jenkins/jenkins:lts
 
 USER root
 
 # ------------------------------------------------------------
-# Install minimal dependencies
+# Install minimal dependencies + Docker CLI
 # ------------------------------------------------------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
-        jq \
-        tini \
         git \
-        sudo \
+        tini \
+        docker.io \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Add Jenkins user to 'docker' group (for mounted socket)
+# Allow Jenkins user to access Docker socket
 # ------------------------------------------------------------
 RUN groupadd -f docker && usermod -aG docker jenkins
-
-# ------------------------------------------------------------
-# Harden permissions for binaries
-# ------------------------------------------------------------
-RUN chmod 755 /usr/bin/docker || true
 
 # ------------------------------------------------------------
 # Use tini as PID 1

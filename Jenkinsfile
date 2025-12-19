@@ -6,9 +6,13 @@ pipeline {
         PROJECT_DIR = '/app'
     }
 
-    
-
     stages {
+
+        stage('Verify Docker Host') {
+            steps {
+                sh './scripts/install_docker_host.sh'
+            }
+        }
         
         // Verify Docker from inside Jenkins (mandatory gate)
         stage('Verify Docker Host') {
