@@ -1,13 +1,47 @@
 # ------------------------------------------------------------
 # Build image:
-#   docker build -t my-jenkins:latest .
+#   docker build -t jenkins:latest .
+#   docker build --no-cache -t jenkins:latest .
+# ------------------------------------------------------------
 
-# Run container, that persists data and has docker socket mounted:
+# ------------------------------------------------------------
+# CI Workflow to build and push image to Docker Hub:
+#
+# GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
+# 
+# Jenkins pulls your app from GitHub into its workspace:
+#   /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+#
+# Workspace is mounted into build container
+#   -v $WORKSPACE:/app    
+#   
+#   +---------------------------+
+#   | Jenkins (Docker container)|
+#   |  - UI / pipelines         |
+#   |  - Workspace              |
+#   +-------------+-------------+
+#                 |
+#                 | docker run
+#                 v
+#   +---------------------------+
+#   | flutter_rust_env container|
+#   |  - Flutter SDK            |
+#   |  - Rust toolchain         |
+#   |  - Builds APKs            |
+#   +---------------------------+
+#   
+#   
+# Build artefacts are stored in :
+#    /var/jenkins_home/jobs/Flutter_Docker_Pipeline/builds/<build-id>/archive/
+# ------------------------------------------------------------
+
+# Run Jenkins from inside the Jenkins container, that persists data and has docker socket mounted:
 #   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
 
 # Enter the jenkins container shell:
 #   docker exec -it jenkins bash
 
+# ------------------------------------------------------------
 # Print the initial admin password
 #   cat /var/jenkins_home/secrets/initialAdminPassword
 #   exit
@@ -21,77 +55,32 @@ FROM jenkins/jenkins:lts
 USER root
 
 # ------------------------------------------------------------
-# Set docker tool versions (pinned for reproducibility)
+# Install minimal dependencies
 # ------------------------------------------------------------
-ARG DOCKER_VERSION=24.0.7
-ARG DOCKER_BUILDX_VERSION=0.13.1
-ARG DOCKER_COMPOSE_VERSION=2.22.0
-
-# ------------------------------------------------------------
-# Install required utilities and Docker CLI plugins
-# ------------------------------------------------------------
-RUN set -eux; \
-    apt-get update; \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
         jq \
-        tini; \
-    \
-    # Detect architecture
-    UNAME_ARCH="$(uname -m)"; \
-    case "$UNAME_ARCH" in \
-      x86_64) BUILDX_ARCH=amd64; COMPOSE_ARCH=x86_64;; \
-      aarch64) BUILDX_ARCH=arm64; COMPOSE_ARCH=aarch64;; \
-      *) echo "Unsupported architecture: $UNAME_ARCH" >&2; exit 1;; \
-    esac; \
-    \
-    # Install Docker CLI
-    curl -fsSL "https://download.docker.com/linux/static/stable/${UNAME_ARCH}/docker-${DOCKER_VERSION}.tgz" -o /tmp/docker.tgz; \
-    tar -xzf /tmp/docker.tgz -C /usr/local/bin --strip 1 docker/docker; \
-    rm -f /tmp/docker.tgz; \
-    \
-    # Install Docker Buildx plugin
-    mkdir -p /usr/local/lib/docker/cli-plugins/; \
-    curl -fsSL "https://github.com/docker/buildx/releases/download/v${DOCKER_BUILDX_VERSION}/buildx-v${DOCKER_BUILDX_VERSION}.linux-${BUILDX_ARCH}" \
-      -o /usr/local/lib/docker/cli-plugins/docker-buildx; \
-    chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx; \
-    \
-    # Install Docker Compose plugin
-    curl -fsSL "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" \
-      -o /usr/local/lib/docker/cli-plugins/docker-compose; \
-    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose; \
-    \
-    # Cleanup
-    apt-get purge -y --auto-remove curl; \
-    rm -rf /var/lib/apt/lists/*; \
-    \
-    # Verify installation
-    docker --version; \
-    docker buildx version; \
-    docker compose version
+        tini \
+        git \
+        sudo \
+    && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------
-# Add Jenkins user to 'docker' group
+# Add Jenkins user to 'docker' group (for mounted socket)
 # ------------------------------------------------------------
 RUN groupadd -f docker && usermod -aG docker jenkins
 
 # ------------------------------------------------------------
-# Set PATH for Jenkins user to see Docker binaries and plugins
+# Harden permissions for binaries
 # ------------------------------------------------------------
-ENV PATH="/usr/local/bin:/usr/local/lib/docker/cli-plugins:$PATH"
+RUN chmod 755 /usr/bin/docker || true
 
 # ------------------------------------------------------------
-# Harden permissions
-# ------------------------------------------------------------
-RUN chmod 755 /usr/local/bin/docker /usr/local/lib/docker/cli-plugins/*
-
-# ------------------------------------------------------------
-# Use tini as PID 1 for proper signal handling
+# Use tini as PID 1
 # ------------------------------------------------------------
 ENTRYPOINT ["/usr/bin/tini", "--"]
-
-# Default Jenkins start
 CMD ["/usr/local/bin/jenkins.sh"]
 
 USER jenkins

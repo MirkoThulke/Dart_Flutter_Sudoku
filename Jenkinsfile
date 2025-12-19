@@ -6,7 +6,47 @@ pipeline {
         PROJECT_DIR = '/app'
     }
 
+    
+
     stages {
+        
+        // Verify Docker from inside Jenkins (mandatory gate)
+        stage('Verify Docker Host') {
+            steps {
+                sh '''
+                  echo "🔍 Verifying Docker host from Jenkins..."
+
+                  docker version
+
+                  SERVER_API=$(docker version --format '{{.Server.APIVersion}}')
+                  SERVER_VERSION=$(docker version --format '{{.Server.Version}}')
+
+                  REQUIRED_API=1.44
+
+                  if [ "$(printf '%s\n' "$REQUIRED_API" "$SERVER_API" | sort -V | head -n1)" != "$REQUIRED_API" ]; then
+                    echo "❌ Docker API too old: $SERVER_API"
+                    exit 1
+                  fi
+
+                  echo "✅ Docker host verified"
+                '''
+                }
+        }
+
+        // Jenkins log where it is running
+        stage('CI Environment Info') {
+            steps {
+                sh '''
+                echo "🏗️ Jenkins Environment"
+                echo "Hostname: $(hostname)"
+                echo "Running in container:"
+                test -f /.dockerenv && echo YES || echo NO
+                echo "Docker socket:"
+                ls -l /var/run/docker.sock
+                '''
+            }
+        }   
+
         stage('Checkout') {
             steps {
                 checkout scm
