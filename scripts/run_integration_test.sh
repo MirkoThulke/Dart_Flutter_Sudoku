@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 # -----------------------------------------------------------
 # What an Android-ready integration test pipeline must validate
 # ✔️ 1. Flutter doctor (Android toolchain installed)
@@ -13,8 +16,7 @@
 # Ensure no fatal crashes in startup test
 # -----------------------------------------------------------
 
-#!/usr/bin/env bash
-set -euo pipefail
+
 
 echo "🚀 Running Flutter Android integration readiness check"
 

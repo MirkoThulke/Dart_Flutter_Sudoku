@@ -29,7 +29,6 @@ else
 fi
 
 
-
 # Select proper ADB command
 if [[ "$ENV_TYPE" == "WSL" ]]; then
     WIN_IP=$(grep nameserver /etc/resolv.conf | awk '{print $2}')

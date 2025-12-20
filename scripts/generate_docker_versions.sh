@@ -95,5 +95,3 @@ GRADLE_VERSION=$(./android/gradlew --version | grep Gradle | awk '{print $2}')
 echo "ENV FLUTTER_VERSION=$FLUTTER_VERSION"
 echo "ENV FLUTTER_DART_VERSION=$FLUTTER_DART_VERSION"
 echo "ENV GRADLE_VERSION=$GRADLE_VERSION"
-
-

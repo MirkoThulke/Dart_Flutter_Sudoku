@@ -105,4 +105,3 @@ echo "ndk.dir=$NDK_DIR"
 
 echo "✅ Generated android/local.properties:"
 cat "$LOCAL_PROPERTIES"
-
