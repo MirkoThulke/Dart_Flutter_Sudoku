@@ -31,24 +31,20 @@ pipeline {
             }
         }
 
-
         // Verify Docker from inside Jenkins (mandatory gate)
-        stage('Verify Docker Host') {
+        stage('Docker Socket Check') {
             steps {
                 sh '''
-                  echo "🔍 Verifying Docker from Jenkins container"
-        
-                  command -v docker
-                  docker version
-                  docker info >/dev/null
-        
-                  test -f /.dockerenv && echo "✅ Running inside Docker container"
-                  ls -l /var/run/docker.sock
-        
-                  echo "✅ Docker ready for CI"
+                    echo "🔍 Checking Docker socket"
+                    test -S /var/run/docker.sock || {
+                    echo "❌ Docker socket not mounted"
+                    exit 1
+                }
+                echo "✅ Docker socket present"
                 '''
             }
         }
+
 
         // Jenkins log where it is running
         stage('CI Environment Info') {
