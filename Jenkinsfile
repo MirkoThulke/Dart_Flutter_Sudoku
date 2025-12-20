@@ -21,15 +21,6 @@ pipeline {
 
     stages {
 
-        stage('Make Scripts Executable') {
-            steps {
-                    sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
-                    sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
-                    sh "chmod +x \$BUILD_ALL_SCRIPT"
-                    sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
-                    sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
-            }
-        }
 
         // Verify Docker from inside Jenkins (mandatory gate)
         stage('Docker Socket Check') {
@@ -65,6 +56,18 @@ pipeline {
                 checkout scm
             }
         }
+
+        
+        stage('Make Scripts Executable') {
+            steps {
+                    sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
+                    sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
+                    sh "chmod +x \$BUILD_ALL_SCRIPT"
+                    sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
+                    sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
+            }
+        }
+
 
         stage('Debug Workspace') {
             steps {
