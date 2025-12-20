@@ -11,9 +11,8 @@ pipeline {
         CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
         CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
 
-        BUILD_ALL_SCRIPT                = './scripts/build_all.sh'
-        BUILD_ALL_DEBUG_ARGS            = 'debug'
-        BUILD_ALL_RELEASE_ARGS          = 'release'
+        BUILD_DEBUG_CMD                 = './scripts/build_all.sh debug'
+        BUILD_RELEASE_CMD               = './scripts/build_all.sh release'
 
         INTEGRATION_TEST_SCRIPT         = './scripts/run_integration_test.sh'
         GENERATE_PLANTUML_PDF_SCRIPT    = './scripts/generate_PlantUML_PDF.ps1'
@@ -25,7 +24,8 @@ pipeline {
             steps {
                     sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
                     sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
-                    sh "chmod +x \$BUILD_ALL_SCRIPT"
+                    sh "chmod +x \$BUILD_DEBUG_CMD"
+                    sh "chmod +x \$BUILD_RELEASE_CMD"
                     sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
                     sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
             }
@@ -66,15 +66,27 @@ pipeline {
             }
         }
 
+        stage('Debug Workspace') {
+            steps {
+                sh '''
+                    echo "Workspace content:"
+                    ls -la
+                    echo "Scripts directory:"
+                    ls -la scripts || echo "❌ scripts/ directory missing"
+                '''
+            }
+        }
+        
         stage('Clean environment') {
             steps {
                 script {
                     def commands = [
-                        env.CLEAN_GRADLE_SCRIPT,
-                        env.CLEAN_FLUTTER_SCRIPT
+                            env.CLEAN_GRADLE_SCRIPT,
+                            env.CLEAN_FLUTTER_SCRIPT
                     ]
+
                     for (cmd in commands) {
-                        sh """
+                    sh """
                         docker run --rm \
                         -v \$WORKSPACE:$PROJECT_DIR \
                         -w $PROJECT_DIR \
@@ -86,6 +98,7 @@ pipeline {
             }
         }
 
+
         stage('Build Debug & Release') {
             parallel {
                 stage('Debug') {
@@ -95,7 +108,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_DEBUG_ARGS}"
+                            bash -lc "${env.BUILD_DEBUG_CMD}"
                         """
                     }
                 }
@@ -106,7 +119,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_RELEASE_ARGS}"
+                            bash -lc "${env.BUILD_RELEASE_CMD}"
                         """
                     }
                 }
