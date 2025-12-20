@@ -55,6 +55,10 @@ FROM jenkins/jenkins:lts
 
 USER root
 
+
+ENV PATH="/usr/bin:$PATH"
+
+
 # ------------------------------------------------------------
 # Install minimal dependencies + Docker CLI
 # ------------------------------------------------------------

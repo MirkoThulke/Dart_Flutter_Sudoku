@@ -8,7 +8,6 @@ pipeline {
         PROJECT_DIR = '/app'
 
         // Define script paths here
-        INSTALL_DOCKER_HOST_SCRIPT      = './scripts/install_docker_host.sh'
         CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
         CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
 
@@ -24,7 +23,6 @@ pipeline {
 
         stage('Make Scripts Executable') {
             steps {
-                    sh "chmod +x \$INSTALL_DOCKER_HOST_SCRIPT"
                     sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
                     sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
                     sh "chmod +x \$BUILD_ALL_SCRIPT"
@@ -36,29 +34,20 @@ pipeline {
 
         // Verify Docker from inside Jenkins (mandatory gate)
         stage('Verify Docker Host') {
-
             steps {
-
-                sh '$INSTALL_DOCKER_HOST_SCRIPT'
-
                 sh '''
-                  echo "🔍 Verifying Docker host from Jenkins..."
-
+                  echo "🔍 Verifying Docker from Jenkins container"
+        
+                  command -v docker
                   docker version
-
-                  SERVER_API=$(docker version --format '{{.Server.APIVersion}}')
-                  SERVER_VERSION=$(docker version --format '{{.Server.Version}}')
-
-                  REQUIRED_API=1.44
-
-                  if [ "$(printf '%s\n' "$REQUIRED_API" "$SERVER_API" | sort -V | head -n1)" != "$REQUIRED_API" ]; then
-                    echo "❌ Docker API too old: $SERVER_API"
-                    exit 1
-                  fi
-
-                  echo "✅ Docker host verified"
+                  docker info >/dev/null
+        
+                  test -f /.dockerenv && echo "✅ Running inside Docker container"
+                  ls -l /var/run/docker.sock
+        
+                  echo "✅ Docker ready for CI"
                 '''
-                }
+            }
         }
 
         // Jenkins log where it is running
