@@ -1,9 +1,20 @@
+
+
 pipeline {
     agent any
 
     environment {
         FLUTTER_IMAGE = 'flutter_rust_env'
         PROJECT_DIR = '/app'
+
+        // Define script paths here
+        CLEAN_GRADLE_SCRIPT = './scripts/clean_gradle_cache.sh'
+        CLEAN_FLUTTER_SCRIPT = './scripts/clean_flutter.sh'
+        INTEGRATION_TEST_SCRIPT = './scripts/run_integration_test.sh'
+        BUILD_ALL_DEBUG_SCRIPT = './scripts/build_all.sh debug'
+        BUILD_ALL_RELEASE_SCRIPT = './scripts/build_all.sh release'
+        INSTALL_DOCKER_HOST_SCRIPT = './scripts/install_docker_host.sh'
+        GENERATE_PLANTUML_PDF_SCRIPT = './scripts/generate_PlantUML_PDF.ps1'
     }
 
     stages {
@@ -12,10 +23,9 @@ pipeline {
         stage('Verify Docker Host') {
 
             steps {
-                sh './scripts/install_docker_host.sh'
-            }
-            
-            steps {
+
+                sh '$INSTALL_DOCKER_HOST_SCRIPT'
+
                 sh '''
                   echo "🔍 Verifying Docker host from Jenkins..."
 
@@ -60,8 +70,8 @@ pipeline {
             steps {
                 script {
                     def commands = [
-                        './scripts/clean_gradle_cache.sh',
-                        './scripts/clean_flutter.sh'
+                        '$CLEAN_GRADLE_SCRIPT',
+                        '$CLEAN_FLUTTER_SCRIPT'
                     ]
                     for (cmd in commands) {
                         sh """
@@ -85,7 +95,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc './scripts/build_all.sh debug'
+                            bash -lc '$BUILD_ALL_DEBUG_SCRIPT'
                         """
                     }
                 }
@@ -96,7 +106,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc './scripts/build_all.sh release'
+                            bash -lc '$BUILD_ALL_RELEASE_SCRIPT'
                         """
                     }
                 }
@@ -105,7 +115,7 @@ pipeline {
 
         stage('Generate Diagrams & PDF') {
             steps {
-                sh 'pwsh ./scripts/generate_PlantUML_PDF.ps1'
+                sh "pwsh \$GENERATE_PLANTUML_PDF_SCRIPT"
             }
         }
 
@@ -116,7 +126,7 @@ pipeline {
                     -v \$WORKSPACE:$PROJECT_DIR \
                     -w $PROJECT_DIR \
                     $FLUTTER_IMAGE \
-                    bash -lc './scripts/run_integration_test.sh'
+                    bash -lc '$INTEGRATION_TEST_SCRIPT'
                 """
             }
         }
