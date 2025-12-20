@@ -11,8 +11,11 @@ pipeline {
         INSTALL_DOCKER_HOST_SCRIPT      = './scripts/install_docker_host.sh'
         CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
         CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
-        BUILD_ALL_DEBUG_SCRIPT          = './scripts/build_all.sh debug'
-        BUILD_ALL_RELEASE_SCRIPT        = './scripts/build_all.sh release'
+
+        BUILD_ALL_SCRIPT                = './scripts/build_all.sh'
+        BUILD_ALL_DEBUG_ARGS            = 'debug'
+        BUILD_ALL_RELEASE_ARGS          = 'release'
+
         INTEGRATION_TEST_SCRIPT         = './scripts/run_integration_test.sh'
         GENERATE_PLANTUML_PDF_SCRIPT    = './scripts/generate_PlantUML_PDF.ps1'
     }
@@ -24,8 +27,7 @@ pipeline {
                     sh "chmod +x \$INSTALL_DOCKER_HOST_SCRIPT"
                     sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
                     sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
-                    sh "chmod +x \$BUILD_ALL_DEBUG_SCRIPT"
-                    sh "chmod +x \$BUILD_ALL_RELEASE_SCRIPT"
+                    sh "chmod +x \$BUILD_ALL_SCRIPT"
                     sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
                     sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
             }
@@ -108,7 +110,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc '$BUILD_ALL_DEBUG_SCRIPT'
+                            bash -lc "\$BUILD_ALL_SCRIPT \$BUILD_ALL_DEBUG_ARGS"
                         """
                     }
                 }
@@ -119,7 +121,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc '$BUILD_ALL_RELEASE_SCRIPT'
+                            bash -lc "\$BUILD_ALL_SCRIPT \$BUILD_ALL_RELEASE_ARGS"
                         """
                     }
                 }
