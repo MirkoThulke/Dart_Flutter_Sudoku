@@ -67,10 +67,11 @@ RUN apt-get update && \
         docker.io \
     && rm -rf /var/lib/apt/lists/*
 
+
 # ------------------------------------------------------------
 # Allow Jenkins user to access Docker socket
 # ------------------------------------------------------------
-RUN groupadd -f docker && usermod -aG docker jenkins
+RUN usermod -aG docker jenkins
 
 # ------------------------------------------------------------
 # Use tini as PID 1
