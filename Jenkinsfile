@@ -70,17 +70,17 @@ pipeline {
             steps {
                 script {
                     def commands = [
-                        '$CLEAN_GRADLE_SCRIPT',
-                        '$CLEAN_FLUTTER_SCRIPT'
+                        env.CLEAN_GRADLE_SCRIPT,
+                        env.CLEAN_FLUTTER_SCRIPT
                     ]
                     for (cmd in commands) {
                         sh """
                         docker run --rm \
-                            -v \$WORKSPACE:$PROJECT_DIR \
-                            -w $PROJECT_DIR \
-                            $FLUTTER_IMAGE \
-                            bash -lc '$cmd'
-                        """
+                        -v \$WORKSPACE:$PROJECT_DIR \
+                        -w $PROJECT_DIR \
+                        $FLUTTER_IMAGE \
+                        bash -lc "${cmd}"
+                    """
                     }
                 }
             }
@@ -95,7 +95,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "\$BUILD_ALL_SCRIPT \$BUILD_ALL_DEBUG_ARGS"
+                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_DEBUG_ARGS}"
                         """
                     }
                 }
@@ -106,7 +106,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "\$BUILD_ALL_SCRIPT \$BUILD_ALL_RELEASE_ARGS"
+                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_RELEASE_ARGS}"
                         """
                     }
                 }
