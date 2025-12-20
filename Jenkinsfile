@@ -11,8 +11,9 @@ pipeline {
         CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
         CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
 
-        BUILD_DEBUG_CMD                 = './scripts/build_all.sh debug'
-        BUILD_RELEASE_CMD               = './scripts/build_all.sh release'
+        BUILD_ALL_SCRIPT                = './scripts/build_all.sh'
+        BUILD_ALL_DEBUG_ARGS            = 'debug'
+        BUILD_ALL_RELEASE_ARGS          = 'release'
 
         INTEGRATION_TEST_SCRIPT         = './scripts/run_integration_test.sh'
         GENERATE_PLANTUML_PDF_SCRIPT    = './scripts/generate_PlantUML_PDF.ps1'
@@ -24,8 +25,7 @@ pipeline {
             steps {
                     sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
                     sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
-                    sh "chmod +x \$BUILD_DEBUG_CMD"
-                    sh "chmod +x \$BUILD_RELEASE_CMD"
+                    sh "chmod +x \$BUILD_ALL_SCRIPT"
                     sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
                     sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
             }
@@ -108,7 +108,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "${env.BUILD_DEBUG_CMD}"
+                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_DEBUG_ARGS}"
                         """
                     }
                 }
@@ -119,7 +119,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "${env.BUILD_RELEASE_CMD}"
+                            bash -lc "${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_RELEASE_ARGS}"
                         """
                     }
                 }
