@@ -8,16 +8,29 @@ pipeline {
         PROJECT_DIR = '/app'
 
         // Define script paths here
-        CLEAN_GRADLE_SCRIPT = './scripts/clean_gradle_cache.sh'
-        CLEAN_FLUTTER_SCRIPT = './scripts/clean_flutter.sh'
-        INTEGRATION_TEST_SCRIPT = './scripts/run_integration_test.sh'
-        BUILD_ALL_DEBUG_SCRIPT = './scripts/build_all.sh debug'
-        BUILD_ALL_RELEASE_SCRIPT = './scripts/build_all.sh release'
-        INSTALL_DOCKER_HOST_SCRIPT = './scripts/install_docker_host.sh'
-        GENERATE_PLANTUML_PDF_SCRIPT = './scripts/generate_PlantUML_PDF.ps1'
+        INSTALL_DOCKER_HOST_SCRIPT      = './scripts/install_docker_host.sh'
+        CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
+        CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
+        BUILD_ALL_DEBUG_SCRIPT          = './scripts/build_all.sh debug'
+        BUILD_ALL_RELEASE_SCRIPT        = './scripts/build_all.sh release'
+        INTEGRATION_TEST_SCRIPT         = './scripts/run_integration_test.sh'
+        GENERATE_PLANTUML_PDF_SCRIPT    = './scripts/generate_PlantUML_PDF.ps1'
     }
 
     stages {
+
+        stage('Make Scripts Executable') {
+            steps {
+                    sh "chmod +x \$INSTALL_DOCKER_HOST_SCRIPT"
+                    sh "chmod +x \$CLEAN_GRADLE_SCRIPT"
+                    sh "chmod +x \$CLEAN_FLUTTER_SCRIPT"
+                    sh "chmod +x \$BUILD_ALL_DEBUG_SCRIPT"
+                    sh "chmod +x \$BUILD_ALL_RELEASE_SCRIPT"
+                    sh "chmod +x \$INTEGRATION_TEST_SCRIPT"
+                    sh "chmod +x \$GENERATE_PLANTUML_PDF_SCRIPT"
+            }
+        }
+
 
         // Verify Docker from inside Jenkins (mandatory gate)
         stage('Verify Docker Host') {
