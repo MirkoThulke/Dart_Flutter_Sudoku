@@ -76,24 +76,24 @@ pipeline {
         }
 
         stage('Clean environment') {
-            steps {
-                script {
-                    def commands = [
-                        env.CLEAN_GRADLE_SCRIPT,
-                        env.CLEAN_FLUTTER_SCRIPT
-                    ]
-
-                    for (cmd in commands) {
-                        sh """
-                            docker run --rm \
-                              -v "\$WORKSPACE:$PROJECT_DIR" \
-                              -w $PROJECT_DIR \
-                              $FLUTTER_IMAGE \
-                              bash -lc "./${cmd}"
-                        """
-                    }
-                }
-            }
+           steps {
+               script {
+                   def commands = [
+                       env.CLEAN_GRADLE_SCRIPT,
+                       env.CLEAN_FLUTTER_SCRIPT
+                   ]
+        
+                   for (cmd in commands) {
+                       sh """
+                           docker run --rm \
+                             -v "\$WORKSPACE:$PROJECT_DIR" \
+                             -w $PROJECT_DIR \
+                             $FLUTTER_IMAGE \
+                             bash -lc "bash ${cmd}"
+                       """
+                   }
+               }
+           }
         }
 
         stage('Build Debug & Release') {
