@@ -8,15 +8,15 @@ pipeline {
         PROJECT_DIR = '/app'
 
         // Define script paths here
-        CLEAN_GRADLE_SCRIPT             = './scripts/clean_gradle_cache.sh'
-        CLEAN_FLUTTER_SCRIPT            = './scripts/clean_flutter.sh'
+        CLEAN_GRADLE_SCRIPT             = '/app/scripts/clean_gradle_cache.sh'
+        CLEAN_FLUTTER_SCRIPT            = '/app/scripts/clean_flutter.sh'
 
-        BUILD_ALL_SCRIPT                = './scripts/build_all.sh'
+        BUILD_ALL_SCRIPT                = '/app/scripts/build_all.sh'
         BUILD_ALL_DEBUG_ARGS            = 'debug'
         BUILD_ALL_RELEASE_ARGS          = 'release'
 
-        INTEGRATION_TEST_SCRIPT         = './scripts/run_integration_test.sh'
-        GENERATE_PLANTUML_PDF_SCRIPT    = './scripts/generate_PlantUML_PDF.ps1'
+        INTEGRATION_TEST_SCRIPT         = '/app/scripts/run_integration_test.sh'
+        GENERATE_PLANTUML_PDF_SCRIPT    = '/app/scripts/generate_PlantUML_PDF.ps1'
     }
 
     stages {
