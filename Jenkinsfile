@@ -1,22 +1,30 @@
-
-
 pipeline {
+
+// Jenkins container
+//   └── /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+//         └── scripts/*.sh
+//               │
+//               └── mounted as
+//                     ▼
+// Flutter container
+//   └── /app/scripts/*.sh
+
     agent any
 
     environment {
         FLUTTER_IMAGE = 'flutter_rust_env'
-        PROJECT_DIR = '/app'
+        PROJECT_DIR   = '/app'
 
-        // Define script paths here
-        CLEAN_GRADLE_SCRIPT             = '/app/scripts/clean_gradle_cache.sh'
-        CLEAN_FLUTTER_SCRIPT            = '/app/scripts/clean_flutter.sh'
+        // Script paths INSIDE the container
+        CLEAN_GRADLE_SCRIPT          = 'scripts/clean_gradle_cache.sh'
+        CLEAN_FLUTTER_SCRIPT         = 'scripts/clean_flutter.sh'
 
-        BUILD_ALL_SCRIPT                = '/app/scripts/build_all.sh'
-        BUILD_ALL_DEBUG_ARGS            = 'debug'
-        BUILD_ALL_RELEASE_ARGS          = 'release'
+        BUILD_ALL_SCRIPT             = 'scripts/build_all.sh'
+        BUILD_ALL_DEBUG_ARGS         = 'debug'
+        BUILD_ALL_RELEASE_ARGS       = 'release'
 
-        INTEGRATION_TEST_SCRIPT         = '/app/scripts/run_integration_test.sh'
-        GENERATE_PLANTUML_PDF_SCRIPT    = '/app/scripts/generate_PlantUML_PDF.ps1'
+        INTEGRATION_TEST_SCRIPT      = 'scripts/run_integration_test.sh'
+        GENERATE_PLANTUML_PDF_SCRIPT = 'scripts/generate_PlantUML_PDF.ps1'
     }
 
     stages {
@@ -28,10 +36,10 @@ pipeline {
                 sh '''
                     echo "🔍 Checking Docker socket"
                     test -S /var/run/docker.sock || {
-                    echo "❌ Docker socket not mounted"
-                    exit 1
-                }
-                echo "✅ Docker socket present"
+                      echo "❌ Docker socket not mounted"
+                      exit 1
+                    }
+                    echo "✅ Docker socket present"
                 '''
             }
         }
@@ -41,15 +49,13 @@ pipeline {
         stage('CI Environment Info') {
             steps {
                 sh '''
-                echo "🏗️ Jenkins Environment"
-                echo "Hostname: $(hostname)"
-                echo "Running in container:"
-                test -f /.dockerenv && echo YES || echo NO
-                echo "Docker socket:"
-                ls -l /var/run/docker.sock
+                    echo "🏗️ Jenkins Environment"
+                    hostname
+                    test -f /.dockerenv && echo "Running inside Docker"
+                    ls -l /var/run/docker.sock
                 '''
             }
-        }   
+        }
 
         stage('Checkout') {
             steps {
@@ -60,57 +66,57 @@ pipeline {
         stage('Debug Workspace') {
             steps {
                 sh '''
-                    echo "Workspace content:"
+                    echo "Workspace:"
+                    pwd
                     ls -la
-                    echo "Scripts directory:"
-                    ls -la scripts || echo "❌ scripts/ directory missing"
+                    echo "Scripts:"
+                    ls -la scripts
                 '''
             }
         }
-        
+
         stage('Clean environment') {
             steps {
                 script {
                     def commands = [
-                            env.CLEAN_GRADLE_SCRIPT,
-                            env.CLEAN_FLUTTER_SCRIPT
+                        env.CLEAN_GRADLE_SCRIPT,
+                        env.CLEAN_FLUTTER_SCRIPT
                     ]
 
                     for (cmd in commands) {
-                    sh """
-                        docker run --rm \
-                        -v \$WORKSPACE:$PROJECT_DIR \
-                        -w $PROJECT_DIR \
-                        $FLUTTER_IMAGE \
-                        bash -lc 'bash ${cmd}'
-                    """
+                        sh """
+                            docker run --rm \
+                              -v "\$WORKSPACE:$PROJECT_DIR" \
+                              -w $PROJECT_DIR \
+                              $FLUTTER_IMAGE \
+                              bash -lc "./${cmd}"
+                        """
                     }
                 }
             }
         }
-
 
         stage('Build Debug & Release') {
             parallel {
                 stage('Debug') {
                     steps {
                         sh """
-                        docker run --rm \
-                            -v \$WORKSPACE:$PROJECT_DIR \
-                            -w $PROJECT_DIR \
-                            $FLUTTER_IMAGE \
-                            bash -lc 'bash ${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_DEBUG_ARGS}'
+                            docker run --rm \
+                              -v "\$WORKSPACE:$PROJECT_DIR" \
+                              -w $PROJECT_DIR \
+                              $FLUTTER_IMAGE \
+                              bash -lc "./${BUILD_ALL_SCRIPT} ${BUILD_ALL_DEBUG_ARGS}"
                         """
                     }
                 }
                 stage('Release') {
                     steps {
                         sh """
-                        docker run --rm \
-                            -v \$WORKSPACE:$PROJECT_DIR \
-                            -w $PROJECT_DIR \
-                            $FLUTTER_IMAGE \
-                            bash -lc 'bash ${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_RELEASE_ARGS}'
+                            docker run --rm \
+                              -v "\$WORKSPACE:$PROJECT_DIR" \
+                              -w $PROJECT_DIR \
+                              $FLUTTER_IMAGE \
+                              bash -lc "./${BUILD_ALL_SCRIPT} ${BUILD_ALL_RELEASE_ARGS}"
                         """
                     }
                 }
@@ -119,31 +125,29 @@ pipeline {
 
         stage('Generate Diagrams & PDF') {
             steps {
-                sh "pwsh \$GENERATE_PLANTUML_PDF_SCRIPT"
+                sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
             }
         }
 
         stage('Run Integration Tests') {
             steps {
                 sh """
-                docker run --rm \
-                    -v \$WORKSPACE:$PROJECT_DIR \
-                    -w $PROJECT_DIR \
-                    $FLUTTER_IMAGE \
-                    bash -lc 'bash ${INTEGRATION_TEST_SCRIPT}'
+                    docker run --rm \
+                      -v "\$WORKSPACE:$PROJECT_DIR" \
+                      -w $PROJECT_DIR \
+                      $FLUTTER_IMAGE \
+                      bash -lc "./${INTEGRATION_TEST_SCRIPT}"
                 """
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                sh 'mkdir -p build_outputs'
-
-                sh """
-                cp android/app/build/outputs/flutter-apk/app-release.apk build_outputs/ || true
-                cp android/app/build/outputs/flutter-apk/app-debug.apk build_outputs/ || true
-                cp android/app/build/outputs/bundle/release/app-release.aab build_outputs/ || true
-                """
+                sh '''
+                    mkdir -p build_outputs
+                    cp android/app/build/outputs/flutter-apk/*.apk build_outputs/ || true
+                    cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
+                '''
 
                 archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
             }
