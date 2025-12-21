@@ -82,7 +82,7 @@ pipeline {
                         -v \$WORKSPACE:$PROJECT_DIR \
                         -w $PROJECT_DIR \
                         $FLUTTER_IMAGE \
-                        bash -lc "bash '${cmd}'"
+                        bash -lc 'bash ${cmd}'
                     """
                     }
                 }
@@ -99,7 +99,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "bash '${env.BUILD_ALL_SCRIPT}' '${env.BUILD_ALL_DEBUG_ARGS}'"
+                            bash -lc 'bash ${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_DEBUG_ARGS}'
                         """
                     }
                 }
@@ -110,7 +110,7 @@ pipeline {
                             -v \$WORKSPACE:$PROJECT_DIR \
                             -w $PROJECT_DIR \
                             $FLUTTER_IMAGE \
-                            bash -lc "bash '${env.BUILD_ALL_SCRIPT}' '${env.BUILD_ALL_RELEASE_ARGS}'"
+                            bash -lc 'bash ${env.BUILD_ALL_SCRIPT} ${env.BUILD_ALL_RELEASE_ARGS}'
                         """
                     }
                 }
@@ -130,7 +130,7 @@ pipeline {
                     -v \$WORKSPACE:$PROJECT_DIR \
                     -w $PROJECT_DIR \
                     $FLUTTER_IMAGE \
-                    bash -lc "bash '$INTEGRATION_TEST_SCRIPT'"
+                    bash -lc 'bash ${INTEGRATION_TEST_SCRIPT}'
                 """
             }
         }
