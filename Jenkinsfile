@@ -9,6 +9,16 @@ pipeline {
 // Flutter container
 //   └── /sudoku_app/scripts/*.sh
 
+// Windows
+// └── WSL2 (Linux VM)
+//     └── Docker Engine
+//         ├── Jenkins container
+//         │   └── /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+//         │       └── <-- SOURCE CODE LIVES HERE
+//         │
+//         └── Flutter build container
+//             └── /sudoku_app  (bind-mounted from Jenkins workspace)
+
     agent any
 
     environment {
@@ -89,7 +99,7 @@ pipeline {
                               -v \$WORKSPACE:/sudoku_app \
                               -w /sudoku_app \
                               $FLUTTER_IMAGE \
-                              bash -lc "./${cmd}"
+                              bash ${cmd}
                         """
                     }
                 }
@@ -105,7 +115,7 @@ pipeline {
                               -v "\$WORKSPACE:$PROJECT_DIR" \
                               -w $PROJECT_DIR \
                               $FLUTTER_IMAGE \
-                              bash -lc "./${BUILD_ALL_SCRIPT} ${BUILD_ALL_DEBUG_ARGS}"
+                              bash ${BUILD_ALL_SCRIPT} ${BUILD_ALL_DEBUG_ARGS}
                         """
                     }
                 }
@@ -136,7 +146,7 @@ pipeline {
                       -v "\$WORKSPACE:$PROJECT_DIR" \
                       -w $PROJECT_DIR \
                       $FLUTTER_IMAGE \
-                      bash -lc "./${INTEGRATION_TEST_SCRIPT}"
+                      bash ${INTEGRATION_TEST_SCRIPT}
                 """
             }
         }
