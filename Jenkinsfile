@@ -19,6 +19,7 @@ pipeline {
 //         └── Flutter build container
 //             └── /sudoku_app  (bind-mounted from Jenkins workspace)
 
+
     agent any
 
     options { skipDefaultCheckout true }
@@ -46,42 +47,54 @@ pipeline {
             steps {
                 sh '''
                     echo "Workspace inside container:"
-                    docker run --rm -v "$WORKSPACE:/sudoku_app" -w /sudoku_app flutter_rust_env ls -la
-                    docker run --rm -v "$WORKSPACE:/sudoku_app" -w /sudoku_app flutter_rust_env ls -la scripts
+                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la
+                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la scripts
                 '''
             }
         }
-        
-        stage('Clean environment') {
+
+        stage('Clean Environment') {
             steps {
                 sh """
-                    docker run --rm -v "$WORKSPACE:$PROJECT_DIR" -w $PROJECT_DIR $FLUTTER_IMAGE bash $CLEAN_GRADLE_SCRIPT
-                    docker run --rm -v "$WORKSPACE:$PROJECT_DIR" -w $PROJECT_DIR $FLUTTER_IMAGE bash $CLEAN_FLUTTER_SCRIPT
+                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                        bash -c "$CLEAN_GRADLE_SCRIPT && $CLEAN_FLUTTER_SCRIPT"
                 """
             }
         }
 
-        stage('Build Debug') {
-            steps {
-                sh """
-                    docker run --rm -v "$WORKSPACE:$PROJECT_DIR" -w $PROJECT_DIR $FLUTTER_IMAGE bash $BUILD_ALL_SCRIPT $BUILD_ALL_DEBUG_ARGS
-                """
-            }
-        }
-
-        stage('Build Release') {
-            steps {
-                sh """
-                    docker run --rm -v "$WORKSPACE:$PROJECT_DIR" -w $PROJECT_DIR $FLUTTER_IMAGE bash $BUILD_ALL_SCRIPT $BUILD_ALL_RELEASE_ARGS
-                """
+        stage('Build') {
+            parallel {
+                stage('Debug') {
+                    steps {
+                        sh """
+                            docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                                bash $BUILD_ALL_SCRIPT $BUILD_ALL_DEBUG_ARGS
+                        """
+                    }
+                }
+                stage('Release') {
+                    steps {
+                        sh """
+                            docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                                bash $BUILD_ALL_SCRIPT $BUILD_ALL_RELEASE_ARGS
+                        """
+                    }
+                }
             }
         }
 
         stage('Run Integration Tests') {
             steps {
                 sh """
-                    docker run --rm -v "$WORKSPACE:$PROJECT_DIR" -w $PROJECT_DIR $FLUTTER_IMAGE bash $INTEGRATION_TEST_SCRIPT
+                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                        bash $INTEGRATION_TEST_SCRIPT
                 """
+            }
+        }
+
+        stage('Generate Diagrams & PDF') {
+            steps {
+                sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
             }
         }
 
