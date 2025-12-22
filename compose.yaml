@@ -8,10 +8,21 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  app:
-    build:
-      context: .
-      target: final
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    user: root
+
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+
+    volumes:
+      # 🔴 REQUIRED: Jenkins data on WSL2 host
+      - /home/mirko/jenkins_home:/var/jenkins_home
+
+      # 🔴 REQUIRED: Docker control
+      - /var/run/docker.sock:/var/run/docker.sock
     # If your application exposes a port, uncomment the following lines and change
     # the port numbers as needed. The first number is the host port and the second
     # is the port inside the container.
