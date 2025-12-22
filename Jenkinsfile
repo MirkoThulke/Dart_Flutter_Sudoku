@@ -42,6 +42,16 @@ pipeline {
             steps { checkout scm }
         }
 
+        stage('Debug Mount') {
+            steps {
+                sh '''
+                    echo "Workspace inside container:"
+                    docker run --rm -v "$WORKSPACE:/sudoku_app" -w /sudoku_app flutter_rust_env ls -la
+                    docker run --rm -v "$WORKSPACE:/sudoku_app" -w /sudoku_app flutter_rust_env ls -la scripts
+                '''
+            }
+        }
+        
         stage('Clean environment') {
             steps {
                 sh """
