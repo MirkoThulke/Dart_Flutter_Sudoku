@@ -13,7 +13,7 @@
 #   /var/jenkins_home/workspace/Flutter_Docker_Pipeline
 #
 # Workspace is mounted into build container
-#   -v $WORKSPACE:/app    
+#   -v $WORKSPACE:/sudoku_app    
 #   
 #   +---------------------------+
 #   | Jenkins (Docker container)|

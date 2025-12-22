@@ -7,13 +7,13 @@ pipeline {
 //               └── mounted as
 //                     ▼
 // Flutter container
-//   └── /app/scripts/*.sh
+//   └── /sudoku_app/scripts/*.sh
 
     agent any
 
     environment {
         FLUTTER_IMAGE = 'flutter_rust_env'
-        PROJECT_DIR   = '/app'
+        PROJECT_DIR   = '/sudoku_app'
 
         // Script paths INSIDE the container
         CLEAN_GRADLE_SCRIPT          = 'scripts/clean_gradle_cache.sh'
@@ -86,8 +86,8 @@ pipeline {
                     for (cmd in commands) {
                         sh """
                             docker run --rm \
-                              -v \$WORKSPACE:/app \
-                              -w /app \
+                              -v \$WORKSPACE:/sudoku_app \
+                              -w /sudoku_app \
                               $FLUTTER_IMAGE \
                               bash -lc "./${cmd}"
                         """
@@ -145,8 +145,8 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p build_outputs
-                    cp android/app/build/outputs/flutter-apk/*.apk build_outputs/ || true
-                    cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
+                    cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
+                    cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
                 '''
 
                 archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
