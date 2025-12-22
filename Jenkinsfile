@@ -47,8 +47,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Workspace inside container:"
-                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la
-                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la scripts
+                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la
+                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la scripts
                 '''
             }
         }
@@ -56,7 +56,7 @@ pipeline {
         stage('Clean Environment') {
             steps {
                 sh """
-                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
                         bash -c "$CLEAN_GRADLE_SCRIPT && $CLEAN_FLUTTER_SCRIPT"
                 """
             }
@@ -67,7 +67,7 @@ pipeline {
                 stage('Debug') {
                     steps {
                         sh """
-                            docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                            docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
                                 bash $BUILD_ALL_SCRIPT $BUILD_ALL_DEBUG_ARGS
                         """
                     }
@@ -75,7 +75,7 @@ pipeline {
                 stage('Release') {
                     steps {
                         sh """
-                            docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                            docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
                                 bash $BUILD_ALL_SCRIPT $BUILD_ALL_RELEASE_ARGS
                         """
                     }
@@ -86,7 +86,7 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 sh """
-                    docker run --rm -v "${WORKSPACE}@script:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
                         bash $INTEGRATION_TEST_SCRIPT
                 """
             }
