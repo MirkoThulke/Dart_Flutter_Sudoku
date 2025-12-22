@@ -96,7 +96,7 @@ pipeline {
                     for (cmd in commands) {
                         sh """
                             docker run --rm \
-                              -v \$WORKSPACE:/sudoku_app \
+                              -v \$WORKSPACE@script:/sudoku_app \
                               -w /sudoku_app \
                               $FLUTTER_IMAGE \
                               bash ${cmd}
@@ -112,7 +112,7 @@ pipeline {
                     steps {
                         sh """
                             docker run --rm \
-                              -v "\$WORKSPACE:$PROJECT_DIR" \
+                              -v "\$WORKSPACE@script:$PROJECT_DIR" \
                               -w $PROJECT_DIR \
                               $FLUTTER_IMAGE \
                               bash ${BUILD_ALL_SCRIPT} ${BUILD_ALL_DEBUG_ARGS}
@@ -123,7 +123,7 @@ pipeline {
                     steps {
                         sh """
                             docker run --rm \
-                              -v "\$WORKSPACE:$PROJECT_DIR" \
+                              -v "\$WORKSPACE@script:$PROJECT_DIR" \
                               -w $PROJECT_DIR \
                               $FLUTTER_IMAGE \
                               bash -lc "./${BUILD_ALL_SCRIPT} ${BUILD_ALL_RELEASE_ARGS}"
@@ -143,7 +143,7 @@ pipeline {
             steps {
                 sh """
                     docker run --rm \
-                      -v "\$WORKSPACE:$PROJECT_DIR" \
+                      -v "\$WORKSPACE@script:$PROJECT_DIR" \
                       -w $PROJECT_DIR \
                       $FLUTTER_IMAGE \
                       bash ${INTEGRATION_TEST_SCRIPT}
