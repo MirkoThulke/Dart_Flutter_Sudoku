@@ -44,11 +44,70 @@ pipeline {
         }
 
         stage('Debug Mount') {
+
+            steps {
+                    sh '''
+                        set -e
+
+                        echo "=============================="
+                        echo "🔍 DEBUG MOUNT CHECK"
+                        echo "=============================="
+
+                        echo "Jenkins WORKSPACE (host path):"
+                        echo "$WORKSPACE"
+                        test -d "$WORKSPACE" || {
+                          echo "❌ WORKSPACE does not exist on Jenkins host"
+                          exit 1
+                        }
+
+                        echo ""
+                        echo "Running container mount inspection..."
+
+                        docker run --rm \
+                          -v "$WORKSPACE:$PROJECT_DIR" \
+                          -w "$PROJECT_DIR" \
+                          "$FLUTTER_IMAGE" \
+                          bash -c '
+                            set -e
+
+                            echo "📁 Container working directory:"
+                            pwd
+
+                            echo ""
+                            echo "📦 Container directory listing:"
+                            ls -la
+
+                            echo ""
+                            echo "📜 Checking scripts directory..."
+                            if [ ! -d scripts ]; then
+                              echo "❌ ERROR: scripts/ directory NOT FOUND inside container"
+                              exit 1
+                            fi
+
+                            echo "✅ scripts/ directory exists"
+
+                            echo ""
+                            echo "📜 scripts/ contents:"
+                            ls -la scripts
+
+                            echo ""
+                            echo "🔐 Executable flags:"
+                            ls -l scripts/*.sh || {
+                              echo "❌ ERROR: No executable scripts found"
+                              exit 1
+                            }
+
+                            echo ""
+                            echo "✅ DEBUG MOUNT CHECK PASSED"
+                          '
+                    '''
+            }
+
             steps {
                 sh '''
                     echo "Workspace inside container:"
-                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la
-                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w /sudoku_app $FLUTTER_IMAGE ls -la scripts
+                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE ls -la
+                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE ls -la scripts
                 '''
             }
         }
@@ -56,7 +115,7 @@ pipeline {
         stage('Clean Environment') {
             steps {
                 sh """
-                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
                         bash -c "$CLEAN_GRADLE_SCRIPT && $CLEAN_FLUTTER_SCRIPT"
                 """
             }
@@ -67,7 +126,7 @@ pipeline {
                 stage('Debug') {
                     steps {
                         sh """
-                            docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                            docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
                                 bash $BUILD_ALL_SCRIPT $BUILD_ALL_DEBUG_ARGS
                         """
                     }
@@ -75,7 +134,7 @@ pipeline {
                 stage('Release') {
                     steps {
                         sh """
-                            docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                            docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
                                 bash $BUILD_ALL_SCRIPT $BUILD_ALL_RELEASE_ARGS
                         """
                     }
@@ -86,7 +145,7 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 sh """
-                    docker run --rm -v "${WORKSPACE}:/sudoku_app" -w $PROJECT_DIR $FLUTTER_IMAGE \
+                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
                         bash $INTEGRATION_TEST_SCRIPT
                 """
             }
