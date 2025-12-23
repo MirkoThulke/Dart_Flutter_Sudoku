@@ -31,4 +31,13 @@ ENV PATH="/usr/bin:/usr/local/bin:$PATH"
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/usr/local/bin/jenkins.sh"]
 
+
 USER jenkins
+
+
+RUN jenkins-plugin-cli --plugins \
+    git \
+    workflow-aggregator \
+    github \
+    github-branch-source \
+    pipeline-stage-view 

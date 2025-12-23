@@ -3,6 +3,9 @@
 // 
 //  GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
 //  
+//  Run Jenkins in browser on Host :
+//    http://localhost:8080
+//
 //  Jenkins pulls your app from GitHub into its workspace:
 //    /var/jenkins_home/workspace/Flutter_Docker_Pipeline
 //
@@ -49,7 +52,8 @@
 //             └── /sudoku_app  (bind-mounted from Jenkins workspace)
 
 // Run Jenkins container with:
-//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-workspace:/workspace -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
+//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
+//   sudo chown -R 1000:1000 /home/mirko/jenkins-home
 
 // Enter the jenkins container shell:
 //   docker exec -it jenkins bash
