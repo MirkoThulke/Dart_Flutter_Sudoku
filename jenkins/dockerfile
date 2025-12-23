@@ -4,50 +4,6 @@
 #   docker build --no-cache -t jenkins:latest .
 # ------------------------------------------------------------
 
-# ------------------------------------------------------------
-# CI Workflow to build and push image to Docker Hub:
-#
-# GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
-# 
-# Jenkins pulls your app from GitHub into its workspace:
-#   /var/jenkins_home/workspace/Flutter_Docker_Pipeline
-#
-# Workspace is mounted into build container
-#   -v $WORKSPACE:/sudoku_app    
-#   
-#   +---------------------------+
-#   | Jenkins (Docker container)|
-#   |  - UI / pipelines         |
-#   |  - Workspace              |
-#   +-------------+-------------+
-#                 |
-#                 | docker run
-#                 v
-#   +---------------------------+
-#   | flutter_rust_env container|
-#   |  - Flutter SDK            |
-#   |  - Rust toolchain         |
-#   |  - Builds APKs            |
-#   +---------------------------+
-#   
-#   
-# Build artefacts are stored in :
-#    /var/jenkins_home/jobs/Flutter_Docker_Pipeline/builds/<build-id>/archive/
-# ------------------------------------------------------------
-
-# Run Jenkins from inside the Jenkins container, that persists data and has docker socket mounted:
-#   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
-
-# Enter the jenkins container shell:
-#   docker exec -it jenkins bash
-
-# ------------------------------------------------------------
-# Print the initial admin password
-#   cat /var/jenkins_home/secrets/initialAdminPassword
-#   exit
-# ------------------------------------------------------------
-
-
 
 # ------------------------------------------------------------
 # Install minimal dependencies + Docker CLI

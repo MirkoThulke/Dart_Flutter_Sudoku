@@ -1,4 +1,33 @@
-pipeline {
+//  ------------------------------------------------------------
+//  CI Workflow to build and push image to Docker Hub:
+// 
+//  GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
+//  
+//  Jenkins pulls your app from GitHub into its workspace:
+//    /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+//
+// Workspace is mounted into build container
+//   -v $WORKSPACE:/sudoku_app    
+//   
+//   +---------------------------+
+//   | Jenkins (Docker container)|
+//   |  - UI / pipelines         |
+//   |  - Workspace              |
+//   +-------------+-------------+
+//                 |
+//                 | docker run
+//                 v
+//   +---------------------------+
+//   | flutter_rust_env container|
+//   |  - Flutter SDK            |
+//   |  - Rust toolchain         |
+//   |  - Builds APKs            |
+//   +---------------------------+
+//   
+//   
+// Build artefacts are stored in :
+//    /var/jenkins_home/jobs/Flutter_Docker_Pipeline/builds/<build-id>/archive/
+// ------------------------------------------------------------
 
 // Jenkins container
 //   └── /var/jenkins_home/workspace/Flutter_Docker_Pipeline
@@ -19,33 +48,56 @@ pipeline {
 //         └── Flutter build container
 //             └── /sudoku_app  (bind-mounted from Jenkins workspace)
 
+// Run Jenkins container with:
+//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-workspace:/workspace -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
+
+// Enter the jenkins container shell:
+//   docker exec -it jenkins bash
+
+//  ------------------------------------------------------------
+// Print the initial admin password
+//   cat /var/jenkins_home/secrets/initialAdminPassword
+//   exit
+// ------------------------------------------------------------
+
+pipeline {
 
     agent any
 
     options { skipDefaultCheckout true }
 
     environment {
-        FLUTTER_IMAGE = 'flutter_rust_env'
-        PROJECT_DIR   = '/sudoku_app'
+       FIXED_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
-        CLEAN_GRADLE_SCRIPT  = 'scripts/clean_gradle_cache.sh'
-        CLEAN_FLUTTER_SCRIPT = 'scripts/clean_flutter.sh'
-        BUILD_ALL_SCRIPT     = 'scripts/build_all.sh'
-        BUILD_ALL_DEBUG_ARGS = 'debug'
-        BUILD_ALL_RELEASE_ARGS = 'release'
-        INTEGRATION_TEST_SCRIPT = 'scripts/run_integration_test.sh'
-        GENERATE_PLANTUML_PDF_SCRIPT = 'scripts/generate_PlantUML_PDF.ps1'
+       FLUTTER_IMAGE = 'flutter_rust_env'
+       PROJECT_DIR   = '/sudoku_app'
+
+       SCRIPTS_DIR = 'scripts'
+
+       CLEAN_GRADLE_SCRIPT     = "${SCRIPTS_DIR}/clean_gradle_cache.sh"
+       CLEAN_FLUTTER_SCRIPT    = "${SCRIPTS_DIR}/clean_flutter.sh"
+
+       BUILD_ALL_SCRIPT        = "${SCRIPTS_DIR}/build_all.sh"
+       BUILD_DEBUG_ARGS        = 'debug'
+       BUILD_RELEASE_ARGS      = 'release'
+
+       INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
+       PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
     }
 
     stages {
 
         stage('Checkout') {
-            steps { checkout scm }
+            steps {
+                ws("${FIXED_WORKSPACE}") {
+                    checkout scm
+                }
+            }
         }
 
         stage('Debug Mount') {
-
             steps {
+                ws("${FIXED_WORKSPACE}") {
                     sh '''
                         set -e
 
@@ -53,82 +105,82 @@ pipeline {
                         echo "🔍 DEBUG MOUNT CHECK"
                         echo "=============================="
 
-                        echo "Jenkins WORKSPACE (host path):"
-                        echo "$WORKSPACE"
-                        test -d "$WORKSPACE" || {
-                          echo "❌ WORKSPACE does not exist on Jenkins host"
+                        echo "Jenkins workspace:"
+                        pwd
+                        ls -la
+
+                        test -d scripts || {
+                          echo "❌ scripts/ directory missing in Jenkins workspace"
                           exit 1
                         }
 
-                        echo ""
-                        echo "Running container mount inspection..."
-
                         docker run --rm \
-                          -v "$WORKSPACE:$PROJECT_DIR" \
-                          -w "$PROJECT_DIR" \
+                          -v "$PWD:/sudoku_app" \
+                          -w /sudoku_app \
                           "$FLUTTER_IMAGE" \
                           bash -c '
                             set -e
-
-                            echo "📁 Container working directory:"
+                            echo "📁 Container PWD:"
                             pwd
-
-                            echo ""
-                            echo "📦 Container directory listing:"
+                            echo "📦 Listing:"
                             ls -la
-
-                            echo ""
-                            echo "📜 Checking scripts directory..."
-                            if [ ! -d scripts ]; then
-                              echo "❌ ERROR: scripts/ directory NOT FOUND inside container"
-                              exit 1
-                            fi
-
-                            echo "✅ scripts/ directory exists"
-
-                            echo ""
-                            echo "📜 scripts/ contents:"
+                            echo "📜 scripts/:"
                             ls -la scripts
-
-                            echo ""
-                            echo "🔐 Executable flags:"
-                            ls -l scripts/*.sh || {
-                              echo "❌ ERROR: No executable scripts found"
-                              exit 1
-                            }
-
-                            echo ""
-                            echo "✅ DEBUG MOUNT CHECK PASSED"
                           '
+
+                        echo "✅ DEBUG MOUNT CHECK PASSED"
                     '''
+                }
             }
         }
 
         stage('Clean Environment') {
             steps {
-                sh """
-                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
-                        bash -c "$CLEAN_GRADLE_SCRIPT && $CLEAN_FLUTTER_SCRIPT"
-                """
+                ws("${FIXED_WORKSPACE}") {
+                    sh '''
+                        docker run --rm \
+                          -v "$PWD:$PROJECT_DIR" \
+                          -w "$PROJECT_DIR" \
+                          "$FLUTTER_IMAGE" \
+                          bash -c "
+                            set -e
+                            ${CLEAN_GRADLE_SCRIPT}
+                            ${CLEAN_FLUTTER_SCRIPT}
+                          "
+                    '''
+                }
             }
         }
 
+
         stage('Build') {
             parallel {
+            
                 stage('Debug') {
                     steps {
-                        sh """
-                            docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
-                                bash $BUILD_ALL_SCRIPT $BUILD_ALL_DEBUG_ARGS
-                        """
+                        ws("${FIXED_WORKSPACE}") {
+                            sh '''
+                                docker run --rm \
+                                  -v "$PWD:$PROJECT_DIR" \
+                                  -w "$PROJECT_DIR" \
+                                  "$FLUTTER_IMAGE" \
+                                  bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
+                            '''
+                        }
                     }
                 }
+
                 stage('Release') {
                     steps {
-                        sh """
-                            docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
-                                bash $BUILD_ALL_SCRIPT $BUILD_ALL_RELEASE_ARGS
-                        """
+                        ws("${FIXED_WORKSPACE}") {
+                            sh '''
+                                docker run --rm \
+                                  -v "$PWD:$PROJECT_DIR" \
+                                  -w "$PROJECT_DIR" \
+                                  "$FLUTTER_IMAGE" \
+                                  bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
+                            '''
+                        }
                     }
                 }
             }
@@ -136,28 +188,38 @@ pipeline {
 
         stage('Run Integration Tests') {
             steps {
-                sh """
-                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE \
-                        bash $INTEGRATION_TEST_SCRIPT
-                """
+                ws("${FIXED_WORKSPACE}") {
+                    sh '''
+                        docker run --rm \
+                          -v "$PWD:$PROJECT_DIR" \
+                          -w "$PROJECT_DIR" \
+                          "$FLUTTER_IMAGE" \
+                          bash -c "${INTEGRATION_TEST_SCRIPT}"
+                    '''
+                }
             }
         }
 
         stage('Generate Diagrams & PDF') {
             steps {
-                sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
+                ws("${FIXED_WORKSPACE}") {
+                    sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
+                }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                sh '''
-                    mkdir -p build_outputs
-                    cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
-                    cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
-                '''
-                archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
+                ws("${FIXED_WORKSPACE}") {
+                    sh '''
+                        mkdir -p build_outputs
+                        cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
+                        cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
+                    '''
+                    archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
+                }
             }
         }
     }
 }
+
