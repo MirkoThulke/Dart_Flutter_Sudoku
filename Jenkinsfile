@@ -102,14 +102,6 @@ pipeline {
                           '
                     '''
             }
-
-            steps {
-                sh '''
-                    echo "Workspace inside container:"
-                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE ls -la
-                    docker run --rm -v "${WORKSPACE}:${PROJECT_DIR}" -w ${PROJECT_DIR} $FLUTTER_IMAGE ls -la scripts
-                '''
-            }
         }
 
         stage('Clean Environment') {
