@@ -47,7 +47,7 @@
 # 
 # list all docker images / containers:
 #   docker image ls
-#   docker container ls
+#   docker ps -s
 #
 # remove docker images / containers:
 #  docker rmi <image_id>

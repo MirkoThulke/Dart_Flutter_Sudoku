@@ -3,9 +3,6 @@
 // 
 //  GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
 //  
-//  Run Jenkins in browser on Host :
-//    http://localhost:8080
-//
 //  Jenkins pulls your app from GitHub into its workspace:
 //    /var/jenkins_home/workspace/Flutter_Docker_Pipeline
 //
@@ -27,7 +24,15 @@
 //   |  - Builds APKs            |
 //   +---------------------------+
 //   
-//   
+//   Host (WSL2)
+//   ├── /home/mirko/jenkins_home_host_mount  ← Jenkins data
+//   ├── Docker daemon
+//   │   └── /var/run/docker.sock
+//   │
+//   └── Jenkins container
+//       ├── /var/jenkins_home  ← mounted
+//       └── Docker CLI → host Docker
+//
 // Build artefacts are stored in :
 //    /var/jenkins_home/jobs/Flutter_Docker_Pipeline/builds/<build-id>/archive/
 // ------------------------------------------------------------
@@ -45,24 +50,81 @@
 // └── WSL2 (Linux VM)
 //     └── Docker Engine
 //         ├── Jenkins container
-//         │   └── /var/jenkins_home/workspace/Flutter_Docker_Pipeline
-//         │       └── <-- SOURCE CODE LIVES HERE
+//         │   └── /workspace/Flutter_Docker_Pipeline/  
+//         │                                            └── <-- SOURCE CODE LIVES HERE
 //         │
 //         └── Flutter build container
 //             └── /sudoku_app  (bind-mounted from Jenkins workspace)
 
-// Run Jenkins container with:
-//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
-//   sudo chown -R 1000:1000 /home/mirko/jenkins-home
-
-// Enter the jenkins container shell:
-//   docker exec -it jenkins bash
+//  ------------------------------------------------------------
+//    Persist Jenkins data on the host machine:
+//
+//   -v /home/mirko/jenkins_home_wsl2_host_mount:/var/jenkins_home
+//   🚨 THIS IS THE MOST IMPORTANT LINE
+//
+//    docker mount command, https://docs.docker.com/engine/storage/bind-mounts/ : 
+//       docker run -v <host-path>:<container-path>[:opts]
+//       The $(pwd) sub-command expands to the current working directory on Linux
+//
+//   This is a bind mount:
+//   Host (WSL2)	                                Container
+//   /home/mirko/jenkins_home_host_mount	    /var/jenkins_home
+//   
+//   Jenkins is storing its workspaces under /var/jenkins_home by default 
+//   (including the Flutter_Docker_Pipeline workspace)
+//
+//   -v (or --volume) bind-mounts a directory from your host into the container.
+//   -v <host_path>:<container_path>
+//
+//   -w /sudoku_app — Working directory
+//   -w (or --workdir) sets the current working directory inside the container.
+//    Equivalent to running:
+//    cd /sudoku_ap
+//  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
-// Print the initial admin password
-//   cat /var/jenkins_home/secrets/initialAdminPassword
-//   exit
+//  Option:	                                            Purpose:
+//  ------------------------------------------------------------
+//  -d	                                                Run in background
+//  --name jenkins	                                    Name the container
+//  -p 8080:8080	                                    Jenkins web UI
+//  -p 50000:50000	                                    Jenkins agents
+//  -v …:/var/jenkins_home	                            Persist Jenkins data
+//  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
+//   jenkins:latest	                                    Jenkins image
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//  different execution contexts, each with different users:
+//  
+//  - Host (WSL2 / Linux)
+//  - Jenkins container
+//  - Flutter build container
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+// Run Jenkins container with:
+//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
+//   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//   Enter the jenkins container shell:
+//     docker exec -it jenkins bash
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//   Print the initial admin password
+//    cat /workspace/Flutter_Docker_Pipeline/secrets/initialAdminPassword
+//    exit
 // ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//   Jenkins in your browser:
+//   http://localhost:8080
+//  ------------------------------------------------------------
+
+
 
 pipeline {
 
@@ -71,29 +133,33 @@ pipeline {
     options { skipDefaultCheckout true }
 
     environment {
-       FIXED_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
-       FLUTTER_IMAGE = 'flutter_rust_env'
-       PROJECT_DIR   = '/sudoku_app'
+        // Jenkins container paths :
+        JENKINS_HOME                = '/var/jenkins_home'
+        JENKINS_CUSTOM_WORKSPACE    = '/workspace/Flutter_Docker_Pipeline'
+        JENKINS_SCRIPTS_DIR         = 'scripts'
 
-       SCRIPTS_DIR = 'scripts'
+        // Flutter build container paths :
+        FLUTTER_IMAGE       = 'flutter_rust_env'
+        FLUTTER_PROJECT_DIR = '/sudoku_app'
 
-       CLEAN_GRADLE_SCRIPT     = "${SCRIPTS_DIR}/clean_gradle_cache.sh"
-       CLEAN_FLUTTER_SCRIPT    = "${SCRIPTS_DIR}/clean_flutter.sh"
+        // Mapped script paths ( scripts from GitHub repo ):
+        CLEAN_GRADLE_SCRIPT     = "${JENKINS_SCRIPTS_DIR}/clean_gradle_cache.sh"
+        CLEAN_FLUTTER_SCRIPT    = "${JENKINS_SCRIPTS_DIR}/clean_flutter.sh"
 
-       BUILD_ALL_SCRIPT        = "${SCRIPTS_DIR}/build_all.sh"
-       BUILD_DEBUG_ARGS        = 'debug'
-       BUILD_RELEASE_ARGS      = 'release'
+        BUILD_ALL_SCRIPT        = "${JENKINS_SCRIPTS_DIR}/build_all.sh"
+        BUILD_DEBUG_ARGS        = 'debug'
+        BUILD_RELEASE_ARGS      = 'release'
 
-       INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
-       PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
+        INTEGRATION_TEST_SCRIPT = "${JENKINS_SCRIPTS_DIR}/run_integration_test.sh"
+        PLANTUML_SCRIPT         = "${JENKINS_SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     checkout scm
                 }
             }
@@ -101,7 +167,7 @@ pipeline {
 
         stage('Debug Mount') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     sh '''
                         set -e
 
@@ -119,8 +185,9 @@ pipeline {
                         }
 
                         docker run --rm \
-                          -v "$PWD:/sudoku_app" \
-                          -w /sudoku_app \
+                          --user $(id -u):$(id -g) \
+                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
+                          -w "$FLUTTER_PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
                           bash -c '
                             set -e
@@ -140,11 +207,12 @@ pipeline {
 
         stage('Clean Environment') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     sh '''
                         docker run --rm \
-                          -v "$PWD:$PROJECT_DIR" \
-                          -w "$PROJECT_DIR" \
+                          --user $(id -u):$(id -g) \
+                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
+                          -w "$FLUTTER_PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
                           bash -c "
                             set -e
@@ -162,11 +230,12 @@ pipeline {
             
                 stage('Debug') {
                     steps {
-                        ws("${FIXED_WORKSPACE}") {
+                        ws("${JENKINS_CUSTOM_WORKSPACE}") {
                             sh '''
                                 docker run --rm \
-                                  -v "$PWD:$PROJECT_DIR" \
-                                  -w "$PROJECT_DIR" \
+                                  --user $(id -u):$(id -g) \
+                                  -v "$PWD:$FLUTTER_PROJECT_DIR" \
+                                  -w "$FLUTTER_PROJECT_DIR" \
                                   "$FLUTTER_IMAGE" \
                                   bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
                             '''
@@ -176,11 +245,12 @@ pipeline {
 
                 stage('Release') {
                     steps {
-                        ws("${FIXED_WORKSPACE}") {
+                        ws("${JENKINS_CUSTOM_WORKSPACE}") {
                             sh '''
                                 docker run --rm \
-                                  -v "$PWD:$PROJECT_DIR" \
-                                  -w "$PROJECT_DIR" \
+                                  --user $(id -u):$(id -g) \
+                                  -v "$PWD:$FLUTTER_PROJECT_DIR" \
+                                  -w "$FLUTTER_PROJECT_DIR" \
                                   "$FLUTTER_IMAGE" \
                                   bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
                             '''
@@ -192,11 +262,12 @@ pipeline {
 
         stage('Run Integration Tests') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     sh '''
                         docker run --rm \
-                          -v "$PWD:$PROJECT_DIR" \
-                          -w "$PROJECT_DIR" \
+                          --user $(id -u):$(id -g) \
+                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
+                          -w "$FLUTTER_PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
                           bash -c "${INTEGRATION_TEST_SCRIPT}"
                     '''
@@ -206,7 +277,7 @@ pipeline {
 
         stage('Generate Diagrams & PDF') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
                 }
             }
@@ -214,7 +285,7 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                ws("${FIXED_WORKSPACE}") {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
                     sh '''
                         mkdir -p build_outputs
                         cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
