@@ -53,10 +53,7 @@
 
 // Run Jenkins container with:
 //   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
-//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins-home:/var/jenkins_home -v /home/mirko/jenkins-workspace:/workspace -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
 //   sudo chown -R 1000:1000 /home/mirko/jenkins-home
-//   sudo mkdir -p /home/mirko/jenkins-workspace
-//   sudo chown -R 1000:1000 /home/mirko/jenkins-workspace
 
 // Enter the jenkins container shell:
 //   docker exec -it jenkins bash
@@ -74,8 +71,7 @@ pipeline {
     options { skipDefaultCheckout true }
 
     environment {
-        HOST_WORKSPACE = '/home/mirko/jenkins-workspace/Flutter_Docker_Pipeline'
-
+       FIXED_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
        FLUTTER_IMAGE = 'flutter_rust_env'
        PROJECT_DIR   = '/sudoku_app'
@@ -97,7 +93,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     checkout scm
                 }
             }
@@ -105,7 +101,7 @@ pipeline {
 
         stage('Debug Mount') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     sh '''
                         set -e
 
@@ -123,7 +119,7 @@ pipeline {
                         }
 
                         docker run --rm \
-                          -v "$HOST_WORKSPACE:/sudoku_app" \
+                          -v "$PWD:/sudoku_app" \
                           -w /sudoku_app \
                           "$FLUTTER_IMAGE" \
                           bash -c '
@@ -144,10 +140,10 @@ pipeline {
 
         stage('Clean Environment') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     sh '''
                         docker run --rm \
-                          -v "$HOST_WORKSPACE:$PROJECT_DIR" \
+                          -v "$PWD:$PROJECT_DIR" \
                           -w "$PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
                           bash -c "
@@ -166,10 +162,10 @@ pipeline {
             
                 stage('Debug') {
                     steps {
-                        ws("${HOST_WORKSPACE}") {
+                        ws("${FIXED_WORKSPACE}") {
                             sh '''
                                 docker run --rm \
-                                  -v "$HOST_WORKSPACE:$PROJECT_DIR" \
+                                  -v "$PWD:$PROJECT_DIR" \
                                   -w "$PROJECT_DIR" \
                                   "$FLUTTER_IMAGE" \
                                   bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
@@ -180,10 +176,10 @@ pipeline {
 
                 stage('Release') {
                     steps {
-                        ws("${HOST_WORKSPACE}") {
+                        ws("${FIXED_WORKSPACE}") {
                             sh '''
                                 docker run --rm \
-                                  -v "$HOST_WORKSPACE:$PROJECT_DIR" \
+                                  -v "$PWD:$PROJECT_DIR" \
                                   -w "$PROJECT_DIR" \
                                   "$FLUTTER_IMAGE" \
                                   bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
@@ -196,10 +192,10 @@ pipeline {
 
         stage('Run Integration Tests') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     sh '''
                         docker run --rm \
-                          -v "$HOST_WORKSPACE:$PROJECT_DIR" \
+                          -v "$PWD:$PROJECT_DIR" \
                           -w "$PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
                           bash -c "${INTEGRATION_TEST_SCRIPT}"
@@ -210,7 +206,7 @@ pipeline {
 
         stage('Generate Diagrams & PDF') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
                 }
             }
@@ -218,7 +214,7 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                ws("${HOST_WORKSPACE}") {
+                ws("${FIXED_WORKSPACE}") {
                     sh '''
                         mkdir -p build_outputs
                         cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
