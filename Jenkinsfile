@@ -106,11 +106,15 @@
 // RUN THE JENINS CONTAINER !! STEP 1/4
 //  ------------------------------------------------------------
 // Run Jenkins container with:
-//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
+//
 //   sudo rm -rf /home/mirko/jenkins_home_host_mount
+//   sudo mkdir -p /home/mirko/jenkins_home_host_mount
 //   sudo mkdir -p /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
 //   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
+//   
+//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest:lts
+//   
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -152,7 +156,7 @@ pipeline {
 
         // Jenkins container paths :
         JENKINS_HOME                = '/var/jenkins_home'
-        JENKINS_CUSTOM_WORKSPACE    = '/workspace/Flutter_Docker_Pipeline'
+        JENKINS_CUSTOM_WORKSPACE    = '/var/jenkins_home/workspace/Flutter_Docker_Pipeline'
         JENKINS_SCRIPTS_DIR         = 'scripts'
 
         // Flutter build container paths :
@@ -173,11 +177,14 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
+
+        stage('Workspace Permissions Check') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    checkout scm
-                }
+                sh '''
+                    set -e
+                    test -w "$JENKINS_CUSTOM_WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
+                    test -d "$JENKINS_CUSTOM_WORKSPACE/scripts" || { echo "❌ scripts missing"; exit 1; }
+                '''
             }
         }
 
@@ -211,6 +218,14 @@ pipeline {
 
                         echo "✅ DEBUG MOUNT CHECK PASSED"
                     '''
+                }
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                ws("${JENKINS_CUSTOM_WORKSPACE}") {
+                    checkout scm
                 }
             }
         }
