@@ -103,25 +103,41 @@
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
+// RUN THE JENINS CONTAINER !! STEP 1/4
+//  ------------------------------------------------------------
 // Run Jenkins container with:
 //   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins:latest
+//   sudo rm -rf /home/mirko/jenkins_home_host_mount
+//   sudo mkdir -p /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
+//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
 //  ------------------------------------------------------------
 
+//  ------------------------------------------------------------
+// RUN THE JENINS CONTAINER !! STEP 2/4
 //  ------------------------------------------------------------
 //   Enter the jenkins container shell:
 //     docker exec -it jenkins bash
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
+// RUN THE JENINS CONTAINER !! STEP 3/4
+//  ------------------------------------------------------------
 //   Print the initial admin password
-//    cat /workspace/Flutter_Docker_Pipeline/secrets/initialAdminPassword
+//    cat /var/jenkins_home/secrets/initialAdminPassword
 //    exit
 // ------------------------------------------------------------
 
 //  ------------------------------------------------------------
+// RUN THE JENINS CONTAINER !! STEP 4/4
+//  ------------------------------------------------------------
 //   Jenkins in your browser:
 //   http://localhost:8080
+//
+// Configure Jenkins pipeline in Jenkins GUI
+// - Select GitHub, add repo github link
+// - Select pipeline job
+// - select path to jenkinsfile
 //  ------------------------------------------------------------
 
 
@@ -179,25 +195,19 @@ pipeline {
                         pwd
                         ls -la
 
-                        test -d scripts || {
-                          echo "❌ scripts/ directory missing in Jenkins workspace"
-                          exit 1
-                        }
+                        # Check workspace write permission
+                        test -w . || { echo "❌ Workspace not writable by Jenkins user"; exit 1; }
 
+                        # Check scripts directory
+                        test -d scripts || { echo "❌ scripts/ directory missing"; exit 1; }
+
+                        # Optional: check write from Docker container
                         docker run --rm \
                           --user $(id -u):$(id -g) \
                           -v "$PWD:$FLUTTER_PROJECT_DIR" \
                           -w "$FLUTTER_PROJECT_DIR" \
                           "$FLUTTER_IMAGE" \
-                          bash -c '
-                            set -e
-                            echo "📁 Container PWD:"
-                            pwd
-                            echo "📦 Listing:"
-                            ls -la
-                            echo "📜 scripts/:"
-                            ls -la scripts
-                          '
+                          bash -c "touch docker_mount_test && rm docker_mount_test"
 
                         echo "✅ DEBUG MOUNT CHECK PASSED"
                     '''
