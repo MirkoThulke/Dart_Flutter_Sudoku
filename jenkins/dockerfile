@@ -8,11 +8,13 @@
 # ------------------------------------------------------------
 # Install minimal dependencies + Docker CLI
 # ------------------------------------------------------------
-
+# Base image
 FROM jenkins/jenkins:lts
 
+# Switch to root to install packages
 USER root
 
+# Install minimal dependencies + Docker CLI + Git
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         docker-cli \
@@ -28,16 +30,18 @@ RUN groupadd -f docker && usermod -aG docker jenkins
 # Ensure docker is discoverable
 ENV PATH="/usr/bin:/usr/local/bin:$PATH"
 
+# ENTRYPOINT / CMD
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/usr/local/bin/jenkins.sh"]
 
-
+# Switch to Jenkins user
 USER jenkins
 
-
+# Install required Jenkins plugins
 RUN jenkins-plugin-cli --plugins \
     git \
     workflow-aggregator \
     github \
     github-branch-source \
-    pipeline-stage-view 
+    pipeline-stage-view \
+    docker-workflow
