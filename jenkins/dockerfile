@@ -38,10 +38,9 @@ CMD ["/usr/local/bin/jenkins.sh"]
 USER jenkins
 
 # Install required Jenkins plugins
-RUN jenkins-plugin-cli --plugins \
-    git \
-    workflow-aggregator \
-    github \
-    github-branch-source \
-    pipeline-stage-view \
-    docker-workflow
+RUN jenkins-plugin-cli --plugins 
+    \ git 
+    \ workflow-aggregator 
+    \ github 
+    \ github-branch-source 
+    \ pipeline-stage-view
