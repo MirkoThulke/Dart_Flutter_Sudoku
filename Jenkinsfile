@@ -59,7 +59,7 @@
 //  ------------------------------------------------------------
 //    Persist Jenkins data on the host machine:
 //
-//   -v /home/mirko/jenkins_home_wsl2_host_mount:/var/jenkins_home
+//   -v /var/jenkins_home_host_mount:/var/jenkins_home
 //   🚨 THIS IS THE MOST IMPORTANT LINE
 //
 //    docker mount command, https://docs.docker.com/engine/storage/bind-mounts/ : 
@@ -107,21 +107,21 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 //
-//   sudo rm -rf /mnt/wsl/jenkins_home_host_mount
-//   sudo mkdir -p /mnt/wsl/jenkins_home_host_mount
-//   sudo mkdir -p /mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
-//   sudo chown -R 1000:1000 /mnt/wsl/jenkins_home_host_mount
-//   sudo chmod -R 755 /mnt/wsl/jenkins_home_host_mount
+//   sudo rm -rf /var/jenkins_home_host_mount/
+//   sudo mkdir -p /var/jenkins_home_host_mount/
+//   sudo mkdir -p /var/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
+//   sudo chown -R 1000:1000 /var/jenkins_home_host_mount
+//   sudo chmod -R 755 /var/jenkins_home_host_mount
 //
 //   
 // Please check Image Tag in dockerfile and in the command below !
 //
-//   docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /mnt/wsl/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//   docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /var/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //   
 //   docker logs -f jenkins_sudoku_container
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ln /mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
+//   ls -ln /var/jenkins_home_host_mount/Flutter_Docker_Pipeline
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -160,7 +160,7 @@ pipeline {
 
     environment {
         // Global workspace path (custom)
-        GLOBAL_WORKSPACE = '/mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline'
+        GLOBAL_WORKSPACE = '/var/jenkins_home_host_mount/Flutter_Docker_Pipeline'
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
