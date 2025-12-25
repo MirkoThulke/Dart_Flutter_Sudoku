@@ -113,7 +113,7 @@
 //   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
 //   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
 //   
-//   docker run -d --name jenkins_sudoku_container -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:lts
+//   docker run -d --name jenkins_sudoku_container -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:latest
 //   
 //   docker logs -f jenkins_sudoku_container
 //  ------------------------------------------------------------
