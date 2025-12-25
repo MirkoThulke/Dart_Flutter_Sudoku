@@ -179,14 +179,37 @@ pipeline {
 
     stages {
 
+
+        stage('Prepare Workspace') {
+            steps {
+                sh '''
+                    mkdir -p "$WORKSPACE"
+                    chown -R $(id -u):$(id -g) "$WORKSPACE"
+                '''
+            }
+        }
+
+
         /* ------------------------------------------------------------
          * Checkout
          * ------------------------------------------------------------ */
         stage('Checkout') {
-            steps {
-                checkout scm
-            }
+           steps {
+               dir("$WORKSPACE") {
+                   checkout scm
+               }
+           }
         }
+
+
+       stage('Validate Repo Structure') {
+           steps {
+               sh '''
+                   test -d scripts || { echo "❌ scripts/ directory missing after checkout"; exit 1; }
+               '''
+           }
+        }
+
 
         /* ------------------------------------------------------------
          * Workspace & Mount Validation
@@ -207,49 +230,49 @@ pipeline {
             }
         }
 
-        /* ------------------------------------------------------------
-         * Docker Mount Validation
-         * ------------------------------------------------------------ */
         stage('Docker Mount Validation') {
-            steps {
-                sh '''
-                    set -e
-        
-                    echo "=============================="
-                    echo "🔍 Docker Mount Validation"
-                    echo "=============================="
-        
-                    echo "Jenkins host UID/GID:"
-                    id
-        
-                    echo "Workspace path on host: $WORKSPACE"
-                    echo "Contents of workspace:"
-                    ls -la "$WORKSPACE"
-                    ls -ln "$WORKSPACE"
-        
-                    echo "Running container check..."
-                    docker run --rm \
-                      --user $(id -u):$(id -g) \
-                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                      -w "$FLUTTER_PROJECT_DIR" \
-                      "$FLUTTER_IMAGE" \
-                      bash -c "
-                        set -e
-                        echo 'Container UID/GID:'
-                        id
-                        echo 'Listing mounted directory inside container:'
-                        ls -la
-                        ls -ln
-                        echo 'Checking scripts directory exists...'
-                        test -d scripts || { echo '❌ scripts/ directory missing inside container'; exit 1; }
-                        echo 'Testing write permission...'
-                        touch mount_test && rm mount_test || { echo '❌ Cannot write to mounted directory'; exit 1; }
-                        echo '✅ Container mount test passed'
-                      "
-        
-                    echo "✅ Docker mount validation passed on host"
-                '''
-            }
+           steps {
+               sh '''
+                   set -e
+                   echo "=============================="
+                   echo "🔍 Docker Mount Validation"
+                   echo "=============================="
+
+                   echo "Host workspace path:"
+                   echo "$WORKSPACE"
+                   echo "Contents on host:"
+                   ls -la "$WORKSPACE"
+                   echo "UID/GID on host:"
+                   stat -c '%U %G %a' "$WORKSPACE"
+
+                   echo "Container check..."
+                   docker run --rm \
+                     --user $(id -u):$(id -g) \
+                     -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                     -w "$FLUTTER_PROJECT_DIR" \
+                     "$FLUTTER_IMAGE" \
+                     bash -c "
+                       set -e
+                       echo 'Container UID/GID:'
+                       id
+                       echo 'Listing mounted directory inside container:'
+                       ls -la
+                       ls -ln
+                       if [ ! -d scripts ]; then
+                         echo '❌ scripts/ directory missing inside container'
+                         echo 'Hint: Check host folder $WORKSPACE/scripts exists and is readable by UID $(id -u)'
+                         exit 1
+                       fi
+                       echo 'Testing write permission inside container...'
+                       touch mount_test && rm mount_test || {
+                         echo '❌ Cannot write to mounted directory'
+                         echo 'Hint: Adjust host folder permissions: sudo chown -R $(id -u):$(id -g) $WORKSPACE'
+                         exit 1
+                       }
+                       echo '✅ Container mount test passed'
+                     "
+               '''
+           }
         }
 
 
