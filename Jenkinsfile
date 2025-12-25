@@ -147,182 +147,195 @@
 // - select path to jenkinsfile
 //  ------------------------------------------------------------
 
-
-
 pipeline {
 
     agent any
 
-    options { skipDefaultCheckout true }
+    options {
+        skipDefaultCheckout true
+        timestamps()
+    }
 
     environment {
 
-        // Jenkins container paths :
-        JENKINS_HOME                = '/var/jenkins_home'
-        JENKINS_CUSTOM_WORKSPACE    = '/var/jenkins_home/workspace/Flutter_Docker_Pipeline'
-        JENKINS_SCRIPTS_DIR         = 'scripts'
-
-        // Flutter build container paths :
+        // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
         FLUTTER_PROJECT_DIR = '/sudoku_app'
 
-        // Mapped script paths ( scripts from GitHub repo ):
-        CLEAN_GRADLE_SCRIPT     = "${JENKINS_SCRIPTS_DIR}/clean_gradle_cache.sh"
-        CLEAN_FLUTTER_SCRIPT    = "${JENKINS_SCRIPTS_DIR}/clean_flutter.sh"
+        // Repository paths
+        SCRIPTS_DIR = 'scripts'
 
-        BUILD_ALL_SCRIPT        = "${JENKINS_SCRIPTS_DIR}/build_all.sh"
+        // Script paths
+        CLEAN_GRADLE_SCRIPT     = "${SCRIPTS_DIR}/clean_gradle_cache.sh"
+        CLEAN_FLUTTER_SCRIPT    = "${SCRIPTS_DIR}/clean_flutter.sh"
+
+        BUILD_ALL_SCRIPT        = "${SCRIPTS_DIR}/build_all.sh"
         BUILD_DEBUG_ARGS        = 'debug'
         BUILD_RELEASE_ARGS      = 'release'
 
-        INTEGRATION_TEST_SCRIPT = "${JENKINS_SCRIPTS_DIR}/run_integration_test.sh"
-        PLANTUML_SCRIPT         = "${JENKINS_SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
+        INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
+        PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
     }
 
     stages {
 
+        /* ------------------------------------------------------------
+         * Checkout
+         * ------------------------------------------------------------ */
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
 
-        stage('Workspace Permissions Check') {
+        /* ------------------------------------------------------------
+         * Workspace & Mount Validation
+         * ------------------------------------------------------------ */
+        stage('Workspace Validation') {
             steps {
                 sh '''
                     set -e
-                    test -w "$JENKINS_CUSTOM_WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
-                    test -d "$JENKINS_CUSTOM_WORKSPACE/scripts" || { echo "❌ scripts missing"; exit 1; }
+
+                    echo "Workspace: $WORKSPACE"
+                    ls -la
+
+                    test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
+                    test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
+
+                    echo "✅ Workspace validation passed"
                 '''
             }
         }
 
-        stage('Debug Mount') {
+        /* ------------------------------------------------------------
+         * Docker Mount Validation
+         * ------------------------------------------------------------ */
+        stage('Docker Mount Validation') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    sh '''
+                sh '''
+                    set -e
+
+                    docker run --rm \
+                      --user $(id -u):$(id -g) \
+                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                      -w "$FLUTTER_PROJECT_DIR" \
+                      "$FLUTTER_IMAGE" \
+                      bash -c "
                         set -e
+                        test -d scripts
+                        touch mount_test && rm mount_test
+                      "
 
-                        echo "=============================="
-                        echo "🔍 DEBUG MOUNT CHECK"
-                        echo "=============================="
-
-                        echo "Jenkins workspace:"
-                        pwd
-                        ls -la
-
-                        # Check workspace write permission
-                        test -w . || { echo "❌ Workspace not writable by Jenkins user"; exit 1; }
-
-                        # Check scripts directory
-                        test -d scripts || { echo "❌ scripts/ directory missing"; exit 1; }
-
-                        # Optional: check write from Docker container
-                        docker run --rm \
-                          --user $(id -u):$(id -g) \
-                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
-                          -w "$FLUTTER_PROJECT_DIR" \
-                          "$FLUTTER_IMAGE" \
-                          bash -c "touch docker_mount_test && rm docker_mount_test"
-
-                        echo "✅ DEBUG MOUNT CHECK PASSED"
-                    '''
-                }
+                    echo "✅ Docker mount validation passed"
+                '''
             }
         }
 
-        stage('Checkout') {
-            steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    checkout scm
-                }
-            }
-        }
-
+        /* ------------------------------------------------------------
+         * Clean Environment
+         * ------------------------------------------------------------ */
         stage('Clean Environment') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    sh '''
-                        docker run --rm \
-                          --user $(id -u):$(id -g) \
-                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
-                          -w "$FLUTTER_PROJECT_DIR" \
-                          "$FLUTTER_IMAGE" \
-                          bash -c "
-                            set -e
-                            ${CLEAN_GRADLE_SCRIPT}
-                            ${CLEAN_FLUTTER_SCRIPT}
-                          "
-                    '''
-                }
+                sh '''
+                    docker run --rm \
+                      --user $(id -u):$(id -g) \
+                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                      -w "$FLUTTER_PROJECT_DIR" \
+                      "$FLUTTER_IMAGE" \
+                      bash -c "
+                        set -e
+                        ${CLEAN_GRADLE_SCRIPT}
+                        ${CLEAN_FLUTTER_SCRIPT}
+                      "
+                '''
             }
         }
 
-
+        /* ------------------------------------------------------------
+         * Build
+         * ------------------------------------------------------------ */
         stage('Build') {
             parallel {
-            
+
                 stage('Debug') {
                     steps {
-                        ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                            sh '''
-                                docker run --rm \
-                                  --user $(id -u):$(id -g) \
-                                  -v "$PWD:$FLUTTER_PROJECT_DIR" \
-                                  -w "$FLUTTER_PROJECT_DIR" \
-                                  "$FLUTTER_IMAGE" \
-                                  bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
-                            '''
-                        }
+                        sh '''
+                            docker run --rm \
+                              --user $(id -u):$(id -g) \
+                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                              -w "$FLUTTER_PROJECT_DIR" \
+                              "$FLUTTER_IMAGE" \
+                              bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
+                        '''
                     }
                 }
 
                 stage('Release') {
                     steps {
-                        ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                            sh '''
-                                docker run --rm \
-                                  --user $(id -u):$(id -g) \
-                                  -v "$PWD:$FLUTTER_PROJECT_DIR" \
-                                  -w "$FLUTTER_PROJECT_DIR" \
-                                  "$FLUTTER_IMAGE" \
-                                  bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
-                            '''
-                        }
+                        sh '''
+                            docker run --rm \
+                              --user $(id -u):$(id -g) \
+                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                              -w "$FLUTTER_PROJECT_DIR" \
+                              "$FLUTTER_IMAGE" \
+                              bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
+                        '''
                     }
                 }
             }
         }
 
+        /* ------------------------------------------------------------
+         * Integration Tests
+         * ------------------------------------------------------------ */
         stage('Run Integration Tests') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    sh '''
-                        docker run --rm \
-                          --user $(id -u):$(id -g) \
-                          -v "$PWD:$FLUTTER_PROJECT_DIR" \
-                          -w "$FLUTTER_PROJECT_DIR" \
-                          "$FLUTTER_IMAGE" \
-                          bash -c "${INTEGRATION_TEST_SCRIPT}"
-                    '''
-                }
+                sh '''
+                    docker run --rm \
+                      --user $(id -u):$(id -g) \
+                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                      -w "$FLUTTER_PROJECT_DIR" \
+                      "$FLUTTER_IMAGE" \
+                      bash -c "${INTEGRATION_TEST_SCRIPT}"
+                '''
             }
         }
 
+        /* ------------------------------------------------------------
+         * Generate Diagrams
+         * ------------------------------------------------------------ */
         stage('Generate Diagrams & PDF') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    sh "pwsh ${GENERATE_PLANTUML_PDF_SCRIPT}"
-                }
+                sh "pwsh ${PLANTUML_SCRIPT}"
             }
         }
 
+        /* ------------------------------------------------------------
+         * Archive Artifacts
+         * ------------------------------------------------------------ */
         stage('Archive Artifacts') {
             steps {
-                ws("${JENKINS_CUSTOM_WORKSPACE}") {
-                    sh '''
-                        mkdir -p build_outputs
-                        cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
-                        cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
-                    '''
-                    archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
-                }
+                sh '''
+                    mkdir -p build_outputs
+                    cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
+                    cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
+                '''
+                archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
             }
         }
     }
+
+    post {
+        always {
+            echo "Pipeline finished: ${currentBuild.currentResult}"
+        }
+        failure {
+            echo "❌ Build failed — check logs above"
+        }
+        success {
+            echo "✅ Build succeeded"
+        }
+    }
 }
+
 
