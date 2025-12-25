@@ -29,7 +29,9 @@ RUN groupadd -f docker && usermod -aG docker jenkins
 
 # Ensure docker is discoverable
 ENV PATH="/usr/bin:/usr/local/bin:$PATH"
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false" # Disable setup wizard in Jenkins
+
+# Disable setup wizard in Jenkins
+ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
 # ENTRYPOINT / CMD
 ENTRYPOINT ["/usr/bin/tini", "--"]
