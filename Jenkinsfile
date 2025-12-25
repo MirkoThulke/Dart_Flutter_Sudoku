@@ -112,6 +112,7 @@
 //   sudo mkdir -p /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
 //   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
+//
 //   
 // Please check Image Tag in dockerfile and in the command below !
 //
@@ -213,7 +214,20 @@ pipeline {
             steps {
                 sh '''
                     set -e
-
+        
+                    echo "=============================="
+                    echo "🔍 Docker Mount Validation"
+                    echo "=============================="
+        
+                    echo "Jenkins host UID/GID:"
+                    id
+        
+                    echo "Workspace path on host: $WORKSPACE"
+                    echo "Contents of workspace:"
+                    ls -la "$WORKSPACE"
+                    ls -ln "$WORKSPACE"
+        
+                    echo "Running container check..."
                     docker run --rm \
                       --user $(id -u):$(id -g) \
                       -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
@@ -221,14 +235,23 @@ pipeline {
                       "$FLUTTER_IMAGE" \
                       bash -c "
                         set -e
-                        test -d scripts
-                        touch mount_test && rm mount_test
+                        echo 'Container UID/GID:'
+                        id
+                        echo 'Listing mounted directory inside container:'
+                        ls -la
+                        ls -ln
+                        echo 'Checking scripts directory exists...'
+                        test -d scripts || { echo '❌ scripts/ directory missing inside container'; exit 1; }
+                        echo 'Testing write permission...'
+                        touch mount_test && rm mount_test || { echo '❌ Cannot write to mounted directory'; exit 1; }
+                        echo '✅ Container mount test passed'
                       "
-
-                    echo "✅ Docker mount validation passed"
+        
+                    echo "✅ Docker mount validation passed on host"
                 '''
             }
         }
+
 
         /* ------------------------------------------------------------
          * Clean Environment
