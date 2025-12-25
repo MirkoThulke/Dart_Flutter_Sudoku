@@ -86,12 +86,12 @@
 //  Option:	                                            Purpose:
 //  ------------------------------------------------------------
 //  -d	                                                Run in background
-//  --name jenkins	                                    Name the container
+//  --name jenkins_container_sudoku	                    Name the container
 //  -p 8080:8080	                                    Jenkins web UI
 //  -p 50000:50000	                                    Jenkins agents
 //  -v …:/var/jenkins_home	                            Persist Jenkins data
 //  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
-//   jenkins:latest	                                    Jenkins image
+//   jenkins_container_sudoku:lts	                    Jenkins image
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -113,16 +113,16 @@
 //   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
 //   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
 //   
-//   docker run -d --name jenkins -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins/jenkins:lts
+//   docker run -d --name jenkins_sudoku_container -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:lts
 //   
-//   docker logs -f jenkins
+//   docker logs -f jenkins_sudoku_container
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
 // RUN THE JENINS CONTAINER !! STEP 2/4
 //  ------------------------------------------------------------
 //   Enter the jenkins container shell:
-//     docker exec -it jenkins bash
+//     docker exec -it jenkins_sudoku_container bash
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
