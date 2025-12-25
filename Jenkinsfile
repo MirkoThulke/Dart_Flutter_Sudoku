@@ -25,7 +25,7 @@
 //   +---------------------------+
 //   
 //   Host (WSL2)
-//   ├── /home/mirko/jenkins_home_host_mount  ← Jenkins data
+//   ├── /mnt/wsl/jenkins_home_host_mount  ← Jenkins data
 //   ├── Docker daemon
 //   │   └── /var/run/docker.sock
 //   │
@@ -68,7 +68,7 @@
 //
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
-//   /home/mirko/jenkins_home_host_mount	    /var/jenkins_home
+//   /mnt/wsl/jenkins_home_host_mount	    /var/jenkins_home
 //   
 //   Jenkins is storing its workspaces under /var/jenkins_home by default 
 //   (including the Flutter_Docker_Pipeline workspace)
@@ -107,21 +107,21 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 //
-//   sudo rm -rf /home/mirko/jenkins_home_host_mount
-//   sudo mkdir -p /home/mirko/jenkins_home_host_mount
-//   sudo mkdir -p /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
-//   sudo chown -R 1000:1000 /home/mirko/jenkins_home_host_mount
-//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
+//   sudo rm -rf /mnt/wsl/jenkins_home_host_mount
+//   sudo mkdir -p /mnt/wsl/jenkins_home_host_mount
+//   sudo mkdir -p /mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
+//   sudo chown -R 1000:1000 /mnt/wsl/jenkins_home_host_mount
+//   sudo chmod -R 755 /mnt/wsl/jenkins_home_host_mount
 //
 //   
 // Please check Image Tag in dockerfile and in the command below !
 //
-//   docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//   docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /mnt/wsl/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //   
 //   docker logs -f jenkins_sudoku_container
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ln /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
+//   ls -ln /mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
