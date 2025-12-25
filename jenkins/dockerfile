@@ -1,15 +1,16 @@
 # ------------------------------------------------------------
-# Build image:
-#   docker build -t jenkins_sudoku_image:latest .
-#   docker build --no-cache -t jenkins_sudoku_image:latest .
+# Build image with specific tag:
+# ------------------------------------------------------------
+#   docker build -t jenkins_sudoku_image:2.528.3 .
+#   docker build --no-cache -t jenkins_sudoku_image:2.528.3 .
 # ------------------------------------------------------------
 
 
 # ------------------------------------------------------------
 # Install minimal dependencies + Docker CLI
 # ------------------------------------------------------------
-# Base image
-FROM jenkins/jenkins:lts
+# Base image, Pin to specific LTS version for stability
+FROM jenkins/jenkins:2.528.3-lts-jdk21
 
 # Switch to root to install packages
 USER root
