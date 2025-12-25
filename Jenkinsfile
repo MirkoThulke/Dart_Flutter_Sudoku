@@ -153,7 +153,6 @@ pipeline {
 
     options {
         skipDefaultCheckout true
-        timestamps()
     }
 
     environment {
