@@ -160,7 +160,6 @@ pipeline {
     }
 
     environment {
-
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
         FLUTTER_PROJECT_DIR = '/sudoku_app'
@@ -178,200 +177,191 @@ pipeline {
 
         INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
+
+        // Global workspace path parameter (update to your WSL path)
+        GLOBAL_WORKSPACE = '/mnt/wsl/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline'
     }
 
     stages {
 
+        ws("${GLOBAL_WORKSPACE}") {
 
-        stage('Prepare Workspace') {
-            steps {
-                sh '''
-                    mkdir -p "$WORKSPACE"
-                    chown -R $(id -u):$(id -g) "$WORKSPACE"
-                '''
+            stage('Prepare Workspace') {
+                steps {
+                    sh '''
+                        mkdir -p "$WORKSPACE"
+                        chown -R $(id -u):$(id -g) "$WORKSPACE"
+                    '''
+                }
             }
-        }
 
+            /* ------------------------------------------------------------
+             * Checkout
+             * ------------------------------------------------------------ */
+            stage('Checkout') {
+                steps {
+                    checkout scm
+                }
+            }
 
-        /* ------------------------------------------------------------
-         * Checkout
-         * ------------------------------------------------------------ */
-        stage('Checkout') {
-           steps {
-               dir("$WORKSPACE") {
-                   checkout scm
-               }
-           }
-        }
+            stage('Validate Repo Structure') {
+                steps {
+                    sh '''
+                        test -d scripts || { echo "❌ scripts/ directory missing after checkout"; exit 1; }
+                    '''
+                }
+            }
 
-
-       stage('Validate Repo Structure') {
-           steps {
-               sh '''
-                   test -d scripts || { echo "❌ scripts/ directory missing after checkout"; exit 1; }
-               '''
-           }
-        }
-
-
-        /* ------------------------------------------------------------
-         * Workspace & Mount Validation
-         * ------------------------------------------------------------ */
-        stage('Workspace Validation') {
-           steps {
-               sh '''
-                   set -e
-
-                   echo "Workspace: $WORKSPACE"
-                   echo "Listing workspace contents (long format with numeric UID/GID):"
-                   ls -ln "$WORKSPACE"
-
-                   test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
-                   test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
-
-                   echo "✅ Workspace validation passed"
-               '''
-           }
-        }
-
-        stage('Docker Mount Validation') {
-          steps {
-              sh '''
-                  set -e
-                  echo "=============================="
-                  echo "🔍 Docker Mount Validation"
-                  echo "=============================="
-
-                  echo "Host workspace path:"
-                  echo "$WORKSPACE"
-                  echo "Listing host workspace contents (long format with numeric UID/GID):"
-                  ls -ln "$WORKSPACE"
-
-                  echo "UID/GID on host:"
-                  stat -c '%U %G %a' "$WORKSPACE"
-
-                  echo "Container check..."
-                  docker run --rm \
-                    --user $(id -u):$(id -g) \
-                    -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                    -w "$FLUTTER_PROJECT_DIR" \
-                    "$FLUTTER_IMAGE" \
-                    bash -c "
-                      set -e
-                      echo 'Container UID/GID:'
-                      id
-                      echo 'Listing mounted directory inside container:'
-                      ls -la
-                      ls -ln
-                      if [ ! -d scripts ]; then
-                        echo '❌ scripts/ directory missing inside container'
-                        echo 'Hint: Check host folder $WORKSPACE/scripts exists and is readable by UID $(id -u)'
-                        exit 1
-                      fi
-                      echo 'Testing write permission inside container...'
-                      touch mount_test && rm mount_test || {
-                        echo '❌ Cannot write to mounted directory'
-                        echo 'Hint: Adjust host folder permissions: sudo chown -R $(id -u):$(id -g) $WORKSPACE'
-                        exit 1
-                      }
-                      echo '✅ Container mount test passed'
-                    "
-              '''
-          }
-        }
-
-        /* ------------------------------------------------------------
-         * Clean Environment
-         * ------------------------------------------------------------ */
-        stage('Clean Environment') {
-            steps {
-                sh '''
-                    docker run --rm \
-                      --user $(id -u):$(id -g) \
-                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                      -w "$FLUTTER_PROJECT_DIR" \
-                      "$FLUTTER_IMAGE" \
-                      bash -c "
+            /* ------------------------------------------------------------
+             * Workspace & Mount Validation
+             * ------------------------------------------------------------ */
+            stage('Workspace Validation') {
+                steps {
+                    sh '''
                         set -e
-                        ${CLEAN_GRADLE_SCRIPT}
-                        ${CLEAN_FLUTTER_SCRIPT}
-                      "
-                '''
-            }
-        }
+                        echo "Workspace: $WORKSPACE"
+                        echo "Listing workspace contents (long format with numeric UID/GID):"
+                        ls -ln "$WORKSPACE"
 
-        /* ------------------------------------------------------------
-         * Build
-         * ------------------------------------------------------------ */
-        stage('Build') {
-            parallel {
+                        test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
+                        test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
 
-                stage('Debug') {
-                    steps {
-                        sh '''
-                            docker run --rm \
-                              --user $(id -u):$(id -g) \
-                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                              -w "$FLUTTER_PROJECT_DIR" \
-                              "$FLUTTER_IMAGE" \
-                              bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
-                        '''
-                    }
-                }
-
-                stage('Release') {
-                    steps {
-                        sh '''
-                            docker run --rm \
-                              --user $(id -u):$(id -g) \
-                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                              -w "$FLUTTER_PROJECT_DIR" \
-                              "$FLUTTER_IMAGE" \
-                              bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
-                        '''
-                    }
+                        echo "✅ Workspace validation passed"
+                    '''
                 }
             }
-        }
 
-        /* ------------------------------------------------------------
-         * Integration Tests
-         * ------------------------------------------------------------ */
-        stage('Run Integration Tests') {
-            steps {
-                sh '''
-                    docker run --rm \
-                      --user $(id -u):$(id -g) \
-                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                      -w "$FLUTTER_PROJECT_DIR" \
-                      "$FLUTTER_IMAGE" \
-                      bash -c "${INTEGRATION_TEST_SCRIPT}"
-                '''
-            }
-        }
+            stage('Docker Mount Validation') {
+                steps {
+                    sh '''
+                        set -e
+                        echo "=============================="
+                        echo "🔍 Docker Mount Validation"
+                        echo "=============================="
 
-        /* ------------------------------------------------------------
-         * Generate Diagrams
-         * ------------------------------------------------------------ */
-        stage('Generate Diagrams & PDF') {
-            steps {
-                sh "pwsh ${PLANTUML_SCRIPT}"
-            }
-        }
+                        echo "Host workspace path: $WORKSPACE"
+                        ls -ln "$WORKSPACE"
+                        stat -c '%U %G %a' "$WORKSPACE"
 
-        /* ------------------------------------------------------------
-         * Archive Artifacts
-         * ------------------------------------------------------------ */
-        stage('Archive Artifacts') {
-            steps {
-                sh '''
-                    mkdir -p build_outputs
-                    cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
-                    cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
-                '''
-                archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
+                        docker run --rm \
+                            --user $(id -u):$(id -g) \
+                            -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                            -w "$FLUTTER_PROJECT_DIR" \
+                            "$FLUTTER_IMAGE" \
+                            bash -c "
+                                set -e
+                                echo 'Container UID/GID:'
+                                id
+                                echo 'Listing mounted directory inside container:'
+                                ls -la
+                                ls -ln
+                                if [ ! -d scripts ]; then
+                                    echo '❌ scripts/ directory missing inside container'
+                                    exit 1
+                                fi
+                                echo 'Testing write permission inside container...'
+                                touch mount_test && rm mount_test || {
+                                    echo '❌ Cannot write to mounted directory'
+                                    exit 1
+                                }
+                                echo '✅ Container mount test passed'
+                            "
+                    '''
+                }
             }
-        }
+
+            /* ------------------------------------------------------------
+             * Clean Environment
+             * ------------------------------------------------------------ */
+            stage('Clean Environment') {
+                steps {
+                    sh '''
+                        docker run --rm \
+                            --user $(id -u):$(id -g) \
+                            -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                            -w "$FLUTTER_PROJECT_DIR" \
+                            "$FLUTTER_IMAGE" \
+                            bash -c "
+                                set -e
+                                ${CLEAN_GRADLE_SCRIPT}
+                                ${CLEAN_FLUTTER_SCRIPT}
+                            "
+                    '''
+                }
+            }
+
+            /* ------------------------------------------------------------
+             * Build
+             * ------------------------------------------------------------ */
+            stage('Build') {
+                parallel {
+                    stage('Debug') {
+                        steps {
+                            sh '''
+                                docker run --rm \
+                                    --user $(id -u):$(id -g) \
+                                    -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                                    -w "$FLUTTER_PROJECT_DIR" \
+                                    "$FLUTTER_IMAGE" \
+                                    bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
+                            '''
+                        }
+                    }
+
+                    stage('Release') {
+                        steps {
+                            sh '''
+                                docker run --rm \
+                                    --user $(id -u):$(id -g) \
+                                    -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                                    -w "$FLUTTER_PROJECT_DIR" \
+                                    "$FLUTTER_IMAGE" \
+                                    bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
+                            '''
+                        }
+                    }
+                }
+            }
+
+            /* ------------------------------------------------------------
+             * Integration Tests
+             * ------------------------------------------------------------ */
+            stage('Run Integration Tests') {
+                steps {
+                    sh '''
+                        docker run --rm \
+                            --user $(id -u):$(id -g) \
+                            -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                            -w "$FLUTTER_PROJECT_DIR" \
+                            "$FLUTTER_IMAGE" \
+                            bash -c "${INTEGRATION_TEST_SCRIPT}"
+                    '''
+                }
+            }
+
+            /* ------------------------------------------------------------
+             * Generate Diagrams
+             * ------------------------------------------------------------ */
+            stage('Generate Diagrams & PDF') {
+                steps {
+                    sh "pwsh ${PLANTUML_SCRIPT}"
+                }
+            }
+
+            /* ------------------------------------------------------------
+             * Archive Artifacts
+             * ------------------------------------------------------------ */
+            stage('Archive Artifacts') {
+                steps {
+                    sh '''
+                        mkdir -p build_outputs
+                        cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
+                        cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
+                    '''
+                    archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
+                }
+            }
+        } // end ws
     }
 
     post {
@@ -386,5 +376,3 @@ pipeline {
         }
     }
 }
-
-
