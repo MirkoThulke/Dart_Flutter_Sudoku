@@ -119,6 +119,9 @@
 //   docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //   
 //   docker logs -f jenkins_sudoku_container
+//
+//  Check ownership and permissions of the Jenkins workspace:
+//   ls -ln /home/mirko/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -215,66 +218,67 @@ pipeline {
          * Workspace & Mount Validation
          * ------------------------------------------------------------ */
         stage('Workspace Validation') {
-            steps {
-                sh '''
-                    set -e
-
-                    echo "Workspace: $WORKSPACE"
-                    ls -la
-
-                    test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
-                    test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
-
-                    echo "✅ Workspace validation passed"
-                '''
-            }
-        }
-
-        stage('Docker Mount Validation') {
            steps {
                sh '''
                    set -e
-                   echo "=============================="
-                   echo "🔍 Docker Mount Validation"
-                   echo "=============================="
 
-                   echo "Host workspace path:"
-                   echo "$WORKSPACE"
-                   echo "Contents on host:"
-                   ls -la "$WORKSPACE"
-                   echo "UID/GID on host:"
-                   stat -c '%U %G %a' "$WORKSPACE"
+                   echo "Workspace: $WORKSPACE"
+                   echo "Listing workspace contents (long format with numeric UID/GID):"
+                   ls -ln "$WORKSPACE"
 
-                   echo "Container check..."
-                   docker run --rm \
-                     --user $(id -u):$(id -g) \
-                     -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                     -w "$FLUTTER_PROJECT_DIR" \
-                     "$FLUTTER_IMAGE" \
-                     bash -c "
-                       set -e
-                       echo 'Container UID/GID:'
-                       id
-                       echo 'Listing mounted directory inside container:'
-                       ls -la
-                       ls -ln
-                       if [ ! -d scripts ]; then
-                         echo '❌ scripts/ directory missing inside container'
-                         echo 'Hint: Check host folder $WORKSPACE/scripts exists and is readable by UID $(id -u)'
-                         exit 1
-                       fi
-                       echo 'Testing write permission inside container...'
-                       touch mount_test && rm mount_test || {
-                         echo '❌ Cannot write to mounted directory'
-                         echo 'Hint: Adjust host folder permissions: sudo chown -R $(id -u):$(id -g) $WORKSPACE'
-                         exit 1
-                       }
-                       echo '✅ Container mount test passed'
-                     "
+                   test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
+                   test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
+
+                   echo "✅ Workspace validation passed"
                '''
            }
         }
 
+        stage('Docker Mount Validation') {
+          steps {
+              sh '''
+                  set -e
+                  echo "=============================="
+                  echo "🔍 Docker Mount Validation"
+                  echo "=============================="
+
+                  echo "Host workspace path:"
+                  echo "$WORKSPACE"
+                  echo "Listing host workspace contents (long format with numeric UID/GID):"
+                  ls -ln "$WORKSPACE"
+
+                  echo "UID/GID on host:"
+                  stat -c '%U %G %a' "$WORKSPACE"
+
+                  echo "Container check..."
+                  docker run --rm \
+                    --user $(id -u):$(id -g) \
+                    -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                    -w "$FLUTTER_PROJECT_DIR" \
+                    "$FLUTTER_IMAGE" \
+                    bash -c "
+                      set -e
+                      echo 'Container UID/GID:'
+                      id
+                      echo 'Listing mounted directory inside container:'
+                      ls -la
+                      ls -ln
+                      if [ ! -d scripts ]; then
+                        echo '❌ scripts/ directory missing inside container'
+                        echo 'Hint: Check host folder $WORKSPACE/scripts exists and is readable by UID $(id -u)'
+                        exit 1
+                      fi
+                      echo 'Testing write permission inside container...'
+                      touch mount_test && rm mount_test || {
+                        echo '❌ Cannot write to mounted directory'
+                        echo 'Hint: Adjust host folder permissions: sudo chown -R $(id -u):$(id -g) $WORKSPACE'
+                        exit 1
+                      }
+                      echo '✅ Container mount test passed'
+                    "
+              '''
+          }
+        }
 
         /* ------------------------------------------------------------
          * Clean Environment
