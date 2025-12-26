@@ -25,7 +25,7 @@
 //   +---------------------------+
 //   
 //   Host (WSL2)
-//   ├── /mnt/c/Users/Mirko/jenkins_home_host_mount  ← Jenkins data
+//   ├── /home/mirko/jenkins_home_host_mount  ← Jenkins data
 //   ├── Docker daemon
 //   │   └── /var/run/docker.sock
 //   │
@@ -59,7 +59,7 @@
 //  ------------------------------------------------------------
 //    Persist Jenkins data on the host machine:
 //
-//   -v /var/jenkins_home_host_mount:/var/jenkins_home
+//   -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home
 //   🚨 THIS IS THE MOST IMPORTANT LINE
 //
 //    docker mount command, https://docs.docker.com/engine/storage/bind-mounts/ : 
@@ -68,7 +68,7 @@
 //
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
-//   /mnt/c/Users/Mirko/jenkins_home_host_mount	    /var/jenkins_home
+//   /home/mirko/jenkins_home_host_mount	        /var/jenkins_home
 //   
 //   Jenkins is storing its workspaces under /var/jenkins_home by default 
 //   (including the Flutter_Docker_Pipeline workspace)
@@ -107,24 +107,24 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 
-//   sudo mkdir -p /mnt/c/Users/M/jenkins_home_host_mount
-//   sudo rm -rf /mnt/c/Users/M/jenkins_home_host_mount/*
-//   sudo chown -R 2000:2000 /mnt/c/Users/M/jenkins_home_host_mount/
-//   sudo chmod -R 755 /mnt/c/Users/M/jenkins_home_host_mount/
+//   sudo mkdir -p /home/mirko/jenkins_home_host_mount
+//   sudo rm -rf /home/mirko/jenkins_home_host_mount/*
+//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
+//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
 //
 // Docker container creation with command line is handled via docker compose file:
 //
 //   option a) 
-//     /home/mirko/sudoku/jenkins docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /mnt/c/Users/M/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//     docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //
 //   option b)
-//     /home/mirko/sudoku/jenkins/docker compose up -d --build
-//     /home/mirko/sudoku/jenkinsdocker compose down
-//     /home/mirko/sudoku/jenkins/docker compose logs -f
-//     /home/mirko/sudoku/jenkins/docker compose ps
+//     docker compose up -d --build
+//     docker compose down
+//     docker compose logs -f
+//     docker compose ps
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ld /mnt/c/Users/M/jenkins_home_host_mount
+//   ls -ld /home/mirko/jenkins_home_host_mount
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -154,7 +154,6 @@
 // - select path to jenkinsfile
 //  ------------------------------------------------------------
 
-
 pipeline {
     agent any
     options {
@@ -162,8 +161,8 @@ pipeline {
     }
 
     environment {
-        // Global workspace path (custom)
-        GLOBAL_WORKSPACE = '/mnt/c/Users/M/jenkins_home_host_mount'
+        // Use container path for workspace (mapped to host folder via docker-compose)
+        GLOBAL_WORKSPACE = '/var/jenkins_home'
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
@@ -188,22 +187,15 @@ pipeline {
             steps {
                 script {
                     ws("${GLOBAL_WORKSPACE}") {
-                        // Run shell commands and explicitly check success
-                        def result = sh(script: '''
-                            mkdir -p "$WORKSPACE" || exit 1
-                            chown -R $(id -u):$(id -g) "$WORKSPACE" || exit 1
-                        ''', returnStatus: true)
-
-                        if (result == 0) {
-                            echo "✅ Workspace prepared successfully"
-                        } else {
-                            error("❌ Failed to prepare workspace. Check permissions on ${GLOBAL_WORKSPACE}")
-                        }
+                        echo "Workspace path: $WORKSPACE"
+                        sh '''
+                            mkdir -p "$WORKSPACE"
+                            echo "✅ Workspace exists and ready"
+                        '''
                     }
                 }
             }
         }
-
 
         stage('Checkout') {
             steps {
@@ -232,9 +224,8 @@ pipeline {
                 script {
                     ws("${GLOBAL_WORKSPACE}") {
                         sh '''
-                            set -e
                             echo "Workspace: $WORKSPACE"
-                            echo "Listing workspace contents (long format with numeric UID/GID):"
+                            echo "Listing workspace contents (numeric UID/GID):"
                             ls -ln "$WORKSPACE"
 
                             test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
@@ -252,20 +243,13 @@ pipeline {
                 script {
                     ws("${GLOBAL_WORKSPACE}") {
                         sh '''
-                            set -e
                             echo "=============================="
                             echo "🔍 Docker Mount Validation"
                             echo "=============================="
 
-                            echo "Host workspace path:"
-                            echo "$WORKSPACE"
-                            echo "Listing host workspace contents (long format with numeric UID/GID):"
+                            echo "Host workspace path: $WORKSPACE"
                             ls -ln "$WORKSPACE"
 
-                            echo "UID/GID on host:"
-                            stat -c '%U %G %a' "$WORKSPACE"
-
-                            echo "Container check..."
                             docker run --rm \
                               --user $(id -u):$(id -g) \
                               -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
@@ -273,22 +257,10 @@ pipeline {
                               "$FLUTTER_IMAGE" \
                               bash -c "
                                 set -e
-                                echo 'Container UID/GID:'
-                                id
-                                echo 'Listing mounted directory inside container:'
-                                ls -la
-                                ls -ln
-                                if [ ! -d scripts ]; then
-                                  echo '❌ scripts/ directory missing inside container'
-                                  echo 'Hint: Check host folder $WORKSPACE/scripts exists and is readable by UID $(id -u)'
-                                  exit 1
-                                fi
-                                echo 'Testing write permission inside container...'
-                                touch mount_test && rm mount_test || {
-                                  echo '❌ Cannot write to mounted directory'
-                                  echo 'Hint: Adjust host folder permissions: sudo chown -R $(id -u):$(id -g) $WORKSPACE'
-                                  exit 1
-                                }
+                                echo 'Container UID/GID:'; id
+                                echo 'Listing mounted directory:'; ls -la
+                                test -d scripts || { echo '❌ scripts/ missing inside container'; exit 1; }
+                                touch mount_test && rm mount_test
                                 echo '✅ Container mount test passed'
                               "
                         '''
@@ -411,3 +383,4 @@ pipeline {
         }
     }
 }
+

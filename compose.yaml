@@ -8,17 +8,17 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 
-
 services:
   jenkins:
     image: jenkins_sudoku_image:2.528.3
     container_name: jenkins_sudoku_container
 
-    # use specific user and group IDs for Jenkins
+    # ensure Jenkins runs with UID/GID matching host mount
+    user: "2000:2000"
+
     environment:
-      JENKINS_UID: 2000
-      JENKINS_GID: 2000
       TZ: Europe/Paris
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
 
     restart: unless-stopped
 
@@ -26,7 +26,8 @@ services:
       - "8080:8080"
       - "50000:50000"
 
-    # mount host directory for Jenkins data persistence
     volumes:
-      - /mnt/c/Users/M/jenkins_home_host_mount:/var/jenkins_home
+      # Mount the WSL2 ext4 host folder for Jenkins home
+      - /home/mirko/jenkins_home_host_mount:/var/jenkins_home
+      # Needed to allow Docker-in-Docker usage
       - /var/run/docker.sock:/var/run/docker.sock
