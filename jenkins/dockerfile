@@ -19,6 +19,10 @@ USER root
 RUN usermod -u 2000 jenkins \
  && groupmod -g 2000 jenkins
 
+# Create the @tmp directory and set proper ownership
+RUN mkdir -p /var/jenkins_home/@tmp \
+    && chown -R 2000:2000 /var/jenkins_home/@tmp
+
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         docker-cli \
