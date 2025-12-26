@@ -12,16 +12,13 @@
 # Base image, Pin to specific LTS version for stability
 FROM jenkins/jenkins:2.528.3-lts-jdk21
 
-# Switch to root to install packages
 USER root
 
-# Change Jenkins UID/GID to 2000 (optional if using env variables)
+# Change Jenkins UID/GID to 2000
 RUN usermod -u 2000 jenkins \
- && groupmod -g 2000 jenkins \
- && groupadd -f docker \
- && usermod -aG docker jenkins
+ && groupmod -g 2000 jenkins
 
-# Install minimal dependencies + Docker CLI + Git
+# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         docker-cli \
         ca-certificates \
@@ -30,20 +27,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         tini \
     && rm -rf /var/lib/apt/lists/*
 
-
-
-# Allow Jenkins to access docker socket
-RUN groupadd -g 999 docker \
+# Add Jenkins user to docker group safely
+RUN groupadd -g 999 docker 2>/dev/null || true \
  && usermod -aG docker jenkins
 
-
-# 🔑 Disable Jenkins setup wizard (IMPORTANT)
+# Disable setup wizard
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
-# Switch to Jenkins user
 USER jenkins
 
-# Install required plugins
+# Install plugins
 RUN jenkins-plugin-cli --plugins \
     git \
     workflow-aggregator \
@@ -53,3 +46,4 @@ RUN jenkins-plugin-cli --plugins \
 
 ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD ["/usr/local/bin/jenkins.sh"]
+
