@@ -28,5 +28,5 @@ services:
 
     # mount host directory for Jenkins data persistence
     volumes:
-      - /var/jenkins_home_host_mount:/var/jenkins_home
+      - /mnt/c/Users/M/jenkins_home_host_mount:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
