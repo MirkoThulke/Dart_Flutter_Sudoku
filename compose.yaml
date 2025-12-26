@@ -7,57 +7,26 @@
 # You can add other services your application may depend on here, such as a
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
+version: "3.9"
+
 services:
   jenkins:
-    image: jenkins/jenkins:lts
-    container_name: jenkins
-    user: root
+    image: jenkins_sudoku_image:2.528.3
+    container_name: jenkins_sudoku_container
+
+    # use specific user and group IDs for Jenkins
+    environment:
+      JENKINS_UID: 2000
+      JENKINS_GID: 2000
+      TZ: Europe/Paris
+
+    restart: unless-stopped
 
     ports:
       - "8080:8080"
       - "50000:50000"
 
+    # mount host directory for Jenkins data persistence
     volumes:
-      # 🔴 REQUIRED: Jenkins data on WSL2 host
-      - /home/mirko/jenkins_home:/var/jenkins_home
-
-      # 🔴 REQUIRED: Docker control
+      - /var/jenkins_home_host_mount:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-    # If your application exposes a port, uncomment the following lines and change
-    # the port numbers as needed. The first number is the host port and the second
-    # is the port inside the container.
-    # ports:
-    #   - 8080:8080
-
-    # The commented out section below is an example of how to define a PostgreSQL
-    # database that your application can use. `depends_on` tells Docker Compose to
-    # start the database before your application. The `db-data` volume persists the
-    # database data between container restarts. The `db-password` secret is used
-    # to set the database password. You must create `db/password.txt` and add
-    # a password of your choosing to it before running `docker compose up`.
-    #     depends_on:
-    #       db:
-    #         condition: service_healthy
-    #   db:
-    #     image: postgres
-    #     restart: always
-    #     user: postgres
-    #     secrets:
-    #       - db-password
-    #     volumes:
-    #       - db-data:/var/lib/postgresql/data
-    #     environment:
-    #       - POSTGRES_DB=example
-    #       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
-    #     expose:
-    #       - 5432
-    #     healthcheck:
-    #       test: [ "CMD", "pg_isready" ]
-    #       interval: 10s
-    #       timeout: 5s
-    #       retries: 5
-    # volumes:
-    #   db-data:
-    # secrets:
-    #   db-password:
-    #     file: db/password.txt
