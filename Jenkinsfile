@@ -121,7 +121,7 @@
 //   docker logs -f jenkins_sudoku_container
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ln /var/jenkins_home_host_mount/Flutter_Docker_Pipeline
+//   ls -ln /var/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -160,7 +160,7 @@ pipeline {
 
     environment {
         // Global workspace path (custom)
-        GLOBAL_WORKSPACE = '/var/jenkins_home_host_mount/Flutter_Docker_Pipeline'
+        GLOBAL_WORKSPACE = '/var/jenkins_home_host_mount'
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
