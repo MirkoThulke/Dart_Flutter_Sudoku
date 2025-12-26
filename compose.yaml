@@ -27,7 +27,8 @@ services:
       - "50000:50000"
 
     volumes:
-      # Mount the WSL2 ext4 host folder for Jenkins home
-      - /home/mirko/jenkins_home_host_mount:/var/jenkins_home
+      # Mount the WSL2 ext4 host folder for Jenkins home workspace
+      # Only mount shared workspace, keep Jenkins home internal to the container
+      - /home/mirko/jenkins_home_host_mount_workspace:/var/jenkins_home/workspace
       # Needed to allow Docker-in-Docker usage
       - /var/run/docker.sock:/var/run/docker.sock

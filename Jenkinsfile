@@ -25,12 +25,12 @@
 //   +---------------------------+
 //   
 //   Host (WSL2)
-//   ├── /home/mirko/jenkins_home_host_mount  ← Jenkins data
+//   ├── /home/mirko/jenkins_home_host_mount_workspace  ← Jenkins data
 //   ├── Docker daemon
 //   │   └── /var/run/docker.sock
 //   │
 //   └── Jenkins container
-//       ├── /var/jenkins_home  ← mounted
+//       ├── /var/jenkins_home/workspace  ← mounted
 //       └── Docker CLI → host Docker
 //
 // Build artefacts are stored in :
@@ -59,7 +59,7 @@
 //  ------------------------------------------------------------
 //    Persist Jenkins data on the host machine:
 //
-//   -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home
+//   -v /home/mirko/jenkins_home_host_mount_workspace:/var/jenkins_home/workspace
 //   🚨 THIS IS THE MOST IMPORTANT LINE
 //
 //    docker mount command, https://docs.docker.com/engine/storage/bind-mounts/ : 
@@ -68,7 +68,7 @@
 //
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
-//   /home/mirko/jenkins_home_host_mount	        /var/jenkins_home
+//   /home/mirko/jenkins_home_host_mount_workspace	        /var/jenkins_home/workspace
 //   
 //   Jenkins is storing its workspaces under /var/jenkins_home by default 
 //   (including the Flutter_Docker_Pipeline workspace)
@@ -89,7 +89,7 @@
 //  --name jenkins_container_sudoku	                    Name the container
 //  -p 8080:8080	                                    Jenkins web UI
 //  -p 50000:50000	                                    Jenkins agents
-//  -v …:/var/jenkins_home	                            Persist Jenkins data
+//  -v …:/var/jenkins_home/workspace	                Persist Jenkins data
 //  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
 //   jenkins_container_sudoku:lts	                    Jenkins image
 //  ------------------------------------------------------------
@@ -107,15 +107,15 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 
-//   sudo mkdir -p /home/mirko/jenkins_home_host_mount
-//   sudo rm -rf /home/mirko/jenkins_home_host_mount/*
-//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
-//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
+//   sudo rm -rf /home/mirko/jenkins_home_host_mount_workspace/*
+//   sudo mkdir -p /home/mirko/jenkins_home_host_mount_workspace
+//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount_workspace
+//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount_workspace
 //
 // Docker container creation with command line is handled via docker compose file:
 //
 //   option a) 
-//     docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//     docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount_workspace:/var/jenkins_home/workspace -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //
 //   option b)
 //     docker compose up -d --build
@@ -124,7 +124,7 @@
 //     docker compose ps
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ld /home/mirko/jenkins_home_host_mount
+//   ls -ld /home/mirko/jenkins_home_host_mount_workspace
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
