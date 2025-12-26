@@ -106,11 +106,10 @@
 // RUN THE JENINS CONTAINER !! STEP 1/4
 //  ------------------------------------------------------------
 // Run Jenkins container with:
-//
-//   sudo rm -rf /var/jenkins_home_host_mount
+
+//   sudo rm -rf /var/jenkins_home_host_mount/*
 //   sudo mkdir -p /var/jenkins_home_host_mount
 //   sudo chown -R 2000:2000 /var/jenkins_home_host_mount
-//
 //
 // Docker container creation with command line is handled via docker compose file:
 //
@@ -125,7 +124,6 @@
 //
 //  Check ownership and permissions of the Jenkins workspace:
 //   ls -ld /var/jenkins_home_host_mount
-//   ls -ln /var/jenkins_home_host_mount/workspace/Flutter_Docker_Pipeline
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------

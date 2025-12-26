@@ -15,9 +15,14 @@ FROM jenkins/jenkins:2.528.3-lts-jdk21
 # Switch to root to install packages
 USER root
 
+# Change Jenkins UID/GID to 2000 (optional if using env variables)
+RUN usermod -u 2000 jenkins \
+ && groupmod -g 2000 jenkins \
+ && groupadd -f docker \
+ && usermod -aG docker jenkins
+
 # Install minimal dependencies + Docker CLI + Git
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
         docker-cli \
         ca-certificates \
         curl \
@@ -25,27 +30,26 @@ RUN apt-get update && \
         tini \
     && rm -rf /var/lib/apt/lists/*
 
-# Allow Jenkins to access docker socket
-RUN groupadd -f docker && usermod -aG docker jenkins
 
-# Ensure docker is discoverable
-ENV PATH="/usr/bin:/usr/local/bin:$PATH"
+
+# Allow Jenkins to access docker socket
+RUN groupadd -g 999 docker \
+ && usermod -aG docker jenkins
+
 
 # 🔑 Disable Jenkins setup wizard (IMPORTANT)
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
-# ENTRYPOINT / CMD
-ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD ["/usr/local/bin/jenkins.sh"]
-
 # Switch to Jenkins user
 USER jenkins
 
-
-# Install required Jenkins plugins
+# Install required plugins
 RUN jenkins-plugin-cli --plugins \
     git \
     workflow-aggregator \
     github \
     github-branch-source \
     pipeline-stage-view
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
+CMD ["/usr/local/bin/jenkins.sh"]
