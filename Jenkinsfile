@@ -107,20 +107,21 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 
-//   sudo rm -rf /var/jenkins_home_host_mount/*
 //   sudo mkdir -p /var/jenkins_home_host_mount
-//   sudo chown -R 2000:2000 /var/jenkins_home_host_mount
+//   sudo rm -rf /var/jenkins_home_host_mount/*
+//   sudo chown -R 2000:2000 /var/jenkins_home_host_mount/
+//   sudo chmod -R 755 /var/jenkins_home_host_mount/
 //
 // Docker container creation with command line is handled via docker compose file:
 //
 //   option a) 
-//     docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /var/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//     /home/mirko/sudoku/jenkins docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /var/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //
 //   option b)
-//     docker compose up -d --build
-//     docker compose down
-//     docker compose logs -f
-//     docker compose ps
+//     /home/mirko/sudoku/jenkins/docker compose up -d --build
+//     /home/mirko/sudoku/jenkinsdocker compose down
+//     /home/mirko/sudoku/jenkins/docker compose logs -f
+//     /home/mirko/sudoku/jenkins/docker compose ps
 //
 //  Check ownership and permissions of the Jenkins workspace:
 //   ls -ld /var/jenkins_home_host_mount
@@ -187,14 +188,22 @@ pipeline {
             steps {
                 script {
                     ws("${GLOBAL_WORKSPACE}") {
-                        sh '''
-                            mkdir -p "$WORKSPACE"
-                            chown -R $(id -u):$(id -g) "$WORKSPACE"
-                        '''
+                        // Run shell commands and explicitly check success
+                        def result = sh(script: '''
+                            mkdir -p "$WORKSPACE" || exit 1
+                            chown -R $(id -u):$(id -g) "$WORKSPACE" || exit 1
+                        ''', returnStatus: true)
+
+                        if (result == 0) {
+                            echo "✅ Workspace prepared successfully"
+                        } else {
+                            error("❌ Failed to prepare workspace. Check permissions on ${GLOBAL_WORKSPACE}")
+                        }
                     }
                 }
             }
         }
+
 
         stage('Checkout') {
             steps {
