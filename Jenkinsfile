@@ -25,7 +25,7 @@
 //   +---------------------------+
 //   
 //   Host (WSL2)
-//   ├── /mnt/wsl/jenkins_home_host_mount  ← Jenkins data
+//   ├── /mnt/c/Users/Mirko/jenkins_home_host_mount  ← Jenkins data
 //   ├── Docker daemon
 //   │   └── /var/run/docker.sock
 //   │
@@ -68,7 +68,7 @@
 //
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
-//   /mnt/wsl/jenkins_home_host_mount	    /var/jenkins_home
+//   /mnt/c/Users/Mirko/jenkins_home_host_mount	    /var/jenkins_home
 //   
 //   Jenkins is storing its workspaces under /var/jenkins_home by default 
 //   (including the Flutter_Docker_Pipeline workspace)
@@ -107,15 +107,15 @@
 //  ------------------------------------------------------------
 // Run Jenkins container with:
 
-//   sudo mkdir -p /var/jenkins_home_host_mount
-//   sudo rm -rf /var/jenkins_home_host_mount/*
-//   sudo chown -R 2000:2000 /var/jenkins_home_host_mount/
-//   sudo chmod -R 755 /var/jenkins_home_host_mount/
+//   sudo mkdir -p /mnt/c/Users/Mirko/jenkins_home_host_mount
+//   sudo rm -rf /mnt/c/Users/Mirko/jenkins_home_host_mount/*
+//   sudo chown -R 2000:2000 /mnt/c/Users/Mirko/jenkins_home_host_mount/
+//   sudo chmod -R 755 /mnt/c/Users/Mirko/jenkins_home_host_mount/
 //
 // Docker container creation with command line is handled via docker compose file:
 //
 //   option a) 
-//     /home/mirko/sudoku/jenkins docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /var/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
+//     /home/mirko/sudoku/jenkins docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /mnt/c/Users/Mirko/jenkins_home_host_mount:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
 //
 //   option b)
 //     /home/mirko/sudoku/jenkins/docker compose up -d --build
@@ -124,7 +124,7 @@
 //     /home/mirko/sudoku/jenkins/docker compose ps
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ld /var/jenkins_home_host_mount
+//   ls -ld /mnt/c/Users/Mirko/jenkins_home_host_mount
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -163,7 +163,7 @@ pipeline {
 
     environment {
         // Global workspace path (custom)
-        GLOBAL_WORKSPACE = '/var/jenkins_home_host_mount'
+        GLOBAL_WORKSPACE = '/mnt/c/Users/Mirko/jenkins_home_host_mount'
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
