@@ -224,13 +224,14 @@ pipeline {
                     echo "🔍 Docker Mount Validation"
                     echo "=============================="
 
-                    echo "Jenkins workspace: $WORKSPACE"
-                    pwd
-                    ls -la .
+                    HOST_WORKSPACE="/home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace"
+
+                    echo "Host workspace: $HOST_WORKSPACE"
+                    ls -la "$HOST_WORKSPACE"
 
                     docker run --rm \
                       --user $(id -u):$(id -g) \
-                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                      -v "$HOST_WORKSPACE:$FLUTTER_PROJECT_DIR" \
                       -w "$FLUTTER_PROJECT_DIR" \
                       "$FLUTTER_IMAGE" \
                       bash -c "
@@ -245,7 +246,6 @@ pipeline {
                 '''
             }
         }
-
 
 
 /*
