@@ -3,8 +3,9 @@
 // 
 //  GitHub → Jenkins (container) → docker run → flutter_rust_env (container)
 //  
-//  Jenkins pulls your app from GitHub into its workspace:
-//    /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+//  /var/jenkins_home   → Jenkins config
+//  /workspace          → builds + @tmp
+//  //  Jenkins pulls your app from GitHub into its workspace:
 //
 // Workspace is mounted into build container
 //   -v $WORKSPACE:/sudoku_app    
@@ -30,7 +31,8 @@
 //   │   └── /var/run/docker.sock
 //   │
 //   └── Jenkins container
-//       ├── /var/jenkins_home/workspace  ← mounted
+//       ├── /var/jenkins_home
+//       └── /workspace  ← mounted
 //       └── Docker CLI → host Docker
 //
 // Build artefacts are stored in :
@@ -38,7 +40,8 @@
 // ------------------------------------------------------------
 
 // Jenkins container
-//   └── /var/jenkins_home/workspace/Flutter_Docker_Pipeline
+//   └── /var/jenkins_home
+//   └── /workspace/Flutter_Docker_Pipeline
 //         └── scripts/*.sh
 //               │
 //               └── mounted as
@@ -58,8 +61,8 @@
 
 //  ------------------------------------------------------------
 //    Persist Jenkins data on the host machine:
-//
-//   -v /home/mirko/jenkins_home_host_mount_workspace:/var/jenkins_home/workspace
+//   -v /home/mirko/jenkins_home_host_mount:/var/jenkins_home
+//   -v /home/mirko/jenkins_workspace_host_mount:/workspace
 //   🚨 THIS IS THE MOST IMPORTANT LINE
 //
 //    docker mount command, https://docs.docker.com/engine/storage/bind-mounts/ : 
@@ -68,8 +71,9 @@
 //
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
-//   /home/mirko/jenkins_home_host_mount_workspace	        /var/jenkins_home/workspace
-//   
+//   /home/mirko/jenkins_home_host_mount	        /var/jenkins_home
+//   /home/mirko/jenkins_workspace_host_mount	    /var/jenkins_home/workspace
+
 //   Jenkins is storing its workspaces under /var/jenkins_home by default 
 //   (including the Flutter_Docker_Pipeline workspace)
 //
@@ -89,7 +93,8 @@
 //  --name jenkins_container_sudoku	                    Name the container
 //  -p 8080:8080	                                    Jenkins web UI
 //  -p 50000:50000	                                    Jenkins agents
-//  -v …:/var/jenkins_home/workspace	                Persist Jenkins data
+//  -v …:/var/jenkins_home	                            Persist Jenkins data
+//  -v …:/workspace	                                    Persist Jenkins build data
 //  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
 //   jenkins_container_sudoku:lts	                    Jenkins image
 //  ------------------------------------------------------------
@@ -105,26 +110,22 @@
 //  ------------------------------------------------------------
 // RUN THE JENINS CONTAINER !! STEP 1/4
 //  ------------------------------------------------------------
-// Run Jenkins container with:
-
-//   sudo rm -rf /home/mirko/jenkins_home_host_mount_workspace/*
-//   sudo mkdir -p /home/mirko/jenkins_home_host_mount_workspace
-//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount_workspace
-//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount_workspace
 //
-// Docker container creation with command line is handled via docker compose file:
+//  Prepare host directories for Jenkins home and workspace:
+//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
+//   sudo chown -R 2000:2000 /home/mirko/jenkins_workspace_host_mount
+//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
+//   sudo chmod -R 755 /home/mirko/jenkins_workspace_host_mount
 //
-//   option a) 
-//     docker run -d --name jenkins_sudoku_container --restart unless-stopped -e TZ=Europe/Paris -p 8080:8080 -p 50000:50000 -v /home/mirko/jenkins_home_host_mount_workspace:/var/jenkins_home/workspace -v /var/run/docker.sock:/var/run/docker.sock jenkins_sudoku_image:2.528.3
-//
-//   option b)
+// Docker compose build via your compose.yaml file
 //     docker compose up -d --build
 //     docker compose down
 //     docker compose logs -f
 //     docker compose ps
 //
 //  Check ownership and permissions of the Jenkins workspace:
-//   ls -ld /home/mirko/jenkins_home_host_mount_workspace
+//   ls -ld /home/mirko/jenkins_home_host_mount
+//   ls -ld /home/mirko/jenkins_workspace_host_mount
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
@@ -161,8 +162,6 @@ pipeline {
     }
 
     environment {
-        // Use container path for workspace (mapped to host folder via docker-compose)
-        GLOBAL_WORKSPACE = '/var/jenkins_home'
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
@@ -183,26 +182,10 @@ pipeline {
 
     stages {
 
-        stage('Prepare Workspace') {
-            steps {
-                script {
-                    ws("${GLOBAL_WORKSPACE}") {
-                        echo "Workspace path: $WORKSPACE"
-                        sh '''
-                            mkdir -p "$WORKSPACE"
-                            echo "✅ Workspace exists and ready"
-                        '''
-                    }
-                }
-            }
-        }
-
         stage('Checkout') {
             steps {
                 script {
-                    ws("${GLOBAL_WORKSPACE}") {
                         checkout scm
-                    }
                 }
             }
         }
@@ -210,69 +193,46 @@ pipeline {
         stage('Validate Repo Structure') {
             steps {
                 script {
-                    ws("${GLOBAL_WORKSPACE}") {
                         sh '''
                             test -d scripts || { echo "❌ scripts/ directory missing after checkout"; exit 1; }
                         '''
-                    }
-                }
-            }
-        }
-
-        stage('Workspace Validation') {
-            steps {
-                script {
-                    ws("${GLOBAL_WORKSPACE}") {
-                        sh '''
-                            echo "Workspace: $WORKSPACE"
-                            echo "Listing workspace contents (numeric UID/GID):"
-                            ls -ln "$WORKSPACE"
-
-                            test -w "$WORKSPACE" || { echo "❌ Workspace not writable"; exit 1; }
-                            test -d scripts || { echo "❌ scripts directory missing"; exit 1; }
-
-                            echo "✅ Workspace validation passed"
-                        '''
-                    }
                 }
             }
         }
 
         stage('Docker Mount Validation') {
             steps {
-                script {
-                    ws("${GLOBAL_WORKSPACE}") {
-                        sh '''
-                            echo "=============================="
-                            echo "🔍 Docker Mount Validation"
-                            echo "=============================="
+                sh '''
+                    echo "=============================="
+                    echo "🔍 Docker Mount Validation"
+                    echo "=============================="
 
-                            echo "Host workspace path: $WORKSPACE"
-                            ls -ln "$WORKSPACE"
+                    echo "Jenkins workspace: $WORKSPACE"
+                    pwd
+                    ls -la .
 
-                            docker run --rm \
-                              --user $(id -u):$(id -g) \
-                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                              -w "$FLUTTER_PROJECT_DIR" \
-                              "$FLUTTER_IMAGE" \
-                              bash -c "
-                                set -e
-                                echo 'Container UID/GID:'; id
-                                echo 'Listing mounted directory:'; ls -la
-                                test -d scripts || { echo '❌ scripts/ missing inside container'; exit 1; }
-                                touch mount_test && rm mount_test
-                                echo '✅ Container mount test passed'
-                              "
-                        '''
-                    }
-                }
+                    docker run --rm \
+                      --user $(id -u):$(id -g) \
+                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
+                      -w "$FLUTTER_PROJECT_DIR" \
+                      "$FLUTTER_IMAGE" \
+                      bash -c "
+                        set -e
+                        echo 'Container UID/GID:'; id
+                        echo 'Working directory:'; pwd
+                        ls -la
+                        test -d scripts
+                        touch mount_test && rm mount_test
+                        echo '✅ Container can read/write Jenkins workspace'
+                      "
+                '''
             }
         }
+
 
         stage('Clean Environment') {
             steps {
                 script {
-                    ws("${GLOBAL_WORKSPACE}") {
                         sh '''
                             docker run --rm \
                               --user $(id -u):$(id -g) \
@@ -285,7 +245,6 @@ pipeline {
                                 ${CLEAN_FLUTTER_SCRIPT}
                               "
                         '''
-                    }
                 }
             }
         }
@@ -295,7 +254,6 @@ pipeline {
                 stage('Debug') {
                     steps {
                         script {
-                            ws("${GLOBAL_WORKSPACE}") {
                                 sh '''
                                     docker run --rm \
                                       --user $(id -u):$(id -g) \
@@ -304,7 +262,6 @@ pipeline {
                                       "$FLUTTER_IMAGE" \
                                       bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
                                 '''
-                            }
                         }
                     }
                 }
@@ -312,7 +269,6 @@ pipeline {
                 stage('Release') {
                     steps {
                         script {
-                            ws("${GLOBAL_WORKSPACE}") {
                                 sh '''
                                     docker run --rm \
                                       --user $(id -u):$(id -g) \
@@ -321,7 +277,6 @@ pipeline {
                                       "$FLUTTER_IMAGE" \
                                       bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
                                 '''
-                            }
                         }
                     }
                 }
@@ -331,7 +286,6 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {
-                    ws("${GLOBAL_WORKSPACE}") {
                         sh '''
                             docker run --rm \
                               --user $(id -u):$(id -g) \
@@ -341,34 +295,66 @@ pipeline {
                               bash -c "${INTEGRATION_TEST_SCRIPT}"
                         '''
                     }
-                }
             }
         }
 
         stage('Generate Diagrams & PDF') {
             steps {
                 script {
-                    ws("${GLOBAL_WORKSPACE}") {
                         sh "pwsh ${PLANTUML_SCRIPT}"
                     }
-                }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                script {
-                    ws("${GLOBAL_WORKSPACE}") {
-                        sh '''
-                            mkdir -p build_outputs
-                            cp android/sudoku_app/build/outputs/flutter-apk/*.apk build_outputs/ || true
-                            cp android/sudoku_app/build/outputs/bundle/release/*.aab build_outputs/ || true
-                        '''
-                        archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true
-                    }
-                }
+                sh '''
+                    set -e
+
+                    echo "📦 Collecting build artifacts..."
+
+                    OUTPUT_DIR="build_outputs"
+                    mkdir -p "$OUTPUT_DIR"
+
+                    found=0
+
+                    APK_DIR="android/sudoku_app/build/outputs/flutter-apk"
+                    AAB_DIR="android/sudoku_app/build/outputs/bundle/release"
+
+                    if [ -d "$APK_DIR" ]; then
+                      for f in "$APK_DIR"/*.apk; do
+                        [ -e "$f" ] || continue
+                        cp "$f" "$OUTPUT_DIR/"
+                        echo "✔ Collected APK: $(basename "$f")"
+                        found=1
+                      done
+                    else
+                      echo "⚠️ APK directory not found: $APK_DIR"
+                    fi
+
+                    if [ -d "$AAB_DIR" ]; then
+                      for f in "$AAB_DIR"/*.aab; do
+                        [ -e "$f" ] || continue
+                        cp "$f" "$OUTPUT_DIR/"
+                        echo "✔ Collected AAB: $(basename "$f")"
+                        found=1
+                      done
+                    else
+                      echo "⚠️ AAB directory not found: $AAB_DIR"
+                    fi
+
+                    if [ "$found" -eq 0 ]; then
+                      echo "⚠️ No artifacts were produced by this build"
+                    else
+                      echo "✅ Artifact collection completed"
+                    fi
+                '''
+                archiveArtifacts artifacts: 'build_outputs/**',
+                                 fingerprint: true,
+                                 allowEmptyArchive: true
             }
         }
+
     }
 
     post {
