@@ -112,10 +112,15 @@
 //  ------------------------------------------------------------
 //
 //  Prepare host directories for Jenkins home and workspace:
-//   sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
-//   sudo chown -R 2000:2000 /home/mirko/jenkins_workspace_host_mount
-//   sudo chmod -R 755 /home/mirko/jenkins_home_host_mount
-//   sudo chmod -R 755 /home/mirko/jenkins_workspace_host_mount
+//  # Jenkins home
+//  sudo mkdir -p /home/mirko/jenkins_home_host_mount
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
+//  sudo chmod -R 770 /home/mirko/jenkins_home_host_mount
+//  
+//  # Workspace
+//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount
+//  sudo chown -R 2000:1001 /home/mirko/jenkins_workspace_host_mount
+//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount
 //
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
