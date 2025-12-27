@@ -216,7 +216,7 @@ pipeline {
            }
         }
 
-/*
+
         stage('Docker Mount Validation') {
             steps {
                 sh '''
@@ -246,7 +246,7 @@ pipeline {
             }
         }
 
-*/
+
 
 /*
         stage('Clean Environment') {
