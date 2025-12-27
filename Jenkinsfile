@@ -72,10 +72,9 @@
 //   This is a bind mount:
 //   Host (WSL2)	                                Container
 //   /home/mirko/jenkins_home_host_mount	        /var/jenkins_home
-//   /home/mirko/jenkins_workspace_host_mount	    /var/jenkins_home/workspace
+//   /home/mirko/jenkins_workspace_host_mount	    /workspace
 
-//   Jenkins is storing its workspaces under /var/jenkins_home by default 
-//   (including the Flutter_Docker_Pipeline workspace)
+//   Comment : Jenkins is storing its workspaces under /var/jenkins_home by default 
 //
 //   -v (or --volume) bind-mounts a directory from your host into the container.
 //   -v <host_path>:<container_path>
@@ -161,7 +160,13 @@
 //  ------------------------------------------------------------
 
 pipeline {
-    agent any
+
+    agent {
+        label 'any'
+        //   Comment : Jenkins is storing its workspaces under /var/jenkins_home by default 
+        customWorkspace '/workspace'
+    }
+
     options {
         skipDefaultCheckout true
     }
