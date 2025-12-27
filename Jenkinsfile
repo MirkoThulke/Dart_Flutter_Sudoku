@@ -204,7 +204,7 @@ pipeline {
 
         stage('Validate Repo Structure') {
             steps {
-                sh """
+                sh '''
                 echo "Checking scripts directory in \$WORKSPACE"
                 ls -l \$WORKSPACE
                 if [ ! -d "\$WORKSPACE/scripts" ]; then
@@ -212,7 +212,7 @@ pipeline {
                     exit 1
                 fi
                 echo "✅ scripts directory exists"
-                """
+                '''
             }
         }
 
