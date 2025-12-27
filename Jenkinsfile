@@ -397,5 +397,6 @@ pipeline {
             echo "✅ Build succeeded"
         }
     }
+    
+    }
 }
-
