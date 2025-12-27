@@ -203,17 +203,17 @@ pipeline {
         }
 
         stage('Validate Repo Structure') {
-            steps {
-                sh '''
-                echo "Checking scripts directory in \$WORKSPACE"
-                ls -l \$WORKSPACE
-                if [ ! -d "\$WORKSPACE/scripts" ]; then
-                    echo "❌ scripts/ directory missing after checkout"
-                    exit 1
-                fi
-                echo "✅ scripts directory exists"
-                '''
-            }
+           steps {
+               sh '''
+                   echo "Checking scripts directory in ${WORKSPACE}"
+                   ls -l "${WORKSPACE}"
+                   if [ ! -d "${WORKSPACE}/scripts" ]; then
+                       echo "❌ scripts/ directory missing after checkout"
+                       exit 1
+                   fi
+                   echo "✅ scripts directory exists"
+               '''
+           }
         }
 
         stage('Docker Mount Validation') {
