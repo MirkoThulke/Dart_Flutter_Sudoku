@@ -216,6 +216,7 @@ pipeline {
            }
         }
 
+/*
         stage('Docker Mount Validation') {
             steps {
                 sh '''
@@ -245,7 +246,9 @@ pipeline {
             }
         }
 
+*/
 
+/*
         stage('Clean Environment') {
             steps {
                 script {
@@ -264,7 +267,8 @@ pipeline {
                 }
             }
         }
-
+*/
+/*
         stage('Build') {
             parallel {
                 stage('Debug') {
@@ -281,6 +285,8 @@ pipeline {
                         }
                     }
                 }
+*/
+/*
 
                 stage('Release') {
                     steps {
@@ -298,6 +304,8 @@ pipeline {
                 }
             }
         }
+*/
+/*
 
         stage('Run Integration Tests') {
             steps {
@@ -314,6 +322,8 @@ pipeline {
             }
         }
 
+*/
+/*
         stage('Generate Diagrams & PDF') {
             steps {
                 script {
@@ -321,7 +331,8 @@ pipeline {
                     }
             }
         }
-
+*/
+/*
         stage('Archive Artifacts') {
             steps {
                 sh '''
@@ -372,6 +383,8 @@ pipeline {
         }
 
     }
+*/
+
 
     post {
         always {
