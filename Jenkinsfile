@@ -162,9 +162,11 @@
 pipeline {
 
     agent {
-        label 'any'
-        //   Comment : Jenkins is storing its workspaces under /var/jenkins_home by default 
-        customWorkspace '/workspace'
+        node {
+            label 'any'
+            //   Comment : Jenkins is storing its workspaces under /var/jenkins_home by default 
+            customWorkspace '/workspace'
+        }
     }
 
     options {
