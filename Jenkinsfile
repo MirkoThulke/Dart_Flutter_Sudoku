@@ -248,52 +248,53 @@ pipeline {
                 }
             }
             steps {
-                sh '''
+                sh """
                     set -e
                     echo "🧹 Cleaning Gradle and Flutter caches"
                     ${CLEAN_GRADLE_SCRIPT}
                     ${CLEAN_FLUTTER_SCRIPT}
-                '''
+                """
             }
         }
 
-/*
+
         stage('Build') {
-            parallel {
-                stage('Debug') {
-                    steps {
-                        script {
-                                sh '''
-                                    docker run --rm \
-                                      --user $(id -u):$(id -g) \
-                                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                                      -w "$FLUTTER_PROJECT_DIR" \
-                                      "$FLUTTER_IMAGE" \
-                                      bash -c "${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}"
-                                '''
+            parallel(
+                "Debug": {
+                    agent {
+                        docker {
+                            image "${FLUTTER_IMAGE}"
+                            // Use root to ensure we can delete all cache files
+                            args "${DOCKER_AGENT_ARGS_ROOT}"
                         }
                     }
-                }
-*/
-/*
-
-                stage('Release') {
                     steps {
-                        script {
-                                sh '''
-                                    docker run --rm \
-                                      --user $(id -u):$(id -g) \
-                                      -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                                      -w "$FLUTTER_PROJECT_DIR" \
-                                      "$FLUTTER_IMAGE" \
-                                      bash -c "${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}"
-                                '''
+                        sh """
+                            set -e
+                            echo "Building debug"
+                            ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
+                        """
+                    }
+                },
+                "Release": {
+                    agent {
+                        docker {
+                            image "${FLUTTER_IMAGE}"
+                            args "${DOCKER_AGENT_ARGS_ROOT}"
                         }
                     }
+                    steps {
+                        sh """
+                            set -e
+                            echo "Building release"
+                            ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
+                        """
+                    }
                 }
-            }
+            )
         }
-*/
+
+
 /*
 
         stage('Run Integration Tests') {
