@@ -154,7 +154,6 @@
 // - select path to jenkinsfile
 //  ------------------------------------------------------------
 
-
 pipeline {
     agent none // We'll define agents per stage
 
@@ -163,10 +162,14 @@ pipeline {
     }
 
     environment {
-
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
-        FLUTTER_PROJECT_DIR = "${WORKSPACE}" // mounted host workspace
+
+        // Host and container paths
+        HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
+        CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
+
+        FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
 
         // Repository paths
         SCRIPTS_DIR = 'scripts'
@@ -179,24 +182,40 @@ pipeline {
         BUILD_RELEASE_ARGS      = 'release'
         INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
+
+        // Docker agent args template
+        DOCKER_AGENT_ARGS       = "-u 2000:2000 -v ${HOST_WORKSPACE}:/workspace -w ${CONTAINER_WORKSPACE}"
     }
+
 
     stages {
 
 
         stage('Checkout') {
-            agent { label 'jenkins' } // runs in the Jenkins container
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS}"
+                }
+            }
             steps {
                 checkout scm
-                sh 'ls -la $WORKSPACE'
+                sh 'pwd'
+                sh 'ls -la'
             }
         }
 
+
         stage('Validate Repo Structure') {
-            agent { label 'jenkins' }
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS}"
+                }
+            }
             steps {
                 script {
-                    if (!fileExists("${WORKSPACE}/scripts")) {
+                    if (!fileExists("${SCRIPTS_DIR}")) {
                         error "❌ scripts directory not found"
                     } else {
                         echo "✅ scripts directory exists"
@@ -210,15 +229,15 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    args "-u 2000:2000 -v ${WORKSPACE}:${FLUTTER_PROJECT_DIR} -w ${FLUTTER_PROJECT_DIR}"
+                    args "${DOCKER_AGENT_ARGS}"
                 }
             }
             steps {
                 sh '''
                     set -e
                     echo "🧹 Cleaning Gradle and Flutter caches"
-                    scripts/clean_gradle_cache.sh
-                    scripts/clean_flutter_cache.sh
+                    ${CLEAN_GRADLE_SCRIPT}
+                    ${CLEAN_FLUTTER_SCRIPT}
                 '''
             }
         }
