@@ -13,7 +13,7 @@ services:
     image: jenkins_sudoku_image:2.528.3
     container_name: jenkins_sudoku_container
 
-    # ensure Jenkins runs with UID/GID matching host mount
+    # Run Jenkins as the same UID/GID as host-mounted files
     user: "2000:2000"
     group_add:
       - 1001   # host docker group
@@ -25,12 +25,20 @@ services:
     restart: unless-stopped
 
     ports:
-      - "8080:8080"
-      - "50000:50000"
+      - "8080:8080"    # Jenkins Web UI
+      - "50000:50000"  # Jenkins agent port
 
     volumes:
-      # Mount the WSL2 ext4 host folder for Jenkins home and workspace separately
+      # Jenkins home folder
       - /home/mirko/jenkins_home_host_mount:/var/jenkins_home
-      # Needed to allow Docker-in-Docker usage
+      # Workspace folder for all pipelines
+      - /home/mirko/jenkins_workspace_host_mount:/workspace
+      # Docker socket for Docker-in-Docker builds
       - /var/run/docker.sock:/var/run/docker.sock
 
+    networks:
+      - jenkins_net
+
+networks:
+  jenkins_net:
+    driver: bridge

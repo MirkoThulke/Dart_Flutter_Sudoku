@@ -154,13 +154,9 @@
 // - select path to jenkinsfile
 //  ------------------------------------------------------------
 
-pipeline {
 
-    agent {
-        node {
-            label 'docker'
-        }
-    }
+pipeline {
+    agent none // We'll define agents per stage
 
     options {
         skipDefaultCheckout true
@@ -170,7 +166,7 @@ pipeline {
 
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
-        FLUTTER_PROJECT_DIR = '/sudoku_app'
+        FLUTTER_PROJECT_DIR = "${WORKSPACE}" // mounted host workspace
 
         // Repository paths
         SCRIPTS_DIR = 'scripts'
@@ -187,46 +183,44 @@ pipeline {
 
     stages {
 
+
         stage('Checkout') {
+            agent { label 'jenkins' } // runs in the Jenkins container
             steps {
-                script {
-                        checkout scm
-                }
+                checkout scm
+                sh 'ls -la $WORKSPACE'
             }
         }
 
         stage('Validate Repo Structure') {
-           steps {
-               sh '''
-                   echo "Checking scripts directory in ${WORKSPACE}"
-                   ls -l "${WORKSPACE}"
-                   if [ ! -d "${WORKSPACE}/scripts" ]; then
-                       echo "❌ scripts/ directory missing after checkout"
-                       exit 1
-                   fi
-                   echo "✅ scripts directory exists"
-               '''
-           }
+            agent { label 'jenkins' }
+            steps {
+                script {
+                    if (!fileExists("${WORKSPACE}/scripts")) {
+                        error "❌ scripts directory not found"
+                    } else {
+                        echo "✅ scripts directory exists"
+                    }
+                }
+            }
         }
 
 
         stage('Clean Environment') {
-          agent {
-            docker {
-              image "${FLUTTER_IMAGE}"
-              args '-u 2000:2000'
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "-u 2000:2000 -v ${WORKSPACE}:${FLUTTER_PROJECT_DIR} -w ${FLUTTER_PROJECT_DIR}"
+                }
             }
-          }
-          steps {
-            sh '''
-              set -e
-              echo "🧹 Cleaning environment inside Docker agent"
-              cd "$WORKSPACE"
-              echo "Scripts directory: ${WORKSPACE}"
-              ${CLEAN_GRADLE_SCRIPT}
-              ${CLEAN_FLUTTER_SCRIPT}
-            '''
-          }
+            steps {
+                sh '''
+                    set -e
+                    echo "🧹 Cleaning Gradle and Flutter caches"
+                    scripts/clean_gradle_cache.sh
+                    scripts/clean_flutter_cache.sh
+                '''
+            }
         }
 
 /*
@@ -349,13 +343,14 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished: ${currentBuild.currentResult}"
-        }
-        failure {
-            echo "❌ Build failed — check logs above"
+            echo "Cleaning up workspace if necessary"
+            cleanWs()
         }
         success {
             echo "✅ Build succeeded"
+        }
+        failure {
+            echo "❌ Build failed"
         }
     }
 
