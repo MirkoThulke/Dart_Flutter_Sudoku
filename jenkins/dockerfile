@@ -39,6 +39,6 @@ RUN jenkins-plugin-cli --plugins \
     github-branch-source \
     pipeline-stage-view \
     docker-workflow \
-    ws-cleanup-plugin
+    ws-cleanup
 
 USER jenkins
