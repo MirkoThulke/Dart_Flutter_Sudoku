@@ -116,11 +116,7 @@
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
 //  sudo chmod -R 770 /home/mirko/jenkins_home_host_mount
 //  
-//  # Workspace
-//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
-//  sudo chown -R 2000:1001 /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
-//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
-//
+
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
 //     docker compose down
@@ -129,7 +125,6 @@
 //
 //  Check ownership and permissions of the Jenkins workspace:
 //   ls -ld /home/mirko/jenkins_home_host_mount
-//   ls -ld /home/mirko/jenkins_workspace_host_mount
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------

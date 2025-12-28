@@ -37,6 +37,10 @@ RUN jenkins-plugin-cli --plugins \
     workflow-aggregator:596.v8c21c963d92d \
     github:1.40.0 \
     github-branch-source \
-    pipeline-stage-view
+    pipeline-stage-view \
+    docker-workflow \
+    docker-commons \
+    docker-java-api \
+    docker-java-transport-httpclient
 
 USER jenkins
