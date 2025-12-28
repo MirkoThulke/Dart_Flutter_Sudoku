@@ -258,46 +258,32 @@ pipeline {
         }
 
         stage('Build') {
-            parallel {
+          agent {
+                  docker {
+                      image "${FLUTTER_IMAGE}"
+                      args "${DOCKER_AGENT_ARGS_ROOT}"
+                  }
+          }
+          steps {
+              parallel {
                 debug: {
-                    stages {
-                        stage('Debug Build') {
-                            agent {
-                                docker {
-                                    image "${FLUTTER_IMAGE}"
-                                    args "${DOCKER_AGENT_ARGS_ROOT}"
-                                }
-                            }
-                            steps {
+
                                 sh """
                                     set -e
                                     echo "🧹 Cleaning Gradle and Flutter caches"
                                     ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
                                 """
-                            }
-                        }
-                    }
                 }
                 release: {
-                    stages {
-                        stage('Release Build') {
-                            agent {
-                                docker {
-                                    image "${FLUTTER_IMAGE}"
-                                    args "${DOCKER_AGENT_ARGS_ROOT}"
-                                }
-                            }
-                            steps {
+
                                 sh """
                                     set -e
                                     echo "Building release..."
                                     ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
                                 """
-                            }
-                        }
-                    }
                 }
-            }
+
+          }
         }
 
 /*
