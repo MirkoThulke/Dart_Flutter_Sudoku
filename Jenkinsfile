@@ -291,22 +291,26 @@ pipeline {
           }
         }
 
+
 /*
 
         stage('Run Integration Tests') {
-            steps {
-                script {
-                        sh '''
-                            docker run --rm \
-                              --user $(id -u):$(id -g) \
-                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                              -w "$FLUTTER_PROJECT_DIR" \
-                              "$FLUTTER_IMAGE" \
-                              bash -c "${INTEGRATION_TEST_SCRIPT}"
-                        '''
-                    }
-            }
+          agent {
+                  docker {
+                      image "${FLUTTER_IMAGE}"
+                      args "${DOCKER_AGENT_ARGS_ROOT}"
+                  }
+          }
+          steps {
+
+                                sh """
+                                    set -e
+                                    echo "Run Integration Tests"
+                                    ${INTEGRATION_TEST_SCRIPT}
+                                """
+          }
         }
+
 
 */
 /*

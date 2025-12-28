@@ -103,14 +103,12 @@ fi
 # Build APK
 echo "🏗️ Building Flutter APK in $FLUTTER_MODE mode..."
 
-# Set extra Gradle options only for debug builds
-GRADLE_EXTRA_OPTS=""
-if [[ "$FLUTTER_MODE" == "debug" ]]; then
-    GRADLE_EXTRA_OPTS="--stacktrace --info --debug --scan"
-fi
 
-# Run Flutter build with optional Gradle options
-flutter build apk --$FLUTTER_MODE ${GRADLE_EXTRA_OPTS:+-- $GRADLE_EXTRA_OPTS}
+if [[ "$FLUTTER_MODE" == "debug" ]]; then
+    flutter build apk --debug --verbose
+else
+    flutter build apk --release
+fi
 
 # Locate APK
 APK_PATH="$PROJECT_ROOT/build/app/outputs/flutter-apk/app-$FLUTTER_MODE.apk"
