@@ -365,7 +365,7 @@ pipeline {
     post {
         always {
             echo "Cleaning up workspace if necessary"
-            cleanWs()
+            deleteDir()
         }
         success {
             echo "✅ Build succeeded"
