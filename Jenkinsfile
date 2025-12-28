@@ -222,6 +222,7 @@ pipeline {
               set -e
               echo "🧹 Cleaning environment inside Docker agent"
               cd "$WORKSPACE"
+              echo "Scripts directory: ${WORKSPACE}"
               ${CLEAN_GRADLE_SCRIPT}
               ${CLEAN_FLUTTER_SCRIPT}
             '''
