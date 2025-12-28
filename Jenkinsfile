@@ -191,6 +191,19 @@ pipeline {
 
     stages {
 
+        stage('Clean workspace') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                // Clean before Github pull to avoid stale files
+                cleanWs()
+            }
+        }
+
 
         stage('Checkout') {
             agent {
@@ -364,12 +377,8 @@ pipeline {
 
     post {
         always {
-            always {
-                node {
-                    echo "Cleaning workspace..."
-                    deleteDir() // cleans the workspace
-                }
-            }
+            echo "Cleaning workspace..."
+            // cleanWs()  
         }
         success {
             echo "✅ Build succeeded"
