@@ -31,11 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install plugins and pin to specific versions for stability
+# Install plugins
 RUN jenkins-plugin-cli --plugins \
-    git:5.2.2 \
-    workflow-aggregator:596.v8c21c963d92d \
-    github:1.40.0 \
+    git \
+    workflow-aggregator \
+    github \
     github-branch-source \
     pipeline-stage-view \
     docker-workflow
