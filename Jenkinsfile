@@ -392,7 +392,7 @@ pipeline {
 
     post {
         always {
-            // echo "Cleaning workspace..."
+            echo "Cleaning workspace..."
             // cleanWs()  
         }
         success {
