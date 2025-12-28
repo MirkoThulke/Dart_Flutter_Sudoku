@@ -168,7 +168,6 @@ pipeline {
 
     environment {
 
-        DEEP_CLEAN = 
         
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
