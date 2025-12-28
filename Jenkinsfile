@@ -157,11 +157,19 @@
 pipeline {
     agent none // We'll define agents per stage
 
+    // Paramter for conditional stage for deep clean
+    parameters {
+        booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'Perform a full Flutter + Gradle cache clean?')
+    }
+
     options {
         skipDefaultCheckout true
     }
 
     environment {
+
+        DEEP_CLEAN = 
+        
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
 
@@ -221,12 +229,19 @@ pipeline {
 
 
         stage('Validate Repo Structure') {
+
+            // stage only runs if the user selects DEEP_CLEAN = true.
+            when {
+                expression { return params.DEEP_CLEAN }
+            }
+
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
+
             steps {
                 script {
                     if (!fileExists("${SCRIPTS_DIR}")) {
@@ -239,7 +254,7 @@ pipeline {
         }
 
 
-        stage('Clean Environment') {
+        stage('Clean Environment Flutter') {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -250,12 +265,12 @@ pipeline {
             steps {
                 sh """
                     set -e
-                    echo "🧹 Cleaning Gradle and Flutter caches"
-                    ${CLEAN_GRADLE_SCRIPT}
+                    echo "🧹 Cleaning Flutter caches"
                     ${CLEAN_FLUTTER_SCRIPT}
                 """
             }
         }
+
 
         stage('Build debug APK/AAB') {
           agent {
@@ -378,7 +393,7 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning workspace..."
+            // echo "Cleaning workspace..."
             // cleanWs()  
         }
         success {
