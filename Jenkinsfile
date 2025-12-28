@@ -282,9 +282,10 @@ pipeline {
                                     ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
                                 """
                 }
-
+              }
           }
         }
+
 
 /*
 
