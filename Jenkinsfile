@@ -117,9 +117,9 @@
 //  sudo chmod -R 770 /home/mirko/jenkins_home_host_mount
 //  
 //  # Workspace
-//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount
-//  sudo chown -R 2000:1001 /home/mirko/jenkins_workspace_host_mount
-//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount
+//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
+//  sudo chown -R 2000:1001 /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
+//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace
 //
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
@@ -164,8 +164,6 @@ pipeline {
     agent {
         node {
             label 'docker'
-            //   Comment : Jenkins is storing its workspaces under /var/jenkins_home by default 
-            customWorkspace '/workspace/sudoku_app_workspace'
         }
     }
 
@@ -217,57 +215,24 @@ pipeline {
         }
 
 
-        stage('Docker Mount Validation') {
-            steps {
-                sh '''
-                    echo "=============================="
-                    echo "🔍 Docker Mount Validation"
-                    echo "=============================="
-
-                    HOST_WORKSPACE="/home/mirko/jenkins_workspace_host_mount/sudoku_app_workspace"
-
-                    echo "Host workspace: $HOST_WORKSPACE"
-                    ls -la "$HOST_WORKSPACE"
-
-                    docker run --rm \
-                      --user $(id -u):$(id -g) \
-                      -v "$HOST_WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                      -w "$FLUTTER_PROJECT_DIR" \
-                      "$FLUTTER_IMAGE" \
-                      bash -c "
-                        set -e
-                        echo 'Container UID/GID:'; id
-                        echo 'Working directory:'; pwd
-                        ls -la
-                        test -d scripts
-                        touch mount_test && rm mount_test
-                        echo '✅ Container can read/write Jenkins workspace'
-                      "
-                '''
-            }
-        }
-
-
-/*
         stage('Clean Environment') {
-            steps {
-                script {
-                        sh '''
-                            docker run --rm \
-                              --user $(id -u):$(id -g) \
-                              -v "$WORKSPACE:$FLUTTER_PROJECT_DIR" \
-                              -w "$FLUTTER_PROJECT_DIR" \
-                              "$FLUTTER_IMAGE" \
-                              bash -c "
-                                set -e
-                                ${CLEAN_GRADLE_SCRIPT}
-                                ${CLEAN_FLUTTER_SCRIPT}
-                              "
-                        '''
-                }
+          agent {
+            docker {
+              image "${FLUTTER_IMAGE}"
+              args '-u 2000:2000'
             }
+          }
+          steps {
+            sh '''
+              set -e
+              echo "🧹 Cleaning environment inside Docker agent"
+
+              ${CLEAN_GRADLE_SCRIPT}
+              ${CLEAN_FLUTTER_SCRIPT}
+            '''
+          }
         }
-*/
+
 /*
         stage('Build') {
             parallel {

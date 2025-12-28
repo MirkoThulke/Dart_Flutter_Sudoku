@@ -22,12 +22,6 @@ RUN usermod -u 2000 jenkins \
 # Disable setup wizard
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
-# Jenkins home (standard)
-ENV JENKINS_HOME=/var/jenkins_home
-
-# Create workspace directory explicitly
-RUN mkdir -p /workspace \
- && chown -R 2000:2000 /workspace
 
 
 COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
@@ -40,11 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install plugins
+# Install plugins and pin to specific versions for stability
 RUN jenkins-plugin-cli --plugins \
-    git \
-    workflow-aggregator \
-    github \
+    git:5.2.2 \
+    workflow-aggregator:596.v8c21c963d92d \
+    github:1.40.0 \
     github-branch-source \
     pipeline-stage-view
 
