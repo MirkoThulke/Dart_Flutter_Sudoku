@@ -38,9 +38,6 @@ RUN jenkins-plugin-cli --plugins \
     github:1.40.0 \
     github-branch-source \
     pipeline-stage-view \
-    docker-workflow \
-    docker-commons \
-    docker-java-api \
-    docker-java-transport-httpclient
+    docker-workflow
 
 USER jenkins
