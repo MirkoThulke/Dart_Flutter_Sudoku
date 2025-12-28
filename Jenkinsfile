@@ -364,8 +364,10 @@ pipeline {
 
     post {
         always {
-            echo "Cleaning up workspace if necessary"
-            deleteDir()
+          node {
+            echo "Cleaning workspace..."
+            deleteDir() // cleans the workspace
+          }
         }
         success {
             echo "✅ Build succeeded"
