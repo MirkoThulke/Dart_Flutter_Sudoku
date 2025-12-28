@@ -257,43 +257,48 @@ pipeline {
             }
         }
 
-
         stage('Build') {
-            parallel(
-                "Debug": {
-                    agent {
-                        docker {
-                            image "${FLUTTER_IMAGE}"
-                            // Use root to ensure we can delete all cache files
-                            args "${DOCKER_AGENT_ARGS_ROOT}"
+            parallel {
+                debug: {
+                    stages {
+                        stage('Debug Build') {
+                            agent {
+                                docker {
+                                    image "${FLUTTER_IMAGE}"
+                                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                                }
+                            }
+                            steps {
+                                sh """
+                                    set -e
+                                    echo "🧹 Cleaning Gradle and Flutter caches"
+                                    ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
+                                """
+                            }
                         }
-                    }
-                    steps {
-                        sh """
-                            set -e
-                            echo "Building debug"
-                            ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
-                        """
                     }
                 },
-                "Release": {
-                    agent {
-                        docker {
-                            image "${FLUTTER_IMAGE}"
-                            args "${DOCKER_AGENT_ARGS_ROOT}"
+                release: {
+                    stages {
+                        stage('Release Build') {
+                            agent {
+                                docker {
+                                    image "${FLUTTER_IMAGE}"
+                                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                                }
+                            }
+                            steps {
+                                sh """
+                                    set -e
+                                    echo "Building release..."
+                                    ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
+                                """
+                            }
                         }
                     }
-                    steps {
-                        sh """
-                            set -e
-                            echo "Building release"
-                            ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
-                        """
-                    }
                 }
-            )
+            }
         }
-
 
 /*
 
