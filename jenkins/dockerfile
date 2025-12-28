@@ -23,9 +23,6 @@ RUN usermod -u 2000 jenkins \
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
 
-
-COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
-
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         docker-cli \
