@@ -184,7 +184,8 @@ pipeline {
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
         // Docker agent args template
-        DOCKER_AGENT_ARGS       = "-u 2000:2000 -v ${HOST_WORKSPACE}:/workspace -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS       = "-u 2000:2000 -v ${HOST_WORKSPACE}:/workspace -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_ROOT          = "-u 0:0 -v ${HOST_WORKSPACE}:/workspace -w ${CONTAINER_WORKSPACE}"
     }
 
 
@@ -195,7 +196,7 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
@@ -210,7 +211,7 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
@@ -229,7 +230,8 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS}"
+                    // Use root to ensure we can delete all cache files
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
