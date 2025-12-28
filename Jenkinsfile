@@ -257,7 +257,7 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build debug APK/AAB') {
           agent {
                   docker {
                       image "${FLUTTER_IMAGE}"
@@ -265,27 +265,31 @@ pipeline {
                   }
           }
           steps {
-              parallel {
-                debug: {
 
                                 sh """
                                     set -e
                                     echo "🧹 Cleaning Gradle and Flutter caches"
                                     ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
                                 """
-                }
-                release: {
-
-                                sh """
-                                    set -e
-                                    echo "Building release..."
-                                    ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
-                                """
-                }
-              }
           }
         }
 
+        stage('Build release APK/AAB') {
+          agent {
+                  docker {
+                      image "${FLUTTER_IMAGE}"
+                      args "${DOCKER_AGENT_ARGS_ROOT}"
+                  }
+          }
+          steps {
+
+                                sh """
+                                    set -e
+                                    echo "🧹 Cleaning Gradle and Flutter caches"
+                                    ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
+                                """
+          }
+        }
 
 /*
 
