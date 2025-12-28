@@ -277,7 +277,7 @@ pipeline {
                             }
                         }
                     }
-                },
+                }
                 release: {
                     stages {
                         stage('Release Build') {
