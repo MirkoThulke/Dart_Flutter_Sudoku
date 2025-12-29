@@ -174,6 +174,8 @@ pipeline {
 
         // container paths
 
+        HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
+
         CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
         FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
@@ -194,8 +196,8 @@ pipeline {
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
         // Docker agent args template
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
-        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0 -v ${WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" // run as root
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" // run as root
 
     }
 
@@ -208,7 +210,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -224,7 +226,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -244,7 +246,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -271,7 +273,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -310,7 +312,7 @@ pipeline {
                   docker {
                       image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                   }
           }
           steps {
@@ -337,7 +339,7 @@ pipeline {
                   docker {
                       image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                   }
           }
           steps {
@@ -367,7 +369,7 @@ pipeline {
                   docker {
                       image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                   }
           }
           steps {
@@ -387,7 +389,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
@@ -403,7 +405,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                     args "-u 0:0 -v ${env.WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
