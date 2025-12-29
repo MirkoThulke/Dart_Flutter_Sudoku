@@ -301,9 +301,9 @@ pipeline {
                     chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
 
                     echo "✅ Deep clean completed"
-                '''
+                """
                 /*
-                        sh """
+                sh """
                             set -e
                             echo "🧹 Cleaning Flutter and Gradle caches"
 
@@ -314,6 +314,7 @@ pipeline {
                             ${CLEAN_FLUTTER_SCRIPT}
 
                 """
+                */
             }
         }
 
