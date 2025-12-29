@@ -251,6 +251,35 @@ pipeline {
             }
         }
 
+
+        stage('Verify Container Layout') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                sh """
+                    set -e
+                    echo "== Flutter =="
+                    which flutter
+                    flutter --version
+
+                    echo "== Workspace =="
+                    pwd
+                    ls -la
+
+                    echo "== Cache =="
+                    ls -la /workspace/cache || true
+
+                    echo "== Env =="
+                    env | sort
+                """
+            }
+        }
+
+
         stage('Clean Environment Flutter') {
             agent {
                 docker {
