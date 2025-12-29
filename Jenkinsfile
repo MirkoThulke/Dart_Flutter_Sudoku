@@ -115,7 +115,11 @@
 //  sudo mkdir -p /home/mirko/jenkins_home_host_mount
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
 //  sudo chmod -R 770 /home/mirko/jenkins_home_host_mount
-//  
+//
+//  # Jenkins workspace
+//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_workspace_host_mount
+//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount
 
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
@@ -171,10 +175,16 @@ pipeline {
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
 
-        FLUTTER_PROJECT_DIR = "${WORKSPACE}" // inside container
+        // container paths
+        HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
+        CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
+
+        FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
+        FLUTTER_ROOT = '/opt/flutter'
+        PATH = "${FLUTTER_ROOT}/bin:${env.PATH}"
 
         // Hard pin Gradle cache
-        GRADLE_USER_HOME    = "${WORKSPACE}/.gradle" // inside container
+        GRADLE_USER_HOME = "${CONTAINER_WORKSPACE}/.gradle" // inside container
 
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
@@ -192,10 +202,11 @@ pipeline {
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
         // Docker agent with workspace mounted and correct user
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000" 
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" 
         
         // Docker agent running as root 
-        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0"
+        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0" 
+        
 
     }
 
@@ -226,6 +237,17 @@ pipeline {
             }
         }
 
+        stage('Check Mount') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                    sh 'echo $CONTAINER_WORKSPACE && ls -la $CONTAINER_WORKSPACE'
+            }
+        }
 
         stage('Clean Environment Flutter') {
             agent {
@@ -251,12 +273,12 @@ pipeline {
                       android/build
 
                     echo "Ownership before fix:"
-                    ls -ld ${WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE}
 
-                    chown -R 2000:2000 ${WORKSPACE}
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
 
                     echo "Ownership after fix:"
-                    ls -ld ${WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE}
                 """
             }
         }
@@ -287,12 +309,12 @@ pipeline {
                       ${FLUTTER_ROOT}/bin/cache || true
 
                     echo "Ownership before fix:"
-                    ls -ld ${WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE}
 
-                    chown -R 2000:2000 ${WORKSPACE}
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
 
                     echo "Ownership after fix:"
-                    ls -ld ${WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE}
 
                     echo "✅ Deep clean completed"
                 '''
