@@ -239,6 +239,22 @@ pipeline {
             }
         }
 
+
+        stage('Git Add Safe Directory Step') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
+            steps {
+                sh """
+                    git config --system --add safe.directory /opt/flutter
+                """
+            }
+        }
+
+
         stage('Check Mount') {
             agent {
                 docker {
@@ -349,19 +365,6 @@ pipeline {
             }
         }
 
-        stage('Git Add Safe Directory Step') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_ROOT}"
-                }
-            }
-            steps {
-                sh """
-                    git config --system --add safe.directory /opt/flutter
-                """
-            }
-        }
 
         stage('Build debug APK/AAB') {
             agent {
