@@ -254,35 +254,35 @@ pipeline {
             }
         }
 
-
         stage('Deep Clean (Optional)') {
-            when { expression { params.DEEP_CLEAN } }
+            when { expression { return params.DEEP_CLEAN == true } }
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
                     args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
                 script {
+                    echo "☢️ DEEP CLEAN ENABLED"
                     def status = sh(script: """
                         set -e
                         echo "🧹 Cleaning Flutter and Gradle caches"
 
                         export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-
-                        echo "☢️ DEEP CLEAN ENABLED"
-
-                        rm -rf \
-                            $GRADLE_USER_HOME/caches \
-                            $GRADLE_USER_HOME/daemon \
-                            ~/.pub-cache \
-                            $FLUTTER_HOME/bin/cache || true
+                        rm -rf ${GRADLE_USER_HOME}/caches \
+                               ${GRADLE_USER_HOME}/daemon \
+                               ~/.pub-cache \
+                               ${FLUTTER_HOME}/bin/cache || true
                     """, returnStatus: true)
 
-                    echo "Exit-Code: ${status}"
+                    echo "Deep Clean Exit-Code: ${status}"
+
+                    if (status != 0) {
+                        error("Deep Clean step failed!")
+                    }
                 }
+                
                 /*
                 sh """
                     set -e
@@ -293,12 +293,13 @@ pipeline {
 
                     echo "🧹 Cleaning Gradle caches"
                     ${CLEAN_FLUTTER_SCRIPT}
-                    
+
                 """
                 */
 
             }
         }
+
 
         stage('Build debug APK/AAB') {
           agent {
