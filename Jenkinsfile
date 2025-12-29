@@ -204,7 +204,13 @@ pipeline {
 
 
         stage('Checkout') {
-            agent any
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    // Use root to ensure we can delete all cache files
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 cleanWs()
                 checkout scm
@@ -214,6 +220,13 @@ pipeline {
 
 
         stage('Validate Repo Structure') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    // Use root to ensure we can delete all cache files
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 script {
                     if (!fileExists("${SCRIPTS_DIR}")) {
@@ -367,6 +380,13 @@ pipeline {
 
 
         stage('Generate Diagrams & PDF') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    // Use root to ensure we can delete all cache files
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 script {
                         sh "pwsh ${PLANTUML_SCRIPT}"
@@ -376,6 +396,13 @@ pipeline {
 
 
         stage('Archive Artifacts') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    // Use root to ensure we can delete all cache files
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 sh """
                     set -e
