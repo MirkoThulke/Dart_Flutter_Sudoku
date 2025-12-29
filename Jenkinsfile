@@ -199,7 +199,7 @@ pipeline {
         DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
         
         // Docker agent running as root without workspace mounted. Root user shall not write into Jenkins workspace.
-        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0
+        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0"
 
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
