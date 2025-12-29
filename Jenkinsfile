@@ -164,7 +164,8 @@
 //  ------------------------------------------------------------
 
 pipeline {
-    agent none // Agents per stage
+
+    agent { label 'any' }
 
     parameters {
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'Perform a full Flutter + Gradle cache clean?')
