@@ -179,21 +179,22 @@ pipeline {
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
 
-        // Host / Container workspace
+        // Workspace : Host/ Container mount paths
         HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
         CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
-        // Cache (Host mount)
+        // Cache :  Container mount paths
         HOST_CACHE          = '/home/mirko/jenkins_cache'
         CONTAINER_CACHE     = '/workspace/cache'
+
+
+        // Gradle / Pub cache : Container paths
+        GRADLE_USER_HOME    = "${CONTAINER_CACHE}/.gradle"
+        PUB_CACHE           = "${CONTAINER_CACHE}/.pub-cache"
 
         // Flutter
         FLUTTER_ROOT        = '/opt/flutter'
         PATH                = "${FLUTTER_ROOT}/bin:${env.PATH}"
-
-        // Gradle / Pub cache
-        GRADLE_USER_HOME    = "${CONTAINER_CACHE}/.gradle"
-        PUB_CACHE           = "${CONTAINER_CACHE}/.pub-cache"
 
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
@@ -345,6 +346,20 @@ pipeline {
 
                 """
                 */
+            }
+        }
+
+        stage('Git Add Safe Directory Step') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
+            steps {
+                sh """
+                    git config --system --add safe.directory /opt/flutter
+                """
             }
         }
 
