@@ -167,21 +167,17 @@ pipeline {
     }
 
     environment {
-
-        
+    
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
 
-        // container paths
-
-        HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
-
-        CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
-
-        FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
+        FLUTTER_PROJECT_DIR = "${WORKSPACE}" // inside container
 
         // Hard pin Gradle cache
-        GRADLE_USER_HOME    = "${CONTAINER_WORKSPACE}/.gradle" // fully container-local
+        GRADLE_USER_HOME    = "${WORKSPACE}/.gradle" // inside container
+
+        // GIT home
+        HOME = "${CONTAINER_WORKSPACE}"
 
         // Repository paths
         SCRIPTS_DIR = 'scripts'
@@ -196,13 +192,11 @@ pipeline {
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
         // Docker agent with workspace mounted and correct user
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000" 
         
-        // Docker agent running as root without workspace mounted. Root user shall not write into Jenkins workspace.
+        // Docker agent running as root 
         DOCKER_AGENT_ARGS_ROOT  = "-u 0:0"
 
-        // GIT home
-        HOME = "${CONTAINER_WORKSPACE}"
     }
 
 
@@ -257,12 +251,12 @@ pipeline {
                       android/build
 
                     echo "Ownership before fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${WORKSPACE}
 
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
+                    chown -R 2000:2000 ${WORKSPACE}
 
                     echo "Ownership after fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${WORKSPACE}
                 """
             }
         }
@@ -290,15 +284,15 @@ pipeline {
                       ${GRADLE_USER_HOME}/caches \
                       ${GRADLE_USER_HOME}/daemon \
                       ~/.pub-cache \
-                      ${FLUTTER_HOME}/bin/cache || true
+                      ${FLUTTER_ROOT}/bin/cache || true
 
                     echo "Ownership before fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${WORKSPACE}
 
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
+                    chown -R 2000:2000 ${WORKSPACE}
 
                     echo "Ownership after fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${WORKSPACE}
 
                     echo "✅ Deep clean completed"
                 '''
