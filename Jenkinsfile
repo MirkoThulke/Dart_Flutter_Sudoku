@@ -279,7 +279,7 @@ pipeline {
                       ~/.pub-cache \
                       $FLUTTER_HOME/bin/cache || true
                     
-                    echo 'Exit-Code: $?'
+                    echo "Exit-Code: \$?"
                 """
                 /*
                 sh """
@@ -292,7 +292,7 @@ pipeline {
                     echo "🧹 Cleaning Gradle caches"
                     ${CLEAN_FLUTTER_SCRIPT}
 
-                    echo 'Exit-Code: $?'
+                    echo "Exit-Code: \$?"
                 """
                 */
 
