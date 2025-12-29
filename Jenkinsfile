@@ -195,9 +195,11 @@ pipeline {
         INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
-        // Docker agent args template
+        // Docker agent with workspace mounted and correct user
         DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
-        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" // run as root
+        
+        // Docker agent running as root without workspace mounted. Root user shall not write into Jenkins workspace.
+        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0
 
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
@@ -253,6 +255,14 @@ pipeline {
                       android/.gradle \
                       build \
                       android/build
+
+                    echo "Ownership before fix:"
+                    ls -ld ${CONTAINER_WORKSPACE}
+
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
+
+                    echo "Ownership after fix:"
+                    ls -ld ${CONTAINER_WORKSPACE}
                 """
             }
         }
@@ -281,6 +291,14 @@ pipeline {
                       ${GRADLE_USER_HOME}/daemon \
                       ~/.pub-cache \
                       ${FLUTTER_HOME}/bin/cache || true
+
+                    echo "Ownership before fix:"
+                    ls -ld ${CONTAINER_WORKSPACE}
+
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
+
+                    echo "Ownership after fix:"
+                    ls -ld ${CONTAINER_WORKSPACE}
 
                     echo "✅ Deep clean completed"
                 '''
@@ -317,7 +335,6 @@ pipeline {
                     set -e
                     echo "Build debug APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    git config --global --add safe.directory /opt/flutter
                     flutter pub get
                     flutter build apk --debug
                 """
@@ -345,7 +362,6 @@ pipeline {
                     set -e
                     echo "Build release APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    git config --global --add safe.directory /opt/flutter
                     flutter pub get
                     flutter build apk --release
                 """
