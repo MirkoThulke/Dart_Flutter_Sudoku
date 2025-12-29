@@ -206,13 +206,7 @@ pipeline {
 
 
         stage('Checkout') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
-                    args "${DOCKER_AGENT_ARGS_ROOT}"
-                }
-            }
+            agent { label 'any' } // or any Jenkins node
             steps {
                 cleanWs()
                 checkout scm
