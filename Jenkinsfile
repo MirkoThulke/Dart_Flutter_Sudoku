@@ -254,6 +254,22 @@ pipeline {
         }
 
 
+        stage('Add GIT safe.directories') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
+                        steps {
+                sh """
+                    set -e
+                    git config --system --add safe.directory /opt/flutter
+                """
+            }
+        }
+
+
         stage('Verify Container Layout') {
             agent {
                 docker {
@@ -264,7 +280,6 @@ pipeline {
             steps {
                 sh """
                     set -e
-                    git config --system --add safe.directory /opt/flutter
 
                     echo "== Flutter =="
                     which flutter
