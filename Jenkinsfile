@@ -265,22 +265,24 @@ pipeline {
                 }
             }
             steps {
-                sh """
-                    set -e
-                    echo "🧹 Cleaning Flutter and Gradle caches"
+                script {
+                    def status = sh(script: """
+                        set -e
+                        echo "🧹 Cleaning Flutter and Gradle caches"
 
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                        export GRADLE_USER_HOME=${GRADLE_USER_HOME}
 
-                    echo "☢️ DEEP CLEAN ENABLED"
+                        echo "☢️ DEEP CLEAN ENABLED"
 
-                    rm -rf \
-                      $GRADLE_USER_HOME/caches \
-                      $GRADLE_USER_HOME/daemon \
-                      ~/.pub-cache \
-                      $FLUTTER_HOME/bin/cache || true
-                    
-                    echo "Exit-Code: \$?"
-                """
+                        rm -rf \
+                            $GRADLE_USER_HOME/caches \
+                            $GRADLE_USER_HOME/daemon \
+                            ~/.pub-cache \
+                            $FLUTTER_HOME/bin/cache || true
+                    """, returnStatus: true)
+
+                    echo "Exit-Code: ${status}"
+                }
                 /*
                 sh """
                     set -e
@@ -291,8 +293,7 @@ pipeline {
 
                     echo "🧹 Cleaning Gradle caches"
                     ${CLEAN_FLUTTER_SCRIPT}
-
-                    echo "Exit-Code: \$?"
+                    
                 """
                 */
 
