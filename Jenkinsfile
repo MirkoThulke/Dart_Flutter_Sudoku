@@ -159,9 +159,8 @@
 //  ------------------------------------------------------------
 
 pipeline {
-    agent none // We'll define agents per stage
+    agent none // Agents per stage
 
-    // Paramter for conditional stage for deep clean
     parameters {
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'Perform a full Flutter + Gradle cache clean?')
     }
@@ -171,20 +170,24 @@ pipeline {
     }
 
     environment {
-    
         // Flutter build container
         FLUTTER_IMAGE       = 'flutter_rust_env'
 
-        // container paths
+        // Host / Container workspace
         HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
         CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
-        FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
-        FLUTTER_ROOT = '/opt/flutter'
-        PATH = "${FLUTTER_ROOT}/bin:${env.PATH}"
+        // Cache (Host mount)
+        HOST_CACHE          = '/home/mirko/jenkins_cache'
+        CONTAINER_CACHE     = '/workspace/cache'
 
-        // Hard pin Gradle cache
-        GRADLE_USER_HOME = "${CONTAINER_WORKSPACE}/.gradle" // inside container
+        // Flutter
+        FLUTTER_ROOT        = '/opt/flutter'
+        PATH                = "${FLUTTER_ROOT}/bin:${env.PATH}"
+
+        // Gradle / Pub cache
+        GRADLE_USER_HOME    = "${CONTAINER_CACHE}/.gradle"
+        PUB_CACHE           = "${CONTAINER_CACHE}/.pub-cache"
 
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
@@ -192,7 +195,6 @@ pipeline {
         // Repository paths
         SCRIPTS_DIR = 'scripts'
 
-        // Script paths
         CLEAN_GRADLE_SCRIPT     = "${SCRIPTS_DIR}/clean_gradle_cache.sh"
         CLEAN_FLUTTER_SCRIPT    = "${SCRIPTS_DIR}/clean_flutter.sh"
         BUILD_ALL_SCRIPT        = "${SCRIPTS_DIR}/build_all.sh"
@@ -201,21 +203,15 @@ pipeline {
         INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
-        // Docker agent with workspace mounted and correct user
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" 
-        
-        // Docker agent running as root 
-        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0" 
-        
-
+        // Docker args
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -v ${HOST_CACHE}:${CONTAINER_CACHE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_ROOT    = "-u 0:0 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -v ${HOST_CACHE}:${CONTAINER_CACHE} -w ${CONTAINER_WORKSPACE}"
     }
-
 
     stages {
 
-
         stage('Checkout') {
-            agent { label 'any' } // or any Jenkins node
+            agent { label 'any' }
             steps {
                 cleanWs()
                 checkout scm
@@ -223,9 +219,8 @@ pipeline {
             }
         }
 
-
         stage('Validate Repo Structure') {
-            agent { label 'any' } // or any Jenkins node
+            agent { label 'any' }
             steps {
                 script {
                     if (!fileExists("${SCRIPTS_DIR}")) {
@@ -245,7 +240,8 @@ pipeline {
                 }
             }
             steps {
-                    sh 'echo $CONTAINER_WORKSPACE && ls -la $CONTAINER_WORKSPACE'
+                sh 'echo "Container Workspace: $CONTAINER_WORKSPACE" && ls -la $CONTAINER_WORKSPACE'
+                sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
             }
         }
 
@@ -253,40 +249,31 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
                     args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
-                echo "Clean Environment Flutter"
+                echo "🧹 Cleaning Flutter build files"
                 sh """
                     set -e
-
-                    echo "🧹 Cleaning Flutter build files"
-
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
 
-                    rm -rf \
-                      .gradle \
-                      android/.gradle \
-                      build \
-                      android/build
+                    rm -rf .gradle android/.gradle build android/build
 
                     echo "Ownership before fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
 
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
 
                     echo "Ownership after fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
                 """
             }
         }
 
         stage('Deep Clean (Optional)') {
-            when {
-                expression { params.DEEP_CLEAN == true }
-            }
+            when { expression { params.DEEP_CLEAN == true } }
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -295,26 +282,18 @@ pipeline {
             }
             steps {
                 echo "☢️ DEEP CLEAN ENABLED"
-
-                sh '''
+                sh """
                     set -e
-                    echo "🧹 Deep cleaning Flutter & Gradle caches"
-
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
 
                     rm -rf \
                       ${GRADLE_USER_HOME}/caches \
                       ${GRADLE_USER_HOME}/daemon \
-                      ~/.pub-cache \
+                      ${PUB_CACHE} \
                       ${FLUTTER_ROOT}/bin/cache || true
 
-                    echo "Ownership before fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
-
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE}
-
-                    echo "Ownership after fix:"
-                    ls -ld ${CONTAINER_WORKSPACE}
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
 
                     echo "✅ Deep clean completed"
                 '''
@@ -329,28 +308,23 @@ pipeline {
                             echo "🧹 Cleaning Gradle caches"
                             ${CLEAN_FLUTTER_SCRIPT}
 
-                        """
-                */
+                """
             }
         }
 
-
-
-
         stage('Build debug APK/AAB') {
-          agent {
-                  docker {
-                      image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
-                  }
-          }
-          steps {
-                echo "Build debug APK/AAB"
+                }
+            }
+            steps {
                 sh """
                     set -e
-                    echo "Build debug APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+
                     flutter pub get
                     flutter build apk --debug
                 """
@@ -361,23 +335,22 @@ pipeline {
                     ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
                 """
                 */
-          }
+            }
         }
 
         stage('Build release APK/AAB') {
-          agent {
-                  docker {
-                      image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
-                  }
-          }
-          steps {
-                echo "Build release APK/AAB"
+                }
+            }
+            steps {
                 sh """
                     set -e
-                    echo "Build release APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+
                     flutter pub get
                     flutter build apk --release
                 """
@@ -389,58 +362,44 @@ pipeline {
                 """
                 */
 
-          }
+            }
         }
-
-
 
         stage('Run Integration Tests') {
-          agent {
-                  docker {
-                      image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
-                  }
-          }
-          steps {
-                echo "Run Integration Tests"
+                }
+            }
+            steps {
                 sh """
                     set -e
-                    echo "Run Integration Tests"
                     ${INTEGRATION_TEST_SCRIPT}
                 """
-          }
+            }
         }
-
-
 
         stage('Generate Diagrams & PDF') {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
-                echo "Generate Diagrams & PDF"
-                script {
-                        sh "pwsh ${PLANTUML_SCRIPT}"
-                    }
+                sh "pwsh ${PLANTUML_SCRIPT}"
             }
         }
-
 
         stage('Archive Artifacts') {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    // Use root to ensure we can delete all cache files
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
             }
             steps {
-                echo "Archive Artifacts"
                 sh """
                     set -e
                     mkdir -p build_outputs
@@ -448,29 +407,16 @@ pipeline {
                     find build -name "*.apk" -exec cp {} build_outputs/ \\; || true
                     find build -name "*.aab" -exec cp {} build_outputs/ \\; || true
                 """
-                archiveArtifacts artifacts: 'build_outputs/**',
-                                 fingerprint: true,
-                                 allowEmptyArchive: true
+                archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: true
             }
         }
-
     }
-
-
 
     post {
         always {
-            echo "Cleaning workspace..."
             cleanWs()
-
         }
-        success {
-            echo "✅ Build succeeded"
-        }
-        failure {
-            echo "❌ Build failed"
-        }
+        success { echo "✅ Build succeeded" }
+        failure { echo "❌ Build failed" }
     }
-
-
 }
