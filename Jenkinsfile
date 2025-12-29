@@ -309,6 +309,7 @@ pipeline {
                     set -e
                     echo "Build debug APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    git config --global --add safe.directory /opt/flutter
                     flutter pub get
                     flutter build apk --debug
                 """
@@ -336,6 +337,7 @@ pipeline {
                     set -e
                     echo "Build release APK/AAB"
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    git config --global --add safe.directory /opt/flutter
                     flutter pub get
                     flutter build apk --release
                 """
