@@ -120,6 +120,11 @@
 //  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_workspace_host_mount
 //  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount
+//
+//  # Ordner für persistenten Cache auf dem Host
+//  sudo mkdir -p /home/mirko/jenkins_cache
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_cache
+//  sudo chmod -R 770 /home/mirko/jenkins_cache
 
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
