@@ -31,8 +31,6 @@ services:
     volumes:
       # Jenkins home folder
       - /home/mirko/jenkins_home_host_mount:/var/jenkins_home
-      # Workspace folder for all pipelines
-      - /home/mirko/jenkins_workspace_host_mount:/workspace
       # Docker socket for Docker-in-Docker builds
       - /var/run/docker.sock:/var/run/docker.sock
 

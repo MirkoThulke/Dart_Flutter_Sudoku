@@ -179,7 +179,7 @@ pipeline {
         FLUTTER_PROJECT_DIR = "${CONTAINER_WORKSPACE}" // inside container
 
         // Hard pin Gradle cache
-        GRADLE_USER_HOME = '/home/flutter/.gradle'
+        GRADLE_USER_HOME    = "${CONTAINER_WORKSPACE}/.gradle" // fully container-local
 
         // Repository paths
         SCRIPTS_DIR = 'scripts'
@@ -194,7 +194,8 @@ pipeline {
         PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
 
         // Docker agent args template
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v \${WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_ROOT  = "-u 0:0 -v ${WORKSPACE}:${CONTAINER_WORKSPACE} -w ${CONTAINER_WORKSPACE}" // run as root
 
     }
 
@@ -230,7 +231,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -257,7 +258,7 @@ pipeline {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     // Use root to ensure we can delete all cache files
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
@@ -295,7 +296,7 @@ pipeline {
           agent {
                   docker {
                       image "${FLUTTER_IMAGE}"
-                      args "${DOCKER_AGENT_ARGS_JENKINS}"
+                      args "${DOCKER_AGENT_ARGS_ROOT}"
                   }
           }
           steps {
@@ -321,7 +322,7 @@ pipeline {
           agent {
                   docker {
                       image "${FLUTTER_IMAGE}"
-                      args "${DOCKER_AGENT_ARGS_JENKINS}"
+                      args "${DOCKER_AGENT_ARGS_ROOT}"
                   }
           }
           steps {
