@@ -389,5 +389,13 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && flutter doctor
 
 
+# Jenkins user Ownership + Git safe.directory
+RUN chown -R 2000:2000 /opt/flutter 
+RUN git config --system --add safe.directory /opt/flutter
+
+# Standard Jenkins User für Builds
+USER 2000
+
+
 WORKDIR /app
 CMD ["/bin/bash"]
