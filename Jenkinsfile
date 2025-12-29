@@ -238,6 +238,7 @@ pipeline {
                 }
             }
             steps {
+                echo "Clean Environment Flutter"
                 sh """
                     set -e
 
@@ -255,7 +256,9 @@ pipeline {
         }
 
         stage('Deep Clean (Optional)') {
-            when { expression { return params.DEEP_CLEAN == true } }
+            when {
+                expression { params.DEEP_CLEAN == true }
+            }
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -263,42 +266,39 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    echo "☢️ DEEP CLEAN ENABLED"
-                    def status = sh(script: """
-                        set -e
-                        echo "🧹 Cleaning Flutter and Gradle caches"
+                echo "☢️ DEEP CLEAN ENABLED"
 
-                        export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                        rm -rf ${GRADLE_USER_HOME}/caches \
-                               ${GRADLE_USER_HOME}/daemon \
-                               ~/.pub-cache \
-                               ${FLUTTER_HOME}/bin/cache || true
-                    """, returnStatus: true)
-
-                    echo "Deep Clean Exit-Code: ${status}"
-
-                    if (status != 0) {
-                        error("Deep Clean step failed!")
-                    }
-                }
-                
-                /*
-                sh """
+                sh '''
                     set -e
-                    echo "🧹 Cleaning Flutter and Gradle caches"
+                    echo "🧹 Deep cleaning Flutter & Gradle caches"
 
-                    echo "🧹 Cleaning Flutter caches"
-                    ${CLEAN_GRADLE_SCRIPT}
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
 
-                    echo "🧹 Cleaning Gradle caches"
-                    ${CLEAN_FLUTTER_SCRIPT}
+                    rm -rf \
+                      ${GRADLE_USER_HOME}/caches \
+                      ${GRADLE_USER_HOME}/daemon \
+                      ~/.pub-cache \
+                      ${FLUTTER_HOME}/bin/cache || true
 
-                """
+                    echo "✅ Deep clean completed"
+                '''
+                /*
+                        sh """
+                            set -e
+                            echo "🧹 Cleaning Flutter and Gradle caches"
+
+                            echo "🧹 Cleaning Flutter caches"
+                            ${CLEAN_GRADLE_SCRIPT}
+
+                            echo "🧹 Cleaning Gradle caches"
+                            ${CLEAN_FLUTTER_SCRIPT}
+
+                        """
                 */
-
             }
         }
+
+
 
 
         stage('Build debug APK/AAB') {
@@ -310,7 +310,7 @@ pipeline {
                   }
           }
           steps {
-
+                echo "Build debug APK/AAB"
                 sh """
                     set -e
                     echo "Build debug APK/AAB"
@@ -338,7 +338,7 @@ pipeline {
                   }
           }
           steps {
-
+                echo "Build release APK/AAB"
                 sh """
                     set -e
                     echo "Build release APK/AAB"
@@ -369,7 +369,7 @@ pipeline {
                   }
           }
           steps {
-
+                echo "Run Integration Tests"
                 sh """
                     set -e
                     echo "Run Integration Tests"
@@ -389,6 +389,7 @@ pipeline {
                 }
             }
             steps {
+                echo "Generate Diagrams & PDF"
                 script {
                         sh "pwsh ${PLANTUML_SCRIPT}"
                     }
@@ -405,6 +406,7 @@ pipeline {
                 }
             }
             steps {
+                echo "Archive Artifacts"
                 sh """
                     set -e
                     mkdir -p build_outputs
