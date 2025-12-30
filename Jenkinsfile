@@ -430,31 +430,31 @@ pipeline {
             }
             steps {
                 echo "🦀 Building Rust backend for Android (FFI)"
-
                 sh """
                     set -e
-
+        
                     export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
-                    export PATH=\$PATH:${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
-
-                    cd rust/rust_lib
-
+                    export PATH=\$PATH:\${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
+        
+                    cd rust
+        
                     echo "🧹 Cleaning previous Rust build"
                     cargo clean
-
+        
                     echo "⚙️ Building Rust libraries via cargo-ndk"
                     cargo ndk \\
                       -t armeabi-v7a \\
                       -t arm64-v8a \\
                       -t x86_64 \\
-                      -o ../../android/app/src/main/jniLibs \\
+                      -o ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs \\
                       build --release
-
+        
                     echo "📦 Produced JNI libraries:"
-                    find ../../android/app/src/main/jniLibs -name "*.so"
+                    find ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs -name "*.so"
                 """
             }
         }
+
 
 
         stage('Build debug APK/AAB') {
