@@ -320,9 +320,14 @@ pipeline {
                     # Rust shared libraries
                     rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
 
-                    # Optional: clean Rust target
-                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
-                    cargo clean
+                    # clean Rust target
+                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                        echo "🧹 Cleaning Rust build targets..."
+                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cargo clean
+                    else
+                        echo "⚠️ Rust project not found, skipping Rust clean"
+                    fi
 
                     # Fix ownership
                     chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
@@ -355,8 +360,14 @@ pipeline {
 
                     # Rust libraries
                     rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
-                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
-                    cargo clean
+                    # clean Rust target
+                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                        echo "🧹 Cleaning Rust build targets..."
+                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cargo clean
+                    else
+                        echo "⚠️ Rust project not found, skipping Rust clean"
+                    fi
 
                     # Fix ownership
                     chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
@@ -392,8 +403,14 @@ pipeline {
 
                     # Rust build targets + shared libraries
                     rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
-                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
-                    cargo clean
+                    # clean Rust target
+                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                        echo "🧹 Cleaning Rust build targets..."
+                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cargo clean
+                    else
+                        echo "⚠️ Rust project not found, skipping Rust clean"
+                    fi
 
                     # Fix ownership
                     chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
