@@ -168,7 +168,8 @@ pipeline {
     agent { label 'any' }
 
     parameters {
-        booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'Perform a full Flutter + Gradle cache clean?')
+        booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'Perform a Cache clean of :  .gradle/caches/modules AND .pub-cache/hosted ?')
+        booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'Perform a LIGHT CLEAN AND a clean of : /opt/flutter/bin/cache AND .gradle/daemon AND .gradle/wrapper ?')
     }
 
     options {
@@ -318,7 +319,7 @@ pipeline {
                     echo "Ownership before fix:"
                     ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
 
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
+                    chown -R 2000:2000 android build .gradle || true
 
                     echo "Ownership after fix:"
                     ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
@@ -326,8 +327,8 @@ pipeline {
             }
         }
 
-        stage('Deep Clean (Optional)') {
-            when { expression { params.DEEP_CLEAN == true } }
+        stage('Deep Clean LIGHT (Optional)') {
+            when { expression { params.DEEP_CLEAN_LIGHT == true } }
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -341,13 +342,11 @@ pipeline {
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
-                    rm -rf \
-                      ${GRADLE_USER_HOME}/caches \
-                      ${GRADLE_USER_HOME}/daemon \
-                      ${PUB_CACHE} \
-                      ${FLUTTER_ROOT}/bin/cache || true
+                rm -rf \
+                    ${GRADLE_USER_HOME}/caches/modules-* \
+                    ${PUB_CACHE}/hosted || true
 
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
+                    chown -R 2000:2000 android build .gradle || true
 
                     echo "✅ Deep clean completed"
                 """
@@ -368,6 +367,49 @@ pipeline {
         }
 
 
+
+        stage('Deep Clean FULL (Optional)') {
+            when { expression { params.DEEP_CLEAN_FULL == true } }
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
+            steps {
+                echo "☢️ DEEP CLEAN ENABLED"
+                sh """
+                    set -e
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+
+
+                    rm -rf \
+                        ${GRADLE_USER_HOME}/caches \
+                        ${GRADLE_USER_HOME}/daemon \
+                        ${PUB_CACHE}/hosted \
+                        ${PUB_CACHE}/git
+
+                    chown -R 2000:2000 android build .gradle || true
+
+                    echo "✅ Deep clean completed"
+                """
+                /*
+                sh """
+                            set -e
+                            echo "🧹 Cleaning Flutter and Gradle caches"
+
+                            echo "🧹 Cleaning Flutter caches"
+                            ${CLEAN_GRADLE_SCRIPT}
+
+                            echo "🧹 Cleaning Gradle caches"
+                            ${CLEAN_FLUTTER_SCRIPT}
+
+                """
+                */
+            }
+        }
+
         stage('Build debug APK/AAB') {
             agent {
                 docker {
@@ -382,7 +424,7 @@ pipeline {
                     export PUB_CACHE=${PUB_CACHE}
 
                     flutter pub get
-                    flutter build apk --debug
+                    flutter build apk --debug --no-daemon
                 """
                 /*
                 sh """
@@ -408,7 +450,7 @@ pipeline {
                     export PUB_CACHE=${PUB_CACHE}
 
                     flutter pub get
-                    flutter build apk --release
+                    flutter build apk --release --no-daemon
                 """
                 /*
                 sh """
