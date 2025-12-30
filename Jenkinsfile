@@ -314,20 +314,24 @@ pipeline {
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
+                    # Flutter / Gradle build artifacts
                     rm -rf .gradle android/.gradle build android/build
 
-                    echo "Ownership before fix:"
-                    ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
+                    # Rust shared libraries
+                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
 
-                    chown -R 2000:2000 android build .gradle || true
+                    # Optional: clean Rust target
+                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
+                    cargo clean
 
-                    echo "Ownership after fix:"
-                    ls -ld ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE}
+                    # Fix ownership
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
                 """
             }
         }
 
-        stage('Deep Clean LIGHT (Optional)') {
+
+        stage('Deep Clean LIGHT (For Deployment)') {
             when { expression { params.DEEP_CLEAN_LIGHT == true } }
             agent {
                 docker {
@@ -336,36 +340,31 @@ pipeline {
                 }
             }
             steps {
-                echo "☢️ DEEP CLEAN ENABLED"
+                echo "☢️ Deep Clean LIGHT enabled"
                 sh """
                     set -e
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
-                rm -rf \
-                    ${GRADLE_USER_HOME}/caches/modules-* \
-                    ${PUB_CACHE}/hosted || true
+                    # Flutter / Gradle caches
+                    rm -rf ${GRADLE_USER_HOME}/caches/modules-* \
+                           ${GRADLE_USER_HOME}/daemon \
+                           ${PUB_CACHE}/hosted \
+                           ${FLUTTER_ROOT}/bin/cache \
+                           .gradle android/.gradle build android/build
 
-                    chown -R 2000:2000 android build .gradle || true
+                    # Rust libraries
+                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
+                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
+                    cargo clean
 
-                    echo "✅ Deep clean completed"
+                    # Fix ownership
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+
+                    echo "✅ Deep Clean LIGHT completed"
                 """
-                /*
-                sh """
-                            set -e
-                            echo "🧹 Cleaning Flutter and Gradle caches"
-
-                            echo "🧹 Cleaning Flutter caches"
-                            ${CLEAN_GRADLE_SCRIPT}
-
-                            echo "🧹 Cleaning Gradle caches"
-                            ${CLEAN_FLUTTER_SCRIPT}
-
-                """
-                */
             }
         }
-
 
 
         stage('Deep Clean FULL (Optional)') {
@@ -377,38 +376,69 @@ pipeline {
                 }
             }
             steps {
-                echo "☢️ DEEP CLEAN ENABLED"
+                echo "☢️ Deep Clean FULL enabled"
                 sh """
                     set -e
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
+                    # Flutter / Gradle caches
+                    rm -rf ${GRADLE_USER_HOME}/caches \
+                           ${GRADLE_USER_HOME}/daemon \
+                           ${PUB_CACHE}/hosted \
+                           ${PUB_CACHE}/git \
+                           ${FLUTTER_ROOT}/bin/cache \
+                           .gradle android/.gradle build android/build
 
-                    rm -rf \
-                        ${GRADLE_USER_HOME}/caches \
-                        ${GRADLE_USER_HOME}/daemon \
-                        ${PUB_CACHE}/hosted \
-                        ${PUB_CACHE}/git
+                    # Rust build targets + shared libraries
+                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
+                    cd ${CONTAINER_WORKSPACE}/rust/rust_lib
+                    cargo clean
 
-                    chown -R 2000:2000 android build .gradle || true
+                    # Fix ownership
+                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
 
-                    echo "✅ Deep clean completed"
+                    echo "✅ Deep Clean FULL completed"
                 """
-                /*
-                sh """
-                            set -e
-                            echo "🧹 Cleaning Flutter and Gradle caches"
-
-                            echo "🧹 Cleaning Flutter caches"
-                            ${CLEAN_GRADLE_SCRIPT}
-
-                            echo "🧹 Cleaning Gradle caches"
-                            ${CLEAN_FLUTTER_SCRIPT}
-
-                """
-                */
             }
         }
+
+
+        stage('Build Rust (Android FFI)') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                echo "🦀 Building Rust backend for Android (FFI)"
+
+                sh """
+                    set -e
+
+                    export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
+                    export PATH=\$PATH:${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+                    cd rust/rust_lib
+
+                    echo "🧹 Cleaning previous Rust build"
+                    cargo clean
+
+                    echo "⚙️ Building Rust libraries via cargo-ndk"
+                    cargo ndk \\
+                      -t armeabi-v7a \\
+                      -t arm64-v8a \\
+                      -t x86_64 \\
+                      -o ../../android/app/src/main/jniLibs \\
+                      build --release
+
+                    echo "📦 Produced JNI libraries:"
+                    find ../../android/app/src/main/jniLibs -name "*.so"
+                """
+            }
+        }
+
 
         stage('Build debug APK/AAB') {
             agent {
@@ -426,13 +456,6 @@ pipeline {
                     flutter pub get
                     flutter build apk --debug --no-daemon
                 """
-                /*
-                sh """
-                    set -e
-                    echo "Build debug APK/AAB"
-                    ${BUILD_ALL_SCRIPT} ${BUILD_DEBUG_ARGS}
-                """
-                */
             }
         }
 
@@ -452,14 +475,6 @@ pipeline {
                     flutter pub get
                     flutter build apk --release --no-daemon
                 """
-                /*
-                sh """
-                    set -e
-                    echo "Build release APK/AAB"
-                    ${BUILD_ALL_SCRIPT} ${BUILD_RELEASE_ARGS}
-                """
-                */
-
             }
         }
 
