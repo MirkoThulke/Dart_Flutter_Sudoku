@@ -168,8 +168,8 @@ pipeline {
     agent { label 'any' }
 
     parameters {
-        booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'Perform a Cache clean of :  .gradle/caches/modules AND .pub-cache/hosted ?')
-        booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'Perform a LIGHT CLEAN AND a clean of : /opt/flutter/bin/cache AND .gradle/daemon AND .gradle/wrapper ?')
+        booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
+        booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'DEEP CLEAN FULL for complete clean of all caches. RUNTIME high!!')
     }
 
     options {
