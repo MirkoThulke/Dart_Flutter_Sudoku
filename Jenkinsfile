@@ -293,6 +293,10 @@ pipeline {
                     echo "=============================="
 
 
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
+
                     # -----------------------------
                     # 1. Required ENV variables
                     # -----------------------------
