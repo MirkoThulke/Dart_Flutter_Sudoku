@@ -252,7 +252,7 @@ pipeline {
                     # -----------------------------
                     # 0. Explicit PATH for Rust
                     # -----------------------------
-                    export PATH=\${RUST_CARGO_DIR}:\$PATH
+                    export PATH=${RUST_CARGO_DIR}:$PATH
 
                     # -----------------------------
                     # 1. Required ENV variables
