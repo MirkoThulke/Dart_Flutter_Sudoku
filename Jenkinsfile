@@ -177,39 +177,73 @@ pipeline {
     }
 
     environment {
+
+        // HOWTO : 
+        // - Avoid references within the ENV block. Because the ENV block is not executed sequentally.
+        // - PATH statement only for paths that point to binaries
+        // - EXPORT statements are required inside the stage definition to make ENV parameters visible to child functions
+        //   Example : export PUB_CACHE=${PUB_CACHE}
+
+
         // Flutter build container
-        FLUTTER_IMAGE       = 'flutter_rust_env'
+        FLUTTER_IMAGE           = 'flutter_rust_env'
 
-        // Workspace : Host/ Container mount paths
-        HOST_WORKSPACE      = '/home/mirko/jenkins_workspace_host_mount'
-        CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
+        RUST_CARGO_DIR          = '/root/.cargo/bin'
 
-        // Cache :  Container mount paths
-        HOST_CACHE = '/home/mirko/jenkins_cache'
-        CONTAINER_CACHE = '/workspace/cache'
 
-        // Gradle / Pub cache : Container paths
-        GRADLE_USER_HOME = '/workspace/cache/.gradle'
-        PUB_CACHE = '/workspace/cache/.pub-cache'
+        // Git home
+        HOME                    = '/workspace/Flutter_Docker_Pipeline'
 
-        // Flutter
-        FLUTTER_ROOT = '/opt/flutter'
+        // Container workspace mount path
+        CONTAINER_WORKSPACE     = '/workspace/Flutter_Docker_Pipeline'
 
-        // SDK Root path
-        ANDROID_SDK_ROOT = '/opt/android/sdk'
 
-        // NDK Home path
-        ANDROID_NDK_HOME = '/opt/android-ndk'
-        ANDROID_NDK_TOOLCHAIN_DIR = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
+        //Host mount paths
+        HOST_WORKSPACE          = '/home/mirko/jenkins_workspace_host_mount'
+        HOST_CACHE              = '/home/mirko/jenkins_cache'
+
 
         // Rust related paths
-        RUST_PROJECT_DIR = '/workspace/Flutter_Docker_Pipeline/rust/rust_lib'
-        ANDROID_JNI_LIBS_DIR = '/workspace/Flutter_Docker_Pipeline/android/app/src/main/jniLibs'
+        RUST_PROJECT_DIR        = '/workspace/Flutter_Docker_Pipeline/rust/rust_lib'
+        ANDROID_JNI_LIBS_DIR    = '/workspace/Flutter_Docker_Pipeline/android/app/src/main/jniLibs'
 
-        HOME = '/workspace/Flutter_Docker_Pipeline'
+
+        // Container cache mount path
+        CONTAINER_CACHE         = '/workspace/cache'
+
+        // Gradle / Pub cache : Container paths
+        GRADLE_USER_HOME        = '/workspace/cache/.gradle'
+        PUB_CACHE               = '/workspace/cache/.pub-cache'
+
+
+        // Flutter
+        FLUTTER_ROOT                = '/opt/flutter'
+
+        // SDK Root path
+        ANDROID_SDK_ROOT            = '/opt/android/sdk'
+
+        // NDK Home path
+        ANDROID_NDK_HOME            = '/opt/android-ndk'
+        ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
+
 
         DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
-        DOCKER_AGENT_ARGS_ROOT    = "-u 0:0 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -v ${HOST_CACHE}:${CONTAINER_CACHE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS = "-u 0:0 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+
+        // Test scripts : 
+        INTEGRATION_TEST_SCRIPT     = '/workspace/Flutter_Docker_Pipeline/scripts/run_integration_test.sh'
+        PLANTUML_SCRIPT             = '/workspace/Flutter_Docker_Pipeline/scripts/generate_PlantUML_PDF.ps1'
+
+
+        // -----------------------------
+        // PATH defintion block
+        // -----------------------------
+        export PATH="/opt/flutter/bin:$PATH"
+        export PATH="/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
+        export PATH="/root/.cargo/bin:$PATH"
+        export PATH="/opt/android/sdk/cmdline-tools/latest/bin:$PATH"
+        export PATH="/opt/android/sdk/platform-tools:$PATH"
+
     }
 
 
@@ -225,6 +259,7 @@ pipeline {
                         steps {
                 sh """
                     set -e
+
                     git config --system --add safe.directory ${FLUTTER_ROOT}
                 """
             }
@@ -249,10 +284,6 @@ pipeline {
                     echo "🧪 CI SELF TEST"
                     echo "=============================="
 
-                    # -----------------------------
-                    # 0. Explicit PATH for Rust
-                    # -----------------------------
-                    export PATH=${RUST_CARGO_DIR}:$PATH
 
                     # -----------------------------
                     # 1. Required ENV variables
@@ -311,7 +342,6 @@ pipeline {
 
 
 
-
         stage('Check Mount') {
             agent {
                 docker {
@@ -320,6 +350,7 @@ pipeline {
                 }
             }
             steps {
+
                 sh 'echo "Container Workspace: $CONTAINER_WORKSPACE" && ls -la $CONTAINER_WORKSPACE'
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
             }
@@ -390,6 +421,7 @@ pipeline {
                 echo "🧹 Cleaning Flutter build files"
                 sh """
                     set -e
+
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
@@ -429,6 +461,7 @@ pipeline {
                     set -e
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
+                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
 
                     # Flutter / Gradle caches
                     rm -rf ${GRADLE_USER_HOME}/caches/modules-* \
@@ -483,9 +516,9 @@ pipeline {
                     # Rust build targets + shared libraries
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
                     # clean Rust target
-                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
+                    if [ -d "${RUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CRUST_PROJECT_DIR}"
+                        cd "${RUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -512,7 +545,9 @@ pipeline {
                 sh """
                     set -e
 
-                    export PATH="$PATH:${ANDROID_NDK_TOOLCHAIN_DIR}"
+                    export ANDROID_JNI_LIBS_DIR =   ${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR     =   ${RUST_PROJECT_DIR}
+
                     cd "${RUST_PROJECT_DIR}"
 
                     echo "🧹 Cleaning previous Rust build"
