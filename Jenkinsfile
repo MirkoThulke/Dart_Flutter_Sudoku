@@ -259,7 +259,7 @@ pipeline {
                     # -----------------------------
 
 
-                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT;           exit 1; fi
+                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT";           exit 1; fi
                     if [ -z "${ANDROID_SDK_ROOT}" ];    then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT";      exit 1; fi
                     if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME";      exit 1; fi
                     if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME";      exit 1; fi
