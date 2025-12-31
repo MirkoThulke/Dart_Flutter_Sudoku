@@ -174,6 +174,9 @@ pipeline {
 
     options {
         skipDefaultCheckout true
+        buildDiscarder(logRotator(
+            numToKeepStr: '3'       // keep only last 3 builds
+        ))
     }
 
     environment {
@@ -227,8 +230,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
-        DOCKER_AGENT_ARGS_JENKINS = "-u 0:0 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+        DOCKER_AGENT_ARGS_JENKINS   = "-u 2000:2000 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+        DOCKER_AGENT_ARGS_ROOT      = "-u 0:0 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
 
         // Test scripts : 
         INTEGRATION_TEST_SCRIPT     = '/workspace/Flutter_Docker_Pipeline/scripts/run_integration_test.sh'
@@ -238,11 +241,11 @@ pipeline {
         // -----------------------------
         // PATH defintion block
         // -----------------------------
-        export PATH="/opt/flutter/bin:$PATH"
-        export PATH="/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
-        export PATH="/root/.cargo/bin:$PATH"
-        export PATH="/opt/android/sdk/cmdline-tools/latest/bin:$PATH"
-        export PATH="/opt/android/sdk/platform-tools:$PATH"
+        PATH="/opt/flutter/bin:$PATH"
+        PATH="/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
+        PATH="/root/.cargo/bin:$PATH"
+        PATH="/opt/android/sdk/cmdline-tools/latest/bin:$PATH"
+        PATH="/opt/android/sdk/platform-tools:$PATH"
 
     }
 
