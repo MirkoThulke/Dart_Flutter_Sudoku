@@ -197,6 +197,20 @@ pipeline {
         FLUTTER_ROOT        = '/opt/flutter'
         PATH                = "${FLUTTER_ROOT}/bin:${env.PATH}"
 
+        // NDK Home path
+        ANDROID_NDK_HOME = '/opt/android-ndk'
+        ANDROID_NDK_TOOLCHAIN_DIR = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+
+        // Rust related paths
+        RUST_PROJECT_DIR     = "${CONTAINER_WORKSPACE}/rust/rust_lib"
+        ANDROID_JNI_LIBS_DIR = "${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
+
+        // Flutter build artefacts
+        FLUTTER_BUILD_DIRS = "${CONTAINER_WORKSPACE}/.gradle \
+                                ${CONTAINER_WORKSPACE}/android/.gradle \
+                                ${CONTAINER_WORKSPACE}/build \
+                                ${CONTAINER_WORKSPACE}/android/build"
+
         // GIT home
         HOME = "${CONTAINER_WORKSPACE}"
 
@@ -218,25 +232,127 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            agent { label 'any' }
-            steps {
-                cleanWs()
-                checkout scm
-                sh 'ls -la'
+        stage('Add GIT safe.directories') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
+                        steps {
+                sh """
+                    set -e
+                    git config --system --add safe.directory ${FLUTTER_ROOT}
+                """
             }
         }
 
-        stage('Validate Repo Structure') {
-            agent { label 'any' }
-            steps {
-                script {
-                    if (!fileExists("${SCRIPTS_DIR}")) {
-                        error "❌ scripts directory not found"
-                    } else {
-                        echo "✅ scripts directory exists"
-                    }
+
+        stage('CI Self-Test') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
+            }
+            steps {
+                echo "🧪 Running CI Self-Test (fail-fast)"
+        
+                sh '''
+                set -e
+        
+                echo "=============================="
+                echo "🧪 CI SELF TEST"
+                echo "=============================="
+        
+                # -----------------------------
+                # 1. Required ENV variables
+                # -----------------------------
+                required_vars=(
+                  FLUTTER_ROOT
+                  ANDROID_SDK_ROOT
+                  ANDROID_NDK_HOME
+                  GRADLE_USER_HOME
+                  PUB_CACHE
+                  CONTAINER_WORKSPACE
+                  CONTAINER_CACHE
+                )
+        
+                echo "🔍 Checking environment variables..."
+                for v in "${required_vars[@]}"; do
+                  if [ -z "${!v}" ]; then
+                    echo "❌ Missing ENV variable: $v"
+                    exit 1
+                  fi
+                  echo "✅ $v=${!v}"
+                done
+        
+                # -----------------------------
+                # 2. Workspace & cache mounts
+                # -----------------------------
+                echo "📂 Checking workspace mount..."
+                test -d "$CONTAINER_WORKSPACE"
+                test -w "$CONTAINER_WORKSPACE"
+        
+                echo "📦 Checking cache mount..."
+                test -d "$CONTAINER_CACHE"
+                test -w "$CONTAINER_CACHE"
+        
+                echo "✅ Workspace & cache are mounted and writable"
+        
+                # -----------------------------
+                # 3. Toolchain availability
+                # -----------------------------
+                echo "🛠️ Checking toolchain..."
+        
+                command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
+                command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
+                command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
+        
+                flutter --version | head -n 1
+                cargo --version
+        
+                # -----------------------------
+                # 4. Android SDK / NDK sanity
+                # -----------------------------
+                echo "🤖 Checking Android SDK / NDK..."
+        
+                test -d "$ANDROID_SDK_ROOT"
+                test -d "$ANDROID_NDK_HOME"
+        
+                test -x "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" \
+                  || { echo "❌ NDK clang not found"; exit 1; }
+        
+                echo "✅ Android SDK & NDK OK"
+        
+                # -----------------------------
+                # 5. Flutter doctor (CI-safe)
+                # -----------------------------
+                echo "🩺 Flutter doctor (summary)..."
+                flutter doctor -v || true
+        
+                # -----------------------------
+                # 6. Rust project presence (non-fatal)
+                # -----------------------------
+                if [ -d "rust" ]; then
+                  echo "🦀 Rust directory found"
+                  ls -la rust
+                  test -d android/app/src/main/jniLibs || \
+                    echo "⚠️ jniLibs folder will be created by Rust build"
+                else
+                  echo "⚠️ No Rust directory found (OK if optional)"
+                fi
+
+                # -----------------------------
+                # 7. GIT safe.directory
+                # -----------------------------
+                git config --system --get-all safe.directory | grep -q /opt/flutter \
+                || echo "⚠️ /opt/flutter not marked as safe.directory"
+        
+                echo "=============================="
+                echo "✅ CI SELF TEST PASSED"
+                echo "=============================="
+                '''
             }
         }
 
@@ -251,22 +367,6 @@ pipeline {
             steps {
                 sh 'echo "Container Workspace: $CONTAINER_WORKSPACE" && ls -la $CONTAINER_WORKSPACE'
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
-            }
-        }
-
-
-        stage('Add GIT safe.directories') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_ROOT}"
-                }
-            }
-                        steps {
-                sh """
-                    set -e
-                    git config --system --add safe.directory /opt/flutter
-                """
             }
         }
 
@@ -291,11 +391,35 @@ pipeline {
                     ls -la
 
                     echo "== Cache =="
-                    ls -la /workspace/cache || true
+                    ls -la ${CONTAINER_CACHE} || true
 
                     echo "== Env =="
                     env | sort
                 """
+            }
+        }
+
+
+        stage('Checkout') {
+            agent { label 'any' }
+            steps {
+                cleanWs()
+                checkout scm
+                sh 'ls -la'
+            }
+        }
+
+
+        stage('Validate Repo Structure') {
+            agent { label 'any' }
+            steps {
+                script {
+                    if (!fileExists("${SCRIPTS_DIR}")) {
+                        error "❌ scripts directory not found"
+                    } else {
+                        echo "✅ scripts directory exists"
+                    }
+                }
             }
         }
 
@@ -315,15 +439,15 @@ pipeline {
                     export PUB_CACHE=${PUB_CACHE}
 
                     # Flutter / Gradle build artifacts
-                    rm -rf .gradle android/.gradle build android/build
+                    rm -rf ${FLUTTER_BUILD_DIRS}
 
                     # Rust shared libraries
-                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
+                    rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
 
                     # clean Rust target
-                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cd "${CRUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -356,14 +480,14 @@ pipeline {
                            ${GRADLE_USER_HOME}/daemon \
                            ${PUB_CACHE}/hosted \
                            ${FLUTTER_ROOT}/bin/cache \
-                           .gradle android/.gradle build android/build
+                           ${FLUTTER_BUILD_DIRS}
 
                     # Rust libraries
-                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
+                    rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
                     # clean Rust target
-                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cd "${CRUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -399,14 +523,14 @@ pipeline {
                            ${PUB_CACHE}/hosted \
                            ${PUB_CACHE}/git \
                            ${FLUTTER_ROOT}/bin/cache \
-                           .gradle android/.gradle build android/build
+                           ${FLUTTER_BUILD_DIRS}
 
                     # Rust build targets + shared libraries
-                    rm -rf ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs/* || true
+                    rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
                     # clean Rust target
-                    if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib" ]; then
+                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CONTAINER_WORKSPACE}/rust/rust_lib"
+                        cd "${CRUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -432,12 +556,10 @@ pipeline {
                 echo "🦀 Building Rust backend for Android (FFI)"
                 sh """
                     set -e
-        
-                    export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
-                    export PATH=\$PATH:\${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
-        
-                    cd rust
-        
+
+                    export PATH="$PATH:${ANDROID_NDK_TOOLCHAIN_DIR}"
+                    cd "${RUST_PROJECT_DIR}"
+
                     echo "🧹 Cleaning previous Rust build"
                     cargo clean
         
@@ -446,11 +568,11 @@ pipeline {
                       -t armeabi-v7a \\
                       -t arm64-v8a \\
                       -t x86_64 \\
-                      -o ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs \\
+                      -o ${ANDROID_JNI_LIBS_DIR} \\
                       build --release
         
                     echo "📦 Produced JNI libraries:"
-                    find ${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs -name "*.so"
+                    find ${ANDROID_JNI_LIBS_DIR} -name "*.so"
                 """
             }
         }
