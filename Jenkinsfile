@@ -247,7 +247,6 @@ pipeline {
             }
         }
 
-
         stage('CI Self-Test') {
             agent {
                 docker {
@@ -257,104 +256,74 @@ pipeline {
             }
             steps {
                 echo "🧪 Running CI Self-Test (fail-fast)"
+                sh """
+                    set -e
         
-                sh '''
-                set -e
+                    echo "=============================="
+                    echo "🧪 CI SELF TEST"
+                    echo "=============================="
         
-                echo "=============================="
-                echo "🧪 CI SELF TEST"
-                echo "=============================="
+                    REQUIRED_VARS="
+                    FLUTTER_ROOT
+                    ANDROID_SDK_ROOT
+                    ANDROID_NDK_HOME
+                    GRADLE_USER_HOME
+                    PUB_CACHE
+                    CONTAINER_WORKSPACE
+                    CONTAINER_CACHE
+                    "
         
-                # -----------------------------
-                # 1. Required ENV variables
-                # -----------------------------
-                required_vars=(
-                  FLUTTER_ROOT
-                  ANDROID_SDK_ROOT
-                  ANDROID_NDK_HOME
-                  GRADLE_USER_HOME
-                  PUB_CACHE
-                  CONTAINER_WORKSPACE
-                  CONTAINER_CACHE
-                )
+                    echo "🔍 Checking environment variables..."
+                    for v in \$REQUIRED_VARS; do
+                      eval val=\\\$\$v
+                      if [ -z "\$val" ]; then
+                        echo "❌ Missing ENV variable: \$v"
+                        exit 1
+                      fi
+                      echo "✅ \$v=\$val"
+                    done
         
-                echo "🔍 Checking environment variables..."
-                for v in "${required_vars[@]}"; do
-                  if [ -z "${!v}" ]; then
-                    echo "❌ Missing ENV variable: $v"
-                    exit 1
-                  fi
-                  echo "✅ $v=${!v}"
-                done
+                    echo "📂 Checking workspace mount..."
+                    test -d "\$CONTAINER_WORKSPACE"
+                    test -w "\$CONTAINER_WORKSPACE"
         
-                # -----------------------------
-                # 2. Workspace & cache mounts
-                # -----------------------------
-                echo "📂 Checking workspace mount..."
-                test -d "$CONTAINER_WORKSPACE"
-                test -w "$CONTAINER_WORKSPACE"
+                    echo "📦 Checking cache mount..."
+                    test -d "\$CONTAINER_CACHE"
+                    test -w "\$CONTAINER_CACHE"
         
-                echo "📦 Checking cache mount..."
-                test -d "$CONTAINER_CACHE"
-                test -w "$CONTAINER_CACHE"
+                    echo "🛠️ Checking toolchain..."
+                    command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
+                    command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
+                    command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
         
-                echo "✅ Workspace & cache are mounted and writable"
+                    flutter --version | head -n 1
+                    cargo --version
         
-                # -----------------------------
-                # 3. Toolchain availability
-                # -----------------------------
-                echo "🛠️ Checking toolchain..."
+                    echo "🤖 Checking Android SDK / NDK..."
+                    test -d "\$ANDROID_SDK_ROOT"
+                    test -d "\$ANDROID_NDK_HOME"
         
-                command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
-                command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
-                command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
+                    test -x "\$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" \
+                      || { echo "❌ NDK clang not found"; exit 1; }
         
-                flutter --version | head -n 1
-                cargo --version
+                    echo "🦀 Checking Rust project (optional)..."
+                    if [ -d "rust" ]; then
+                      ls -la rust
+                    else
+                      echo "⚠️ No Rust directory found (OK if optional)"
+                    fi
         
-                # -----------------------------
-                # 4. Android SDK / NDK sanity
-                # -----------------------------
-                echo "🤖 Checking Android SDK / NDK..."
+                    echo "🔐 Checking git safe.directory..."
+                    git config --system --get-all safe.directory | grep -q /opt/flutter \
+                      || echo "⚠️ /opt/flutter not marked as safe.directory"
         
-                test -d "$ANDROID_SDK_ROOT"
-                test -d "$ANDROID_NDK_HOME"
-        
-                test -x "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/clang" \
-                  || { echo "❌ NDK clang not found"; exit 1; }
-        
-                echo "✅ Android SDK & NDK OK"
-        
-                # -----------------------------
-                # 5. Flutter doctor (CI-safe)
-                # -----------------------------
-                echo "🩺 Flutter doctor (summary)..."
-                flutter doctor -v || true
-        
-                # -----------------------------
-                # 6. Rust project presence (non-fatal)
-                # -----------------------------
-                if [ -d "rust" ]; then
-                  echo "🦀 Rust directory found"
-                  ls -la rust
-                  test -d android/app/src/main/jniLibs || \
-                    echo "⚠️ jniLibs folder will be created by Rust build"
-                else
-                  echo "⚠️ No Rust directory found (OK if optional)"
-                fi
-
-                # -----------------------------
-                # 7. GIT safe.directory
-                # -----------------------------
-                git config --system --get-all safe.directory | grep -q /opt/flutter \
-                || echo "⚠️ /opt/flutter not marked as safe.directory"
-        
-                echo "=============================="
-                echo "✅ CI SELF TEST PASSED"
-                echo "=============================="
-                '''
+                    echo "=============================="
+                    echo "✅ CI SELF TEST PASSED"
+                    echo "=============================="
+                """
             }
         }
+
 
 
         stage('Check Mount') {
