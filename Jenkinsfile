@@ -260,77 +260,77 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
                 sh """
-            #!/usr/bin/env bash
-        set -e
 
-        echo "=============================="
-        echo "🧪 CI SELF TEST"
-        echo "=============================="
+                    set -e
 
-        # -----------------------------
-        # 0. Explicit PATH for Rust
-        # -----------------------------
-        export PATH=\${RUST_CARGO_DIR}:\$PATH
+                    echo "=============================="
+                    echo "🧪 CI SELF TEST"
+                    echo "=============================="
 
-        # -----------------------------
-        # 1. Required ENV variables
-        # -----------------------------
-        required_vars=(
-          FLUTTER_ROOT
-          ANDROID_SDK_ROOT
-          ANDROID_NDK_HOME
-          GRADLE_USER_HOME
-          PUB_CACHE
-          CONTAINER_WORKSPACE
-          CONTAINER_CACHE
-        )
+                    # -----------------------------
+                    # 0. Explicit PATH for Rust
+                    # -----------------------------
+                    export PATH=\${RUST_CARGO_DIR}:\$PATH
 
-        echo "🔍 Checking environment variables..."
-        for var in "\${required_vars[@]}"; do
-          if [ -z "\${!var}" ]; then
-            echo "❌ Missing ENV variable: \$var"
-            exit 1
-          fi
-          echo "✅ \$var=\${!var}"
-        done
+                    # -----------------------------
+                    # 1. Required ENV variables
+                    # -----------------------------
+                    required_vars=(
+                      FLUTTER_ROOT
+                      ANDROID_SDK_ROOT
+                      ANDROID_NDK_HOME
+                      GRADLE_USER_HOME
+                      PUB_CACHE
+                      CONTAINER_WORKSPACE
+                      CONTAINER_CACHE
+                    )
 
-        # -----------------------------
-        # 2. Workspace & cache mounts
-        # -----------------------------
-        test -d "\$CONTAINER_WORKSPACE"
-        test -w "\$CONTAINER_WORKSPACE"
-        test -d "\$CONTAINER_CACHE"
-        test -w "\$CONTAINER_CACHE"
-        echo "✅ Workspace & cache are mounted and writable"
+                    if [ -z "${FLUTTER_ROOT}" ]; then echo "❌ Missing ENV variable: FLUTTER_ROOT" exit 1 fi
+                    if [ -z "${ANDROID_SDK_ROOT}" ]; then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT" exit 1 fi
+                    if [ -z "${ANDROID_NDK_HOME}" ]; then echo "❌ Missing ENV variable: ANDROID_NDK_HOME" exit 1 fi
+                    if [ -z "${GRADLE_USER_HOME}" ]; then echo "❌ Missing ENV variable: GRADLE_USER_HOME" exit 1 fi
+                    if [ -z "${PUB_CACHE}" ]; then echo "❌ Missing ENV variable: PUB_CACHE" exit 1 fi
+                    if [ -z "${CONTAINER_WORKSPACE}" ]; then echo "❌ Missing ENV variable: CONTAINER_WORKSPACE" exit 1 fi
+                    if [ -z "${CONTAINER_CACHE}" ]; then echo "❌ Missing ENV variable:CONTAINER_CACHE" exit 1 fi
 
-        # -----------------------------
-        # 3. Toolchain availability
-        # -----------------------------
-        command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
-        command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
-        command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
 
-        flutter --version | head -n 1
-        cargo --version
+                    # -----------------------------
+                    # 2. Workspace & cache mounts
+                    # -----------------------------
+                    test -d "${CONTAINER_WORKSPACE}"
+                    test -w "${CONTAINER_WORKSPACE}"
+                    test -d "${CONTAINER_CACHE}"
+                    test -w "${CONTAINER_CACHE}"
+                    echo "✅ Workspace & cache are mounted and writable"
 
-        # -----------------------------
-        # 4. Android SDK / NDK sanity
-        # -----------------------------
-        test -d "\$ANDROID_SDK_ROOT"
-        test -d "\$ANDROID_NDK_HOME"
-        test -x "\$ANDROID_NDK_TOOLCHAIN_DIR/clang" || { echo "❌ NDK clang not found"; exit 1; }
+                    # -----------------------------
+                    # 3. Toolchain availability
+                    # -----------------------------
+                    command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
+                    command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
+                    command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
 
-        echo "✅ Android SDK & NDK OK"
+                    flutter --version | head -n 1
+                    cargo --version
 
-        # -----------------------------
-        # 5. Flutter doctor (CI-safe)
-        # -----------------------------
-        flutter doctor -v || true
+                    # -----------------------------
+                    # 4. Android SDK / NDK sanity
+                    # -----------------------------
+                    test -d "${ANDROID_SDK_ROOT}"
+                    test -d "${ANDROID_NDK_HOME}"
+                    test -x "${ANDROID_NDK_TOOLCHAIN_DIR/clang}" || { echo "❌ NDK clang not found"; exit 1; }
 
-        echo "=============================="
-        echo "✅ CI SELF TEST PASSED"
-        echo "=============================="
-        """
+                    echo "✅ Android SDK & NDK OK"
+
+                    # -----------------------------
+                    # 5. Flutter doctor (CI-safe)
+                    # -----------------------------
+                    flutter doctor -v || true
+
+                    echo "=============================="
+                    echo "✅ CI SELF TEST PASSED"
+                    echo "=============================="
+                    """
             }
         }
 
