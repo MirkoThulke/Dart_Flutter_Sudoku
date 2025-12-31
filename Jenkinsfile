@@ -275,12 +275,14 @@ pipeline {
                 # -----------------------------
                 # 1. Required ENV variables
                 # -----------------------------
-                for v in FLUTTER_ROOT ANDROID_SDK_ROOT ANDROID_NDK_HOME GRADLE_USER_HOME PUB_CACHE CONTAINER_WORKSPACE CONTAINER_CACHE; do
-                  if [ -z "${!v}" ]; then
-                    echo "❌ Missing ENV variable: $v"
+                set -e
+                for var in FLUTTER_ROOT ANDROID_SDK_ROOT ANDROID_NDK_HOME GRADLE_USER_HOME PUB_CACHE CONTAINER_WORKSPACE CONTAINER_CACHE; do
+                  eval val=\\\$$var
+                  if [ -z "\\\$val" ]; then
+                    echo "❌ Missing ENV variable: \$var"
                     exit 1
                   fi
-                  echo "✅ $v=${!v}"
+                  echo "✅ \$var=\$val"
                 done
 
                 # -----------------------------
