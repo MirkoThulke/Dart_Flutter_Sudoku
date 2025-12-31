@@ -241,11 +241,7 @@ pipeline {
         // -----------------------------
         // PATH defintion block
         // -----------------------------
-        PATH="/opt/flutter/bin:$PATH"
-        PATH="/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
-        PATH="/root/.cargo/bin:$PATH"
-        PATH="/opt/android/sdk/cmdline-tools/latest/bin:$PATH"
-        PATH="/opt/android/sdk/platform-tools:$PATH"
+        PATH = "/opt/flutter/bin:/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:/root/.cargo/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
 
     }
 
