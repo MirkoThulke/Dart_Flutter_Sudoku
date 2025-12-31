@@ -281,16 +281,21 @@ RUN --mount=type=cache,target=/root/.pub-cache \
 
 FROM base AS rust
 
+# Set installation paths
 ARG RUST_VERSION
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV RUSTUP_HOME=/opt/rust/rustup
+ENV CARGO_HOME=/opt/rust/cargo
+ENV PATH="$CARGO_HOME/bin:$PATH"
 
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} \
- && /root/.cargo/bin/rustup target add \
-      aarch64-linux-android \
-      armv7-linux-androideabi \
-      x86_64-linux-android \
-      i686-linux-android \
- && /root/.cargo/bin/cargo install cargo-ndk
+# Install Rust and Cargo into /opt/rust
+RUN mkdir -p /opt/rust && \
+    curl https://sh.rustup.rs -sSf | bash -s -- -y --default-toolchain ${RUST_VERSION} && \
+    $CARGO_HOME/bin/rustup target add \
+        aarch64-linux-android \
+        armv7-linux-androideabi \
+        x86_64-linux-android \
+        i686-linux-android && \
+    $CARGO_HOME/bin/cargo install cargo-ndk
 
 # ============================================================
 # Stage: chrome
@@ -391,6 +396,7 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
 
 # Jenkins user Ownership + Git safe.directory
 RUN chown -R 2000:2000 /opt/flutter 
+RUN chown -R 2000:2000 /opt/rust
 RUN git config --system --add safe.directory /opt/flutter
 
 # Standard Jenkins User für Builds

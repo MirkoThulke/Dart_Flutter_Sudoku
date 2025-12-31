@@ -191,8 +191,6 @@ pipeline {
         // Flutter build container
         FLUTTER_IMAGE           = 'flutter_rust_env'
 
-        RUST_CARGO_DIR          = '/root/.cargo/bin'
-
 
         // Git home
         HOME                    = '/workspace/Flutter_Docker_Pipeline'
@@ -222,6 +220,11 @@ pipeline {
         // Flutter
         FLUTTER_ROOT                = '/opt/flutter'
 
+        // Rust
+        ENV RUSTUP_HOME             = '/opt/rust/rustup'
+        ENV CARGO_HOME              = '/opt/rust/cargo'
+        RUST_CARGO_DIR              = '/opt/rust/cargo/bin'
+
         // SDK Root path
         ANDROID_SDK_ROOT            = '/opt/android/sdk'
 
@@ -243,14 +246,15 @@ pipeline {
         // -----------------------------
 
         /* Binary paths that are added : 
-        /root/.cargo/bin
+ 
+        /opt/rust/cargo/bin
         /opt/flutter/bin
         /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
-        /root/.cargo/bin
         /opt/android/sdk/cmdline-tools/latest/bin
         /opt/android/sdk/platform-tools
+        
         */
-        PATH = "/root/.cargo/bin:/opt/flutter/bin:/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:/root/.cargo/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
+        PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
 
     }
 
