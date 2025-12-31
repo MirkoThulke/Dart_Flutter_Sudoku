@@ -321,7 +321,7 @@ pipeline {
                     # -----------------------------
                     test -d "${ANDROID_SDK_ROOT}"
                     test -d "${ANDROID_NDK_HOME}"
-                    test -x "${ANDROID_NDK_TOOLCHAIN_DIR/clang}" || { echo "❌ NDK clang not found"; exit 1; }
+                    test -x "${ANDROID_NDK_TOOLCHAIN_DIR}/clang" || { echo "❌ NDK clang not found"; exit 1; }
 
                     echo "✅ Android SDK & NDK OK"
 
