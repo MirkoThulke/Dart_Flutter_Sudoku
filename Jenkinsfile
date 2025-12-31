@@ -201,6 +201,9 @@ pipeline {
         ANDROID_NDK_HOME = '/opt/android-ndk'
         ANDROID_NDK_TOOLCHAIN_DIR = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
+        // SDK Root path
+        ANDROID_SDK_ROOT= '/opt/android/sdk'
+
         // Rust related paths
         RUST_PROJECT_DIR     = "${CONTAINER_WORKSPACE}/rust/rust_lib"
         ANDROID_JNI_LIBS_DIR = "${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
