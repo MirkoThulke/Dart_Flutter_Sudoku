@@ -278,23 +278,14 @@ pipeline {
                     # -----------------------------
                     # 1. Required ENV variables
                     # -----------------------------
-                    required_vars=(
-                      FLUTTER_ROOT
-                      ANDROID_SDK_ROOT
-                      ANDROID_NDK_HOME
-                      GRADLE_USER_HOME
-                      PUB_CACHE
-                      CONTAINER_WORKSPACE
-                      CONTAINER_CACHE
-                    )
 
-                    if [ -z "${FLUTTER_ROOT}" ]; then echo "❌ Missing ENV variable: FLUTTER_ROOT" exit 1 fi
-                    if [ -z "${ANDROID_SDK_ROOT}" ]; then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT" exit 1 fi
-                    if [ -z "${ANDROID_NDK_HOME}" ]; then echo "❌ Missing ENV variable: ANDROID_NDK_HOME" exit 1 fi
-                    if [ -z "${GRADLE_USER_HOME}" ]; then echo "❌ Missing ENV variable: GRADLE_USER_HOME" exit 1 fi
-                    if [ -z "${PUB_CACHE}" ]; then echo "❌ Missing ENV variable: PUB_CACHE" exit 1 fi
+                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT" exit 1 fi
+                    if [ -z "${ANDROID_SDK_ROOT}" ];    then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT" exit 1 fi
+                    if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME" exit 1 fi
+                    if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME" exit 1 fi
+                    if [ -z "${PUB_CACHE}" ];           then echo "❌ Missing ENV variable: PUB_CACHE" exit 1 fi
                     if [ -z "${CONTAINER_WORKSPACE}" ]; then echo "❌ Missing ENV variable: CONTAINER_WORKSPACE" exit 1 fi
-                    if [ -z "${CONTAINER_CACHE}" ]; then echo "❌ Missing ENV variable:CONTAINER_CACHE" exit 1 fi
+                    if [ -z "${CONTAINER_CACHE}" ];     then echo "❌ Missing ENV variable: CONTAINER_CACHE" exit 1 fi
 
 
                     # -----------------------------
