@@ -185,54 +185,33 @@ pipeline {
         CONTAINER_WORKSPACE = '/workspace/Flutter_Docker_Pipeline'
 
         // Cache :  Container mount paths
-        HOST_CACHE          = '/home/mirko/jenkins_cache'
-        CONTAINER_CACHE     = '/workspace/cache'
-
+        HOST_CACHE = '/home/mirko/jenkins_cache'
+        CONTAINER_CACHE = '/workspace/cache'
 
         // Gradle / Pub cache : Container paths
-        GRADLE_USER_HOME    = "${CONTAINER_CACHE}/.gradle"
-        PUB_CACHE           = "${CONTAINER_CACHE}/.pub-cache"
+        GRADLE_USER_HOME = '/workspace/cache/.gradle'
+        PUB_CACHE = '/workspace/cache/.pub-cache'
 
         // Flutter
-        FLUTTER_ROOT        = '/opt/flutter'
-        PATH                = "${FLUTTER_ROOT}/bin:${env.PATH}"
+        FLUTTER_ROOT = '/opt/flutter'
+
+        // SDK Root path
+        ANDROID_SDK_ROOT = '/opt/android/sdk'
 
         // NDK Home path
         ANDROID_NDK_HOME = '/opt/android-ndk'
-        ANDROID_NDK_TOOLCHAIN_DIR = "${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
-
-        // SDK Root path
-        ANDROID_SDK_ROOT= '/opt/android/sdk'
+        ANDROID_NDK_TOOLCHAIN_DIR = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
         // Rust related paths
-        RUST_PROJECT_DIR     = "${CONTAINER_WORKSPACE}/rust/rust_lib"
-        ANDROID_JNI_LIBS_DIR = "${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
-        RUST_CARGO_DIR       = '/root/.cargo/bin'
+        RUST_PROJECT_DIR = '/workspace/Flutter_Docker_Pipeline/rust/rust_lib'
+        ANDROID_JNI_LIBS_DIR = '/workspace/Flutter_Docker_Pipeline/android/app/src/main/jniLibs'
 
-        // Flutter build artefacts
-        FLUTTER_BUILD_DIRS = "${CONTAINER_WORKSPACE}/.gradle \
-                                ${CONTAINER_WORKSPACE}/android/.gradle \
-                                ${CONTAINER_WORKSPACE}/build \
-                                ${CONTAINER_WORKSPACE}/android/build"
+        HOME = '/workspace/Flutter_Docker_Pipeline'
 
-        // GIT home
-        HOME = "${CONTAINER_WORKSPACE}"
-
-        // Repository paths
-        SCRIPTS_DIR = 'scripts'
-
-        CLEAN_GRADLE_SCRIPT     = "${SCRIPTS_DIR}/clean_gradle_cache.sh"
-        CLEAN_FLUTTER_SCRIPT    = "${SCRIPTS_DIR}/clean_flutter.sh"
-        BUILD_ALL_SCRIPT        = "${SCRIPTS_DIR}/build_all.sh"
-        BUILD_DEBUG_ARGS        = 'debug'
-        BUILD_RELEASE_ARGS      = 'release'
-        INTEGRATION_TEST_SCRIPT = "${SCRIPTS_DIR}/run_integration_test.sh"
-        PLANTUML_SCRIPT         = "${SCRIPTS_DIR}/generate_PlantUML_PDF.ps1"
-
-        // Docker args
-        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -v ${HOST_CACHE}:${CONTAINER_CACHE} -w ${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS = "-u 2000:2000 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
         DOCKER_AGENT_ARGS_ROOT    = "-u 0:0 -v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE} -v ${HOST_CACHE}:${CONTAINER_CACHE} -w ${CONTAINER_WORKSPACE}"
     }
+
 
     stages {
 
@@ -279,13 +258,15 @@ pipeline {
                     # 1. Required ENV variables
                     # -----------------------------
 
-                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT" exit 1 fi
-                    if [ -z "${ANDROID_SDK_ROOT}" ];    then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT" exit 1 fi
-                    if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME" exit 1 fi
-                    if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME" exit 1 fi
-                    if [ -z "${PUB_CACHE}" ];           then echo "❌ Missing ENV variable: PUB_CACHE" exit 1 fi
-                    if [ -z "${CONTAINER_WORKSPACE}" ]; then echo "❌ Missing ENV variable: CONTAINER_WORKSPACE" exit 1 fi
-                    if [ -z "${CONTAINER_CACHE}" ];     then echo "❌ Missing ENV variable: CONTAINER_CACHE" exit 1 fi
+
+                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT;           exit 1; fi
+                    if [ -z "${ANDROID_SDK_ROOT}" ];    then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT";      exit 1; fi
+                    if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME";      exit 1; fi
+                    if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME";      exit 1; fi
+                    if [ -z "${PUB_CACHE}" ];           then echo "❌ Missing ENV variable: PUB_CACHE";             exit 1; fi
+                    if [ -z "${CONTAINER_WORKSPACE}" ]; then echo "❌ Missing ENV variable: CONTAINER_WORKSPACE";   exit 1; fi
+                    if [ -z "${CONTAINER_CACHE}" ];     then echo "❌ Missing ENV variable: CONTAINER_CACHE";       exit 1; fi
+
 
 
                     # -----------------------------
