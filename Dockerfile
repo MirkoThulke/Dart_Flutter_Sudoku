@@ -113,12 +113,9 @@
 # 4. adb devices to verify connection
 
 # ---------- Multi-stage Dockerfile: Flutter + Android + Rust + Chrome ----------
-# Build with BuildKit enabled for cache mounts:
-#   DOCKER_BUILDKIT=1 docker build -t flutter_rust_env .
-#
+
 # Build with log print to shell ON:
-#   docker build --progress=plain -t flutter_rust_env .
-#   DOCKER_BUILDKIT=0 docker build -t flutter_rust_env .
+#   DOCKER_BUILDKIT=1 docker build --progress=plain -t flutter_rust_env .
 #   DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain -t flutter_rust_env .
 
 # ---------- Debugg into the built image on docker image layer level ----------
@@ -383,9 +380,9 @@ COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
 COPY --from=chrome /opt/google /opt/google
 
 # Copy from Rust stage to final image (cargo and rustup)
-COPY --from=rust /root/.cargo /root/.cargo
-COPY --from=rust /root/.rustup/toolchains /root/.rustup/toolchains
-COPY --from=rust /root/.rustup/settings.toml /root/.rustup/settings.toml
+COPY --from=rust /opt/rust/cargo /opt/rust/cargo
+COPY --from=rust /opt/rust/rustup/toolchains /opt/rust/rustup/toolchains
+COPY --from=rust /opt/rust/rustup/settings.toml /opt/rust/rustup/settings.toml
 
 
 RUN git config --global --add safe.directory /opt/flutter
