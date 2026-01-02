@@ -221,8 +221,8 @@ pipeline {
         FLUTTER_ROOT                = '/opt/flutter'
 
         // Rust
-        ENV RUSTUP_HOME             = '/opt/rust/rustup'
-        ENV CARGO_HOME              = '/opt/rust/cargo'
+        RUSTUP_HOME                 = '/opt/rust/rustup'
+        CARGO_HOME                  = '/opt/rust/cargo'
         RUST_CARGO_DIR              = '/opt/rust/cargo/bin'
 
         // SDK Root path
