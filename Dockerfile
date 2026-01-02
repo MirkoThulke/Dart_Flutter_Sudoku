@@ -145,7 +145,6 @@ ARG JAVA_VERSION=17
 # check for updates on https://developer.android.com/studio#command-line-tools-only
 ARG ANDROID_SDK_TOOLS_VERSION=13114758
 
-ARG ANDROID_SDK_ROOT=/opt/android/sdk
 ARG FLUTTER_VERSION=3.35.7
 ARG RUST_VERSION=1.91.1
 
@@ -156,6 +155,10 @@ ARG BUILD_TOOLS=36.0.0
 
 ARG BUILD_MODE=ci
 
+ARG ANDROID_SDK_ROOT=/opt/android/sdk
+ARG RUSTUP_HOME=/opt/rust/rustup
+ARG CARGO_HOME=/opt/rust/cargo
+ARG FLUTTER_ROOT=/opt/flutter
 
 # ============================================================
 # Stage: base
@@ -279,9 +282,13 @@ RUN --mount=type=cache,target=/root/.pub-cache \
 FROM base AS rust
 
 # Set installation paths
+
+ARG RUSTUP_HOME
+ARG CARGO_HOME
 ARG RUST_VERSION
-ENV RUSTUP_HOME=/opt/rust/rustup
-ENV CARGO_HOME=/opt/rust/cargo
+
+ENV RUSTUP_HOME=${RUSTUP_HOME}
+ENV CARGO_HOME=${CARGO_HOME}
 ENV PATH="$CARGO_HOME/bin:$PATH"
 
 # Install Rust and Cargo into /opt/rust
@@ -319,7 +326,6 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
 FROM ubuntu:22.04 AS final
 
 ARG ANDROID_SDK_TOOLS_VERSION
-ARG ANDROID_SDK_ROOT
 ARG COMPILE_SDK
 ARG BUILD_TOOLS
 ARG NDK_MAIN
@@ -328,16 +334,24 @@ ARG JAVA_VERSION
 ARG RUST_VERSION
 ARG FLUTTER_VERSION
 
+ARG ANDROID_SDK_ROOT
+ARG FLUTTER_ROOT
+ARG RUSTUP_HOME
+ARG CARGO_HOME
+
 ARG BUILD_MODE=ci
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV FLUTTER_SUPPRESS_ANALYTICS=true
 ENV FLUTTER_ALLOW_ROOT=true
-ENV FLUTTER_ROOT=/opt/flutter
 
-ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+ENV FLUTTER_ROOT=${FLUTTER_ROOT}
+ENV RUSTUP_HOME=${RUSTUP_HOME}
+ENV CARGO_HOME=${CARGO_HOME}
+
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
 ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
 
@@ -346,11 +360,10 @@ ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
 
-
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
-ENV PATH="/root/.cargo/bin:${PATH}"
 ENV PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
 ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
+ENV PATH="$CARGO_HOME/bin:$PATH"
 
 
 RUN apt-get update \
@@ -380,9 +393,7 @@ COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
 COPY --from=chrome /opt/google /opt/google
 
 # Copy from Rust stage to final image (cargo and rustup)
-COPY --from=rust /opt/rust/cargo /opt/rust/cargo
-COPY --from=rust /opt/rust/rustup/toolchains /opt/rust/rustup/toolchains
-COPY --from=rust /opt/rust/rustup/settings.toml /opt/rust/rustup/settings.toml
+COPY --from=rust /opt/rust /opt/rust
 
 
 RUN git config --global --add safe.directory /opt/flutter
