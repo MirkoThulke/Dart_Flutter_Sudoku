@@ -125,6 +125,13 @@
 //  sudo mkdir -p /home/mirko/jenkins_cache
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_cache
 //  sudo chmod -R 770 /home/mirko/jenkins_cache
+//
+//  # Jenkins Rust workspace on Host
+//  sudo mkdir -p /workspace/Flutter_Docker_Pipeline/rust/rust_lib
+//  sudo chown -R 2000:2000 /workspace/Flutter_Docker_Pipeline/rust/rust_lib
+//  sudo chmod -R 770 /workspace/Flutter_Docker_Pipeline/rust/rust_lib
+
+
 
 // Docker compose build via your compose.yaml file
 //     docker compose up -d --build
@@ -268,12 +275,12 @@ pipeline {
  
         /opt/rust/cargo/bin
         /opt/flutter/bin
-        /opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin
+        /opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin
         /opt/android/sdk/cmdline-tools/latest/bin
         /opt/android/sdk/platform-tools
         
         */
-        PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
+        PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
 
     }
 
@@ -435,7 +442,12 @@ pipeline {
         */
 
         stage('Checkout') {
-            agent { label 'any' }
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 cleanWs()
                 checkout scm
@@ -444,20 +456,36 @@ pipeline {
         }
 
 
+
         stage('Validate Repo Structure') {
-            agent { label 'any' }
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 script {
-                    if (!fileExists(SCRIPTS_DIR_HOST)) {
+                    // scripts directory (repo-relative)
+                    if (!fileExists('scripts')) {
                         error "❌ scripts/ directory not found in repository"
                     }
+
+                    // Flutter mandatory file
                     if (!fileExists('pubspec.yaml')) {
                         error "❌ pubspec.yaml missing"
                     }
+
+                    // Optional but recommended
+                    if (!fileExists('android')) {
+                        error "❌ android/ directory missing"
+                    }
+
                     echo "✅ Repository structure valid"
                 }
             }
         }
+
 
 
         stage('Clean Environment Flutter') {
