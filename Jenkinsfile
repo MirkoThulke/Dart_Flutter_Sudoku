@@ -242,7 +242,7 @@ pipeline {
         PLANTUML_SCRIPT             = '/workspace/Flutter_Docker_Pipeline/scripts/generate_PlantUML_PDF.ps1'
 
         // Other scripts:
-        SCRIPTS_DIR                 = '/workspace/scripts/'
+        SCRIPTS_DIR                 = '/workspace/scripts'
 
 
 
@@ -390,8 +390,6 @@ pipeline {
             steps {
                 sh """
                     set -euo
-
-                    export CONTAINER_CACHE = ${CONTAINER_CACHE}
 
                     echo "== Flutter =="
                     which flutter
