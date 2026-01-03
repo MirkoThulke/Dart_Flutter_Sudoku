@@ -241,6 +241,10 @@ pipeline {
         INTEGRATION_TEST_SCRIPT     = '/workspace/Flutter_Docker_Pipeline/scripts/run_integration_test.sh'
         PLANTUML_SCRIPT             = '/workspace/Flutter_Docker_Pipeline/scripts/generate_PlantUML_PDF.ps1'
 
+        // Other scripts:
+        SCRIPTS_DIR                 = '/workspace/scripts/'
+
+
 
         // -----------------------------
         // PATH defintion block
@@ -387,6 +391,8 @@ pipeline {
                 sh """
                     set -euo
 
+                    export CONTAINER_CACHE = ${CONTAINER_CACHE}
+
                     echo "== Flutter =="
                     which flutter
                     flutter --version
@@ -418,6 +424,7 @@ pipeline {
         stage('Validate Repo Structure') {
             agent { label 'any' }
             steps {
+
                 script {
                     if (!fileExists("${SCRIPTS_DIR}")) {
                         error "❌ scripts directory not found"
