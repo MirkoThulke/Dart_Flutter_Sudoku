@@ -219,6 +219,7 @@ pipeline {
 
         //Host mount paths
         HOST_CACHE              = '/home/mirko/jenkins_cache'
+        HOST_WORKSPACE          = '/home/mirko/jenkins_workspace_host_mount'
 
         // GIT Home 
         HOME                    = '/workspace'
@@ -229,13 +230,14 @@ pipeline {
 
 
         // Container cache mount path
-        CONTAINER_CACHE  = '/workspace/cache'
+        CONTAINER_CACHE         = '${WORKSPACE}/cache'
+        CONTAINER_WORKSPACE     = '${WORKSPACE}/jenkins_workspace_container'
 
         // -----------------------------
         // Container cache paths
         // -----------------------------
-        GRADLE_USER_HOME = '/workspace/cache/.gradle'
-        PUB_CACHE        = '/workspace/cache/.pub-cache'
+        GRADLE_USER_HOME = '${WORKSPACE}/cache/.gradle'
+        PUB_CACHE        = '${WORKSPACE}/cache/.pub-cache'
 
 
         // Flutter
@@ -261,8 +263,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache"
-        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:/workspace/jenkins_workspace_container"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:/workspace/jenkins_workspace_container"
 
 
         // Test scripts : 
@@ -427,7 +429,7 @@ pipeline {
             steps {
 
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
-                
+
             }
         }
 
