@@ -219,7 +219,7 @@ pipeline {
 
 
         // Rust related paths
-        RUST_PROJECT_DIR        = '/workspace/Flutter_Docker_Pipeline/rust/rust_lib'
+        RUST_PROJECT_DIR        = 'rust/rust_lib'
         ANDROID_JNI_LIBS_DIR    = '/workspace/Flutter_Docker_Pipeline/android/app/src/main/jniLibs'
 
 
@@ -254,8 +254,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
-        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache"
 
 
         // Test scripts : 
