@@ -221,7 +221,7 @@ pipeline {
         HOST_CACHE              = '/home/mirko/jenkins_cache'
 
         // GIT Home 
-        HOME = '/workspace'
+        HOME                    ='/workspace_home'
 
         // Rust related paths
         RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
@@ -293,6 +293,30 @@ pipeline {
 
     stages {
 
+
+        stage('Setup Environment') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                script {
+                    sh """
+                        # Create a dedicated HOME for Flutter inside the container
+                        export HOME=${HOME}
+                        mkdir -p \$HOME
+
+                        # Optional: verify it
+                        echo "HOME inside container: \$HOME"
+                        ls -la \$HOME
+                    """
+                }
+            }
+        }
+
+
         stage('Add GIT safe.directories') {
             agent {
                 docker {
@@ -306,6 +330,7 @@ pipeline {
 
                     # export to git child process required
                     export FLUTTER_ROOT="${FLUTTER_ROOT}"
+                    export HOME=${HOME}
 
                     git config --system --add safe.directory ${FLUTTER_ROOT}
                 """
@@ -325,6 +350,8 @@ pipeline {
 
                 sh """
                     set -euo
+
+                    export HOME=${HOME}
 
                     echo "=============================="
                     echo "🧪 CI SELF TEST"
@@ -517,6 +544,7 @@ pipeline {
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
                     export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export HOME=${HOME}
 
 
                     # Flutter / Gradle build artifacts
@@ -570,6 +598,7 @@ pipeline {
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
                     export WORKSPACE=${CONTAINER_WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export HOME=${HOME}
 
 
                     # Flutter / Gradle caches
@@ -628,6 +657,7 @@ pipeline {
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
                     export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export HOME=${HOME}
 
 
                     # Flutter / Gradle caches
@@ -692,6 +722,7 @@ pipeline {
                     export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
                     export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
                     export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                    export HOME=${HOME}
                     #################
 
                     cd "${RUST_PROJECT_DIR}"
@@ -745,6 +776,7 @@ pipeline {
                         export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
                         export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
                         export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                        export HOME=${HOME}
                         #################
 
                         flutter pub get
@@ -785,6 +817,7 @@ pipeline {
                     export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
                     export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
                     export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                    export HOME=${HOME}
                     #################
 
                     ${INTEGRATION_TEST_SCRIPT}
