@@ -219,6 +219,13 @@ pipeline {
 
         // Flutter
         FLUTTER_ROOT                = '/opt/flutter'
+        
+        // Flutter build artefacts
+        FLUTTER_BUILD_DIRS_1        = '/workspace/Flutter_Docker_Pipeline/.gradle' 
+        FLUTTER_BUILD_DIRS_2        = '/workspace/Flutter_Docker_Pipeline/android/.gradle' 
+        FLUTTER_BUILD_DIRS_3        = '/workspace/Flutter_Docker_Pipeline/build' 
+        FLUTTER_BUILD_DIRS_4        = '/workspace/Flutter_Docker_Pipeline/android/build'
+
 
         // Rust
         RUSTUP_HOME                 = '/opt/rust/rustup'
@@ -277,6 +284,8 @@ pipeline {
                 sh """
                     set -euo
 
+                    // export to git child process required
+                    export FLUTTER_ROOT = ${FLUTTER_ROOT}
 
                     git config --system --add safe.directory ${FLUTTER_ROOT}
                 """
@@ -301,10 +310,6 @@ pipeline {
                     echo "🧪 CI SELF TEST"
                     echo "=============================="
 
-
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
-                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
 
                     # -----------------------------
                     # 1. Required ENV variables
@@ -456,11 +461,11 @@ pipeline {
                 sh """
                     set -euo
 
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
-
                     # Flutter / Gradle build artifacts
-                    rm -rf ${FLUTTER_BUILD_DIRS}
+                    rm -rf ${FLUTTER_BUILD_DIRS_1} \
+                            ${FLUTTER_BUILD_DIRS_2} \
+                            ${FLUTTER_BUILD_DIRS_3} \
+                            ${FLUTTER_BUILD_DIRS_4}
 
                     # Rust shared libraries
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
@@ -494,16 +499,16 @@ pipeline {
                 sh """
                     set -euo
 
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
-                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
 
                     # Flutter / Gradle caches
                     rm -rf ${GRADLE_USER_HOME}/caches/modules-* \
                            ${GRADLE_USER_HOME}/daemon \
                            ${PUB_CACHE}/hosted \
                            ${FLUTTER_ROOT}/bin/cache \
-                           ${FLUTTER_BUILD_DIRS}
+                           ${FLUTTER_BUILD_DIRS_1} \
+                           ${FLUTTER_BUILD_DIRS_2} \
+                           ${FLUTTER_BUILD_DIRS_3} \
+                           ${FLUTTER_BUILD_DIRS_4}
 
                     # Rust libraries
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
@@ -547,7 +552,10 @@ pipeline {
                            ${PUB_CACHE}/hosted \
                            ${PUB_CACHE}/git \
                            ${FLUTTER_ROOT}/bin/cache \
-                           ${FLUTTER_BUILD_DIRS}
+                           ${FLUTTER_BUILD_DIRS_1} \
+                           ${FLUTTER_BUILD_DIRS_2} \
+                           ${FLUTTER_BUILD_DIRS_3} \
+                           ${FLUTTER_BUILD_DIRS_4}
 
                     # Rust build targets + shared libraries
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
@@ -581,6 +589,7 @@ pipeline {
                 sh """
                     set -euo
 
+                    // export to cargo child process required
                     export ANDROID_JNI_LIBS_DIR =   ${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR     =   ${RUST_PROJECT_DIR}
 
@@ -616,9 +625,6 @@ pipeline {
                 sh """
                     set -euo
 
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
-
                     flutter pub get
                     flutter build apk --debug --no-daemon
                 """
@@ -635,9 +641,6 @@ pipeline {
             steps {
                 sh """
                     set -euo
-
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
 
                     flutter pub get
                     flutter build apk --release --no-daemon
