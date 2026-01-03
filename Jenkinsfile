@@ -242,8 +242,8 @@ pipeline {
         PLANTUML_SCRIPT             = '/workspace/Flutter_Docker_Pipeline/scripts/generate_PlantUML_PDF.ps1'
 
         // Other scripts:
-        SCRIPTS_DIR                 = '/workspace/scripts'
-
+        SCRIPTS_DIR_HOST            = 'scripts'
+        SCRIPTS_DIR_CONTAINER       = '/workspace/Flutter_Docker_Pipeline/scripts'
 
 
         // -----------------------------
@@ -408,6 +408,15 @@ pipeline {
             }
         }
 
+        /*
+        Stages before checkout:
+        - Image existence
+        - Container self-test
+
+        Stages after checkout:
+        - Validate repo structure
+        - Build
+        */
 
         stage('Checkout') {
             agent { label 'any' }
@@ -422,13 +431,14 @@ pipeline {
         stage('Validate Repo Structure') {
             agent { label 'any' }
             steps {
-
                 script {
-                    if (!fileExists("${SCRIPTS_DIR}")) {
-                        error "❌ scripts directory not found"
-                    } else {
-                        echo "✅ scripts directory exists"
+                    if (!fileExists(SCRIPTS_DIR_HOST)) {
+                        error "❌ scripts/ directory not found in repository"
                     }
+                    if (!fileExists('pubspec.yaml')) {
+                        error "❌ pubspec.yaml missing"
+                    }
+                    echo "✅ Repository structure valid"
                 }
             }
         }
