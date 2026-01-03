@@ -341,9 +341,9 @@ pipeline {
                     # -----------------------------
                     # 4. Android SDK / NDK sanity
                     # -----------------------------
-                    test -x "${ANDROID_NDK_HOME" || { echo "❌ NDK Home not found"; exit 1; }
-                    test -x "${ANDROID_SDK_ROOT" || { echo "❌ SDK Root not found"; exit 1; }
-                    test -x "${ANDROID_NDK_TOOLCHAIN_DIR}/clang" || { echo "❌ NDK clang not found"; exit 1; }
+                    test -d "${ANDROID_NDK_HOME}" || { echo "❌ NDK Home not found"; exit 1; }
+                    test -d "${ANDROID_SDK_ROOT}" || { echo "❌ SDK Root not found"; exit 1; }
+                    test -d "${ANDROID_NDK_TOOLCHAIN_DIR}/clang" || { echo "❌ NDK clang not found"; exit 1; }
 
                     echo "✅ Android SDK & NDK OK"
 
