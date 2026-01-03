@@ -201,9 +201,20 @@ pipeline {
         // - EXPORT statements are required inside the stage definition to make ENV parameters visible to child functions
         //   Example : export PUB_CACHE=${PUB_CACHE}
 
+        //  Source code paths → relative to workspace
+        //  Cache paths → absolute, mounted volume
+        //  Toolchains → absolute (inside image)
+        //  Never assume / is the workspace
+
+
 
         // Flutter build container
         FLUTTER_IMAGE           = 'flutter_rust_env'
+
+        // -----------------------------
+        // Jenkins workspace
+        // -----------------------------
+        WORKSPACE_DIR = "${WORKSPACE}"
 
 
         //Host mount paths
@@ -211,26 +222,28 @@ pipeline {
 
 
         // Rust related paths
-        RUST_PROJECT_DIR        = 'rust/rust_lib'
-        ANDROID_JNI_LIBS_DIR    = 'android/app/src/main/jniLibs'
+        RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
+        ANDROID_JNI_LIBS_DIR    = '${WORKSPACE}/android/app/src/main/jniLibs'
 
 
         // Container cache mount path
-        CONTAINER_CACHE         = '/cache'
+        CONTAINER_CACHE  = '/workspace/cache'
 
-        // Gradle / Pub cache : Container paths
-        GRADLE_USER_HOME        = '/cache/.gradle'
-        PUB_CACHE               = '/.pub-cache'
+        // -----------------------------
+        // Container cache paths
+        // -----------------------------
+        GRADLE_USER_HOME = '/workspace/cache/.gradle'
+        PUB_CACHE        = '/workspace/cache/.pub-cache'
 
 
         // Flutter
         FLUTTER_ROOT                = '/opt/flutter'
         
         // Flutter build artefacts
-        FLUTTER_BUILD_DIRS_1        = '/.gradle' 
-        FLUTTER_BUILD_DIRS_2        = '/android/.gradle' 
-        FLUTTER_BUILD_DIRS_3        = '/build' 
-        FLUTTER_BUILD_DIRS_4        = '/android/build'
+        FLUTTER_BUILD_DIRS_1        = '${WORKSPACE}/.gradle' 
+        FLUTTER_BUILD_DIRS_2        = '${WORKSPACE}/android/.gradle' 
+        FLUTTER_BUILD_DIRS_3        = '${WORKSPACE}/build' 
+        FLUTTER_BUILD_DIRS_4        = '${WORKSPACE}/android/build'
 
 
         // Rust
@@ -251,11 +264,11 @@ pipeline {
 
 
         // Test scripts : 
-        INTEGRATION_TEST_SCRIPT     = '/scripts/run_integration_test.sh'
-        PLANTUML_SCRIPT             = '/scripts/generate_PlantUML_PDF.ps1'
+        INTEGRATION_TEST_SCRIPT     = '${WORKSPACE}/scripts/run_integration_test.sh'
+        PLANTUML_SCRIPT             = '${WORKSPACE}/scripts/generate_PlantUML_PDF.ps1'
 
         // Other scripts:
-        SCRIPTS_DIR_CONTAINER       = '/scripts'
+        SCRIPTS_DIR_CONTAINER       = '${WORKSPACE}/scripts'
 
 
         // -----------------------------
