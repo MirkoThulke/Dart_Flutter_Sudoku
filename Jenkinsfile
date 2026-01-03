@@ -225,12 +225,12 @@ pipeline {
         CARGO_HOME                  = '/opt/rust/cargo'
         RUST_CARGO_DIR              = '/opt/rust/cargo/bin'
 
-        // SDK Root path
         ANDROID_SDK_ROOT            = '/opt/android/sdk'
 
+
         // NDK Home path
-        ANDROID_NDK_HOME            = '/opt/android-ndk'
-        ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
+        ANDROID_NDK_HOME            = '/opt/android/sdk/ndk/28.2.13676358'
+        ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
         DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
@@ -341,8 +341,8 @@ pipeline {
                     # -----------------------------
                     # 4. Android SDK / NDK sanity
                     # -----------------------------
-                    test -d "${ANDROID_NDK_HOME}" || { echo "❌ NDK Home not found"; exit 1; }
                     test -d "${ANDROID_SDK_ROOT}" || { echo "❌ SDK Root not found"; exit 1; }
+                    test -d "${ANDROID_NDK_HOME}" || { echo "❌ NDK Home not found"; exit 1; }
                     test -d "${ANDROID_NDK_TOOLCHAIN_DIR}/clang" || { echo "❌ NDK clang not found"; exit 1; }
 
                     echo "✅ Android SDK & NDK OK"
