@@ -206,39 +206,31 @@ pipeline {
         FLUTTER_IMAGE           = 'flutter_rust_env'
 
 
-        // Git home
-        HOME                    = '/workspace/Flutter_Docker_Pipeline'
-
-        // Container workspace mount path
-        CONTAINER_WORKSPACE     = '/workspace/Flutter_Docker_Pipeline'
-
-
         //Host mount paths
-        HOST_WORKSPACE          = '/home/mirko/jenkins_workspace_host_mount'
         HOST_CACHE              = '/home/mirko/jenkins_cache'
 
 
         // Rust related paths
         RUST_PROJECT_DIR        = 'rust/rust_lib'
-        ANDROID_JNI_LIBS_DIR    = '/workspace/Flutter_Docker_Pipeline/android/app/src/main/jniLibs'
+        ANDROID_JNI_LIBS_DIR    = 'android/app/src/main/jniLibs'
 
 
         // Container cache mount path
-        CONTAINER_CACHE         = '/workspace/cache'
+        CONTAINER_CACHE         = '/cache'
 
         // Gradle / Pub cache : Container paths
-        GRADLE_USER_HOME        = '/workspace/cache/.gradle'
-        PUB_CACHE               = '/workspace/cache/.pub-cache'
+        GRADLE_USER_HOME        = '/cache/.gradle'
+        PUB_CACHE               = '/.pub-cache'
 
 
         // Flutter
         FLUTTER_ROOT                = '/opt/flutter'
         
         // Flutter build artefacts
-        FLUTTER_BUILD_DIRS_1        = '/workspace/Flutter_Docker_Pipeline/.gradle' 
-        FLUTTER_BUILD_DIRS_2        = '/workspace/Flutter_Docker_Pipeline/android/.gradle' 
-        FLUTTER_BUILD_DIRS_3        = '/workspace/Flutter_Docker_Pipeline/build' 
-        FLUTTER_BUILD_DIRS_4        = '/workspace/Flutter_Docker_Pipeline/android/build'
+        FLUTTER_BUILD_DIRS_1        = '/.gradle' 
+        FLUTTER_BUILD_DIRS_2        = '/android/.gradle' 
+        FLUTTER_BUILD_DIRS_3        = '/build' 
+        FLUTTER_BUILD_DIRS_4        = '/android/build'
 
 
         // Rust
@@ -259,12 +251,11 @@ pipeline {
 
 
         // Test scripts : 
-        INTEGRATION_TEST_SCRIPT     = '/workspace/Flutter_Docker_Pipeline/scripts/run_integration_test.sh'
-        PLANTUML_SCRIPT             = '/workspace/Flutter_Docker_Pipeline/scripts/generate_PlantUML_PDF.ps1'
+        INTEGRATION_TEST_SCRIPT     = '/scripts/run_integration_test.sh'
+        PLANTUML_SCRIPT             = '/scripts/generate_PlantUML_PDF.ps1'
 
         // Other scripts:
-        SCRIPTS_DIR_HOST            = 'scripts'
-        SCRIPTS_DIR_CONTAINER       = '/workspace/Flutter_Docker_Pipeline/scripts'
+        SCRIPTS_DIR_CONTAINER       = '/scripts'
 
 
         // -----------------------------
@@ -338,15 +329,15 @@ pipeline {
                     if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME";      exit 1; fi
                     if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME";      exit 1; fi
                     if [ -z "${PUB_CACHE}" ];           then echo "❌ Missing ENV variable: PUB_CACHE";             exit 1; fi
-                    if [ -z "${CONTAINER_WORKSPACE}" ]; then echo "❌ Missing ENV variable: CONTAINER_WORKSPACE";   exit 1; fi
+                    if [ -z "${WORKSPACE}" ];           then echo "❌ Missing ENV variable: WORKSPACE";             exit 1; fi
                     if [ -z "${CONTAINER_CACHE}" ];     then echo "❌ Missing ENV variable: CONTAINER_CACHE";       exit 1; fi
 
 
                     # -----------------------------
                     # 2. Workspace & cache mounts
                     # -----------------------------
-                    test -d "${CONTAINER_WORKSPACE}"
-                    test -w "${CONTAINER_WORKSPACE}"
+                    test -d "${WORKSPACE}"
+                    test -w "${WORKSPACE}"
                     test -d "${CONTAINER_CACHE}"
                     test -w "${CONTAINER_CACHE}"
                     echo "✅ Workspace & cache are mounted and writable"
@@ -393,7 +384,7 @@ pipeline {
             }
             steps {
 
-                sh 'echo "Container Workspace: $CONTAINER_WORKSPACE" && ls -la $CONTAINER_WORKSPACE'
+                sh 'echo "Container Workspace: $WORKSPACE" && ls -la $WORKSPACE'
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
             }
         }
@@ -508,7 +499,7 @@ pipeline {
                     export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
 
 
@@ -561,7 +552,7 @@ pipeline {
                     export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export WORKSPACE=${CONTAINER_WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
 
 
@@ -587,7 +578,7 @@ pipeline {
                     fi
 
                     # Fix ownership
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                    chown -R 2000:2000 ${WORKSPACE} ${CONTAINER_CACHE} || true
 
                     echo "✅ Deep Clean LIGHT completed"
                 """
@@ -619,7 +610,7 @@ pipeline {
                     export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
 
 
@@ -646,7 +637,7 @@ pipeline {
                     fi
 
                     # Fix ownership
-                    chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                    chown -R 2000:2000 ${WORKSPACE} ${CONTAINER_CACHE} || true
 
                     echo "✅ Deep Clean FULL completed"
                 """
@@ -677,7 +668,7 @@ pipeline {
                     export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
                     export RUSTUP_HOME=${RUSTUP_HOME}
                     export CARGO_HOME=${CARGO_HOME}
@@ -730,7 +721,7 @@ pipeline {
                         export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                         export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                         export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                        export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                        export WORKSPACE=${WORKSPACE}
                         export CONTAINER_CACHE=${CONTAINER_CACHE}
                         export RUSTUP_HOME=${RUSTUP_HOME}
                         export CARGO_HOME=${CARGO_HOME}
@@ -770,7 +761,7 @@ pipeline {
                     export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
-                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export WORKSPACE=${WORKSPACE}
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
                     export RUSTUP_HOME=${RUSTUP_HOME}
                     export CARGO_HOME=${CARGO_HOME}
