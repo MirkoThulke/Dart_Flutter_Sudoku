@@ -221,7 +221,7 @@ pipeline {
         HOST_CACHE              = '/home/mirko/jenkins_cache'
 
         // GIT Home 
-        HOME                    ='/workspace_home'
+        HOME                    = '/workspace'
 
         // Rust related paths
         RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
