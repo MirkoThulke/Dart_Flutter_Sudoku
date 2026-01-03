@@ -220,6 +220,8 @@ pipeline {
         //Host mount paths
         HOST_CACHE              = '/home/mirko/jenkins_cache'
 
+        // GIT Home 
+        HOME = '/workspace'
 
         // Rust related paths
         RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
@@ -417,6 +419,7 @@ pipeline {
                     # Mandatory only in case child process use those variables
                     # Added for robustness only
                     export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export HOME=${HOME}
 
                     echo "== Flutter =="
                     which flutter
