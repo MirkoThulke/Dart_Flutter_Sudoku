@@ -280,12 +280,12 @@ pipeline {
                     args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
-                        steps {
+            steps {
                 sh """
                     set -euo
 
-                    // export to git child process required
-                    export FLUTTER_ROOT = ${FLUTTER_ROOT}
+                    # export to git child process required
+                    export FLUTTER_ROOT="${FLUTTER_ROOT}"
 
                     git config --system --add safe.directory ${FLUTTER_ROOT}
                 """
@@ -543,8 +543,6 @@ pipeline {
                 sh """
                     set -euo
 
-                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
-                    export PUB_CACHE=${PUB_CACHE}
 
                     # Flutter / Gradle caches
                     rm -rf ${GRADLE_USER_HOME}/caches \
@@ -589,9 +587,9 @@ pipeline {
                 sh """
                     set -euo
 
-                    // export to cargo child process required
-                    export ANDROID_JNI_LIBS_DIR =   ${ANDROID_JNI_LIBS_DIR}
-                    export RUST_PROJECT_DIR     =   ${RUST_PROJECT_DIR}
+                    # export to cargo child process required
+                    export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
 
                     cd "${RUST_PROJECT_DIR}"
 
