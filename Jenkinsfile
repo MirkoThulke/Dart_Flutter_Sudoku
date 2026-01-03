@@ -426,8 +426,8 @@ pipeline {
             }
             steps {
 
-                sh 'echo "Container Workspace: $WORKSPACE" && ls -la $WORKSPACE'
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
+                
             }
         }
 
