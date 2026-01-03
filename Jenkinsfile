@@ -271,9 +271,8 @@ pipeline {
             }
                         steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
 
                     git config --system --add safe.directory ${FLUTTER_ROOT}
@@ -293,9 +292,8 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     echo "=============================="
                     echo "🧪 CI SELF TEST"
@@ -389,9 +387,8 @@ pipeline {
             }
             steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     echo "== Flutter =="
                     which flutter
@@ -445,9 +442,8 @@ pipeline {
             steps {
                 echo "🧹 Cleaning Flutter build files"
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -485,9 +481,8 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean LIGHT enabled"
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -531,9 +526,8 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean FULL enabled"
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -576,9 +570,8 @@ pipeline {
             steps {
                 echo "🦀 Building Rust backend for Android (FFI)"
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export ANDROID_JNI_LIBS_DIR =   ${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR     =   ${RUST_PROJECT_DIR}
@@ -613,9 +606,8 @@ pipeline {
             }
             steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -635,9 +627,8 @@ pipeline {
             }
             steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -657,9 +648,8 @@ pipeline {
             }
             steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
                     ${INTEGRATION_TEST_SCRIPT}
                 """
@@ -687,9 +677,8 @@ pipeline {
             }
             steps {
                 sh """
-                    bash -c '
-                    set -Eeuo pipefail
-                    trap '\''echo "❌ FAILED at line \$LINENO"'\'' ERR
+                    set -Eeuo
+                    trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
                     
                     mkdir -p build_outputs
 
