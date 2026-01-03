@@ -233,8 +233,9 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-u 2000:2000 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
-        DOCKER_AGENT_ARGS_ROOT      = "-u 0:0 -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_workspace_host_mount:/workspace/Flutter_Docker_Pipeline -v /home/mirko/jenkins_cache:/workspace/cache -w /workspace/Flutter_Docker_Pipeline"
+
 
         // Test scripts : 
         INTEGRATION_TEST_SCRIPT     = '/workspace/Flutter_Docker_Pipeline/scripts/run_integration_test.sh'
@@ -270,7 +271,8 @@ pipeline {
             }
                         steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
 
                     git config --system --add safe.directory ${FLUTTER_ROOT}
                 """
@@ -290,7 +292,8 @@ pipeline {
 
                 sh """
 
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
 
                     echo "=============================="
                     echo "🧪 CI SELF TEST"
@@ -384,7 +387,8 @@ pipeline {
             }
             steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
 
                     echo "== Flutter =="
                     which flutter
@@ -438,7 +442,8 @@ pipeline {
             steps {
                 echo "🧹 Cleaning Flutter build files"
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
 
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
@@ -450,9 +455,9 @@ pipeline {
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
 
                     # clean Rust target
-                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
+                    if [ -d "${RUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CRUST_PROJECT_DIR}"
+                        cd "${RUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -476,7 +481,9 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean LIGHT enabled"
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
                     export RUST_CARGO_DIR=${RUST_CARGO_DIR}
@@ -491,9 +498,9 @@ pipeline {
                     # Rust libraries
                     rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
                     # clean Rust target
-                    if [ -d "${CRUST_PROJECT_DIR}" ]; then
+                    if [ -d "${RUST_PROJECT_DIR}" ]; then
                         echo "🧹 Cleaning Rust build targets..."
-                        cd "${CRUST_PROJECT_DIR}"
+                        cd "${RUST_PROJECT_DIR}"
                         cargo clean
                     else
                         echo "⚠️ Rust project not found, skipping Rust clean"
@@ -519,7 +526,9 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean FULL enabled"
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
@@ -561,7 +570,8 @@ pipeline {
             steps {
                 echo "🦀 Building Rust backend for Android (FFI)"
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
 
                     export ANDROID_JNI_LIBS_DIR =   ${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR     =   ${RUST_PROJECT_DIR}
@@ -596,7 +606,9 @@ pipeline {
             }
             steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
@@ -615,7 +627,9 @@ pipeline {
             }
             steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     export GRADLE_USER_HOME=${GRADLE_USER_HOME}
                     export PUB_CACHE=${PUB_CACHE}
 
@@ -634,7 +648,9 @@ pipeline {
             }
             steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     ${INTEGRATION_TEST_SCRIPT}
                 """
             }
@@ -661,7 +677,9 @@ pipeline {
             }
             steps {
                 sh """
-                    set -e
+                    set -Eeuo pipefail
+                    trap 'echo "❌ FAILED at line $LINENO"; exit 1' ERR
+
                     mkdir -p build_outputs
 
                     find build -name "*.apk" -exec cp {} build_outputs/ \\; || true
