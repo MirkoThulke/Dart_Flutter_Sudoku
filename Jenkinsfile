@@ -271,6 +271,8 @@ pipeline {
             }
                         steps {
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -292,6 +294,7 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
                 sh """
+                    #!/bin/bash
 
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
@@ -388,6 +391,8 @@ pipeline {
             }
             steps {
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -443,6 +448,8 @@ pipeline {
             steps {
                 echo "🧹 Cleaning Flutter build files"
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -482,6 +489,8 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean LIGHT enabled"
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -527,6 +536,8 @@ pipeline {
             steps {
                 echo "☢️ Deep Clean FULL enabled"
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -571,6 +582,8 @@ pipeline {
             steps {
                 echo "🦀 Building Rust backend for Android (FFI)"
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -607,6 +620,8 @@ pipeline {
             }
             steps {
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -628,6 +643,8 @@ pipeline {
             }
             steps {
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -649,6 +666,8 @@ pipeline {
             }
             steps {
                 sh """
+                    #!/bin/bash
+
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
 
@@ -678,6 +697,8 @@ pipeline {
             }
             steps {
                 sh """
+                    #!/bin/bash
+                    
                     set -Eeuo pipefail
                     trap 'echo "❌ FAILED at line \$LINENO"; exit 1' ERR
                     
