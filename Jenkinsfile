@@ -207,14 +207,8 @@ pipeline {
         //  Never assume / is the workspace
 
 
-
         // Flutter build container
         FLUTTER_IMAGE           = 'flutter_rust_env'
-
-        // -----------------------------
-        // Jenkins workspace
-        // -----------------------------
-        WORKSPACE_DIR = "${WORKSPACE}"
 
 
         //Host mount paths
@@ -222,7 +216,7 @@ pipeline {
         HOST_WORKSPACE          = '/home/mirko/jenkins_workspace_host_mount'
 
         // GIT Home 
-        HOME                    = '/workspace'
+        HOME                    = '${WORKSPACE}'
 
         // Rust related paths
         RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
@@ -263,8 +257,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:/workspace/jenkins_workspace_container"
-        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:/workspace/jenkins_workspace_container"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:${CONTAINER_WORKSPACE}"
 
 
         // Test scripts : 
@@ -429,7 +423,7 @@ pipeline {
             steps {
 
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
-
+                sh 'echo "Container Cache: $CONTAINER_WORKSPACE" && ls -la $CONTAINER_WORKSPACE || echo "Cache empty"'
             }
         }
 
