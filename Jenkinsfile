@@ -170,6 +170,13 @@ pipeline {
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
         booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'DEEP CLEAN FULL for complete clean of all caches. RUNTIME high!!')
+        
+        choice(
+        name: 'BUILD_MODE',
+        choices: ['debug', 'release'],
+        description: 'Choose build mode'
+        )
+
     }
 
     options {
@@ -396,6 +403,10 @@ pipeline {
                 sh """
                     set -euo
 
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
+
                     echo "== Flutter =="
                     which flutter
                     flutter --version
@@ -461,6 +472,18 @@ pipeline {
                 sh """
                     set -euo
 
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                    export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                    export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                    export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
+                    export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
+
+
                     # Flutter / Gradle build artifacts
                     rm -rf ${FLUTTER_BUILD_DIRS_1} \
                             ${FLUTTER_BUILD_DIRS_2} \
@@ -498,6 +521,20 @@ pipeline {
                 echo "☢️ Deep Clean LIGHT enabled"
                 sh """
                     set -euo
+
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+                    export FLUTTER_ROOT=${FLUTTER_ROOT}
+                    export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                    export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                    export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                    export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
+                    export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
 
 
                     # Flutter / Gradle caches
@@ -543,6 +580,20 @@ pipeline {
                 sh """
                     set -euo
 
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+                    export FLUTTER_ROOT=${FLUTTER_ROOT}
+                    export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                    export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                    export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                    export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
+                    export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
+
 
                     # Flutter / Gradle caches
                     rm -rf ${GRADLE_USER_HOME}/caches \
@@ -587,9 +638,26 @@ pipeline {
                 sh """
                     set -euo
 
-                    # export to cargo child process required
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+                    export FLUTTER_ROOT=${FLUTTER_ROOT}
+                    export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                    export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                    export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                    export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
                     export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
                     export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export RUSTUP_HOME=${RUSTUP_HOME}
+                    export CARGO_HOME=${CARGO_HOME}
+                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
+                    export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+                    export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
+                    export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                    #################
 
                     cd "${RUST_PROJECT_DIR}"
 
@@ -611,8 +679,7 @@ pipeline {
         }
 
 
-
-        stage('Build debug APK/AAB') {
+        stage('Build APK/AAB') {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -620,31 +687,38 @@ pipeline {
                 }
             }
             steps {
-                sh """
-                    set -euo
+                script {
+                    echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
+                    sh """
 
-                    flutter pub get
-                    flutter build apk --debug --no-daemon
-                """
-            }
-        }
+                        # Mandatory only in case child process use those variables
+                        # Added for robustness only
+                        export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                        export PUB_CACHE=${PUB_CACHE}
+                        export FLUTTER_ROOT=${FLUTTER_ROOT}
+                        export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                        export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                        export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                        export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
+                        export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                        export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                        export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                        export CONTAINER_CACHE=${CONTAINER_CACHE}
+                        export RUSTUP_HOME=${RUSTUP_HOME}
+                        export CARGO_HOME=${CARGO_HOME}
+                        export RUST_CARGO_DIR=${RUST_CARGO_DIR}
+                        export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+                        export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
+                        export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                        #################
 
-        stage('Build release APK/AAB') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                        flutter pub get
+                        flutter build apk --${params.BUILD_MODE} --no-daemon
+                    """
                 }
             }
-            steps {
-                sh """
-                    set -euo
-
-                    flutter pub get
-                    flutter build apk --release --no-daemon
-                """
-            }
         }
+
 
         stage('Run Integration Tests') {
             agent {
@@ -656,6 +730,27 @@ pipeline {
             steps {
                 sh """
                     set -euo
+
+                    # Mandatory only in case child process use those variables
+                    # Added for robustness only
+                    export GRADLE_USER_HOME=${GRADLE_USER_HOME}
+                    export PUB_CACHE=${PUB_CACHE}
+                    export FLUTTER_ROOT=${FLUTTER_ROOT}
+                    export FLUTTER_BUILD_DIRS_1=${FLUTTER_BUILD_DIRS_1}
+                    export FLUTTER_BUILD_DIRS_2=${FLUTTER_BUILD_DIRS_2}
+                    export FLUTTER_BUILD_DIRS_3=${FLUTTER_BUILD_DIRS_3}
+                    export FLUTTER_BUILD_DIRS_4=${FLUTTER_BUILD_DIRS_4}
+                    export ANDROID_JNI_LIBS_DIR=${ANDROID_JNI_LIBS_DIR}
+                    export RUST_PROJECT_DIR=${RUST_PROJECT_DIR}
+                    export CONTAINER_WORKSPACE=${CONTAINER_WORKSPACE}
+                    export CONTAINER_CACHE=${CONTAINER_CACHE}
+                    export RUSTUP_HOME=${RUSTUP_HOME}
+                    export CARGO_HOME=${CARGO_HOME}
+                    export RUST_CARGO_DIR=${RUST_CARGO_DIR}
+                    export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+                    export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
+                    export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
+                    #################
 
                     ${INTEGRATION_TEST_SCRIPT}
                 """
