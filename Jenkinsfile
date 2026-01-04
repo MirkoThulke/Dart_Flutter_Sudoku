@@ -432,10 +432,12 @@ pipeline {
                     echo "=============================="
                     echo "✅ CI SELF TEST PASSED"
                     echo "=============================="
-                    """
 
                     sync || true
                     sleep 1
+                    
+                    """
+
             }
         }
 
