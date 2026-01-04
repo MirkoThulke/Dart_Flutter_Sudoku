@@ -343,105 +343,80 @@ pipeline {
             }
             steps {
                 echo "🧪 Running CI Self-Test (fail-fast)"
+                sh """
+                    bash -c '
+                        set -Eeuo pipefail
+                        trap "echo ❌ CI FAILED at line \$LINENO; exit 1" ERR
 
-                sh '''
-                    set -Eeuo
-                    trap 'echo "❌ CI FAILED at line $LINENO"; exit 1' ERR
+                        section() {
+                            echo
+                            echo "=============================="
+                            echo "\$1"
+                            echo "=============================="
+                        }
 
-                    section() {
-                    echo
-                    echo "=============================="
-                    echo "$1"
-                    echo "=============================="
-                    }
+                        fail() {
+                            echo "❌ ERROR: \$1"
+                            exit 1
+                        }
 
-                    fail() {
-                        echo "❌ ERROR: $1"
-                        exit 1
-                    }
+                        check() {
+                            "\$@" || fail "Command failed: \$*"
+                        }
 
-                    require_env() {
-                        var="$1"
-                        val="${!var:-}"
-                        [ -n "$val" ] || { echo "❌ Missing ENV variable: $var"; exit 1; }
-                    }
+                        require_env() {
+                            var="\$1"
+                            val="\${!var:-}"
+                            [ -n "\$val" ] || fail "Missing ENV variable: \$var"
+                        }
 
-                    check() {
-                        "$@" || { echo "❌ Command failed: $*"; exit 1; }
-                    }
+                        export HOME=${HOME}
 
+                        section "CI SELF TEST"
 
-                    export HOME=${HOME}
+                        require_env FLUTTER_ROOT
+                        require_env RUST_CARGO_DIR
+                        require_env RUSTUP_HOME
+                        require_env CARGO_HOME
+                        require_env ANDROID_SDK_ROOT
+                        require_env ANDROID_NDK_HOME
+                        require_env GRADLE_USER_HOME
+                        require_env PUB_CACHE
+                        require_env WORKSPACE
+                        require_env CONTAINER_CACHE
 
-                    section "CI SELF TEST"
-                    echo "=============================="
-                    echo "🧪 CI SELF TEST"
-                    echo "=============================="
+                        section "Workspace & cache mounts"
+                        check test -d "${WORKSPACE}"
+                        check test -w "${WORKSPACE}"
+                        check test -d "${CONTAINER_CACHE}"
+                        check test -w "${CONTAINER_CACHE}"
+                        echo "✅ Workspace & cache are mounted and writable"
 
-                    section "1. Required ENV variables"
-                    # -----------------------------
-                    # 1. Required ENV variables
-                    # -----------------------------
+                        section "Toolchain availability"
+                        check command -v flutter
+                        check command -v dart
+                        check command -v cargo
 
+                        flutter --version | head -n 1
+                        cargo --version
 
-                    require_env FLUTTER_ROOT
-                    require_env RUST_CARGO_DIR
-                    require_env RUSTUP_HOME
-                    require_env CARGO_HOME
-                    require_env ANDROID_SDK_ROOT
-                    require_env ANDROID_NDK_HOME
-                    require_env GRADLE_USER_HOME
-                    require_env PUB_CACHE
-                    require_env WORKSPACE
-                    require_env CONTAINER_CACHE
+                        section "Android SDK / NDK sanity"
+                        check test -d "${ANDROID_SDK_ROOT}"
+                        check test -d "${ANDROID_NDK_HOME}"
+                        check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
+                        echo "✅ Android SDK & NDK OK"
 
+                        section "Flutter doctor"
+                        flutter doctor -v || true
 
-                    section "2. Workspace & cache mounts"
-                    # -----------------------------
-                    # 2. Workspace & cache mounts
-                    # -----------------------------
-                    check test -d "${WORKSPACE}"
-                    check test -w "${WORKSPACE}"
-                    check test -d "${CONTAINER_CACHE}"
-                    check test -w "${CONTAINER_CACHE}"
-                    echo "✅ Workspace & cache are mounted and writable"
+                        echo "=============================="
+                        echo "✅ CI SELF TEST PASSED"
+                        echo "=============================="
 
-                    section "3. Toolchain availability"
-                    # -----------------------------
-                    # 3. Toolchain availability
-                    # -----------------------------
-                    command -v flutter >/dev/null || { echo "❌ flutter missing"; exit 1; }
-                    command -v dart >/dev/null || { echo "❌ dart missing"; exit 1; }
-                    command -v cargo >/dev/null || { echo "❌ cargo missing"; exit 1; }
-
-                    flutter --version | head -n 1
-                    cargo --version
-
-                    section "4. Android SDK / NDK sanity"
-                    # -----------------------------
-                    # 4. Android SDK / NDK sanity
-                    # -----------------------------
-                    check test -d "${ANDROID_SDK_ROOT}"
-                    check test -d "${ANDROID_NDK_HOME}"
-                    check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
-
-                    echo "✅ Android SDK & NDK OK"
-
-                    section "5. Flutter doctor (CI-safe)"
-                    # -----------------------------
-                    # 5. Flutter doctor (CI-safe)
-                    # -----------------------------
-                    flutter doctor -v || true
-
-
-                    echo "=============================="
-                    echo "✅ CI SELF TEST PASSED"
-                    echo "=============================="
-
-                    sync || true
-                    sleep 1
-
-                    '''
+                        sync || true
+                        sleep 1
+                    '
+                """
 
             }
         }
