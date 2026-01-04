@@ -295,18 +295,26 @@ pipeline {
             steps {
                 script {
                     sh """
+
                         # Create a dedicated Jenkins HOME for Flutter inside the container
                         export HOME=${HOME}
+                        export WORKSPACE=${WORKSPACE}
+                        export CONTAINER_CACHE=${CONTAINER_CACHE}
 
-                        # Create the Flutter config directory inside the container
-                        mkdir -p \$HOME/.config/flutter
+                        # Create the required  directories inside the container
+                        mkdir -p "${WORKSPACE}" 
+                        mkdir -p "${CONTAINER_CACHE}"
+                        mkdir -p $HOME/.config/flutter
 
-                        # Optional: verify the config directory
-                        echo "HOME inside container: \$HOME"
-                        ls -la \$HOME/.config
+                        # Optional: verify the directories
+                        echo "inside container:"
+                        ls -la "${WORKSPACE}"
+                        ls -la "${CONTAINER_CACHE}"
+                        ls -la $HOME/.config
 
                         # Optional: Run Flutter to verify it's all good
                         flutter --version
+                        
                     """
                 }
             }
