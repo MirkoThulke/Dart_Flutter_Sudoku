@@ -116,11 +116,6 @@
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_home_host_mount
 //  sudo chmod -R 770 /home/mirko/jenkins_home_host_mount
 //
-//  # Jenkins workspace
-//  sudo mkdir -p /home/mirko/jenkins_workspace_host_mount
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_workspace_host_mount
-//  sudo chmod -R 770 /home/mirko/jenkins_workspace_host_mount
-//
 //  # Ordner für persistenten Cache auf dem Host
 //  sudo mkdir -p /home/mirko/jenkins_cache
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_cache
@@ -216,7 +211,7 @@ pipeline {
         HOST_WORKSPACE          = '/home/mirko/jenkins_workspace_host_mount'
 
         // GIT Home 
-        HOME                    = '${WORKSPACE}'
+        HOME                    = '/home/jenkins'
 
         // Rust related paths
         RUST_PROJECT_DIR        = '${WORKSPACE}/rust/rust_lib'
@@ -257,8 +252,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:${CONTAINER_WORKSPACE}"
-        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_workspace_host_mount:${CONTAINER_WORKSPACE}"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
 
 
         // Test scripts : 
@@ -300,13 +295,18 @@ pipeline {
             steps {
                 script {
                     sh """
-                        # Create a dedicated HOME for Flutter inside the container
+                        # Create a dedicated Jenkins HOME for Flutter inside the container
                         export HOME=${HOME}
-                        mkdir -p \$HOME
 
-                        # Optional: verify it
+                        # Create the Flutter config directory inside the container
+                        mkdir -p \$HOME/.config/flutter
+
+                        # Optional: verify the config directory
                         echo "HOME inside container: \$HOME"
-                        ls -la \$HOME
+                        ls -la \$HOME/.config
+
+                        # Optional: Run Flutter to verify it's all good
+                        flutter --version
                     """
                 }
             }
