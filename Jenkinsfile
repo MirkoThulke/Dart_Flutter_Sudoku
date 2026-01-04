@@ -344,27 +344,32 @@ pipeline {
             steps {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
-                sh """
+                sh '''
                     set -Eeuo
-                    trap 'echo "❌ CI FAILED at line \$LINENO"; exit 1' ERR
+                    trap 'echo "❌ CI FAILED at line $LINENO"; exit 1' ERR
 
                     section() {
                     echo
                     echo "=============================="
-                    echo "\$1"
+                    echo "$1"
                     echo "=============================="
                     }
 
                     fail() {
-                        echo "❌ ERROR: \$1"
+                        echo "❌ ERROR: $1"
                         exit 1
                     }
 
                     require_env() {
-                        var="\$1"
-                        eval "val=\${\$var:-}"
-                        [ -n "\$val" ] || { echo "❌ Missing ENV variable: \$var"; exit 1; }
+                        var="$1"
+                        val="${!var:-}"
+                        [ -n "$val" ] || { echo "❌ Missing ENV variable: $var"; exit 1; }
                     }
+
+                    check() {
+                        "$@" || { echo "❌ Command failed: $*"; exit 1; }
+                    }
+
 
                     export HOME=${HOME}
 
@@ -435,8 +440,8 @@ pipeline {
 
                     sync || true
                     sleep 1
-                    
-                    """
+
+                    '''
 
             }
         }
