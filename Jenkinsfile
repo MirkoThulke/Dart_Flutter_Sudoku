@@ -252,8 +252,8 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR   = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
 
-        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
-        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:/workspace/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
+        DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:${WORKSPACE}/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
+        DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:${WORKSPACE}/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
 
 
         // Test scripts : 
