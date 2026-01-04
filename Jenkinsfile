@@ -345,7 +345,19 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
                 sh """
-                    set -euo
+                    set -eu
+                    set -x
+
+                    fail() {
+                        echo "❌ ERROR: $1"
+                        exit 1
+                    }
+
+                    require_env() {
+                        var="$1"
+                        eval "val=\${$var:-}"
+                        [ -n "$val" ] || { echo "❌ Missing ENV variable: $var"; exit 1; }
+                    }
 
                     export HOME=${HOME}
 
@@ -359,25 +371,25 @@ pipeline {
                     # -----------------------------
 
 
-                    if [ -z "${FLUTTER_ROOT}" ];        then echo "❌ Missing ENV variable: FLUTTER_ROOT";          exit 1; fi
-                    if [ -z "${RUST_CARGO_DIR}" ];      then echo "❌ Missing ENV variable: RUST_CARGO_DIR";        exit 1; fi
-                    if [ -z "${RUSTUP_HOME}" ];         then echo "❌ Missing ENV variable: RUSTUP_HOME";           exit 1; fi
-                    if [ -z "${CARGO_HOME}" ];          then echo "❌ Missing ENV variable: CARGO_HOME";            exit 1; fi                    
-                    if [ -z "${ANDROID_SDK_ROOT}" ];    then echo "❌ Missing ENV variable: ANDROID_SDK_ROOT";      exit 1; fi
-                    if [ -z "${ANDROID_NDK_HOME}" ];    then echo "❌ Missing ENV variable: ANDROID_NDK_HOME";      exit 1; fi
-                    if [ -z "${GRADLE_USER_HOME}" ];    then echo "❌ Missing ENV variable: GRADLE_USER_HOME";      exit 1; fi
-                    if [ -z "${PUB_CACHE}" ];           then echo "❌ Missing ENV variable: PUB_CACHE";             exit 1; fi
-                    if [ -z "${WORKSPACE}" ];           then echo "❌ Missing ENV variable: WORKSPACE";             exit 1; fi
-                    if [ -z "${CONTAINER_CACHE}" ];     then echo "❌ Missing ENV variable: CONTAINER_CACHE";       exit 1; fi
+                    require_env FLUTTER_ROOT
+                    require_env RUST_CARGO_DIR
+                    require_env RUSTUP_HOME
+                    require_env CARGO_HOME
+                    require_env ANDROID_SDK_ROOT
+                    require_env ANDROID_NDK_HOME
+                    require_env GRADLE_USER_HOME
+                    require_env PUB_CACHE
+                    require_env WORKSPACE
+                    require_env CONTAINER_CACHE
 
 
                     # -----------------------------
                     # 2. Workspace & cache mounts
                     # -----------------------------
-                    test -d "${WORKSPACE}"
-                    test -w "${WORKSPACE}"
-                    test -d "${CONTAINER_CACHE}"
-                    test -w "${CONTAINER_CACHE}"
+                    test -d "${WORKSPACE}"          || fail "missing: ${WORKSPACE}"
+                    test -w "${WORKSPACE}"          || fail "not writable: ${WORKSPACE}"
+                    test -d "${CONTAINER_CACHE}"    || fail "missing: ${CONTAINER_CACHE}"
+                    test -w "${CONTAINER_CACHE}"    || fail "not writable: ${CONTAINER_CACHE}"
                     echo "✅ Workspace & cache are mounted and writable"
 
                     # -----------------------------
