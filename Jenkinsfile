@@ -345,8 +345,15 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
 
                 sh """
-                    set -eu
-                    set -x
+                    set -Eeuo
+                    trap 'echo "❌ CI FAILED at line $LINENO"; exit 1' ERR
+
+                    section() {
+                    echo
+                    echo "=============================="
+                    echo "$1"
+                    echo "=============================="
+                    }
 
                     fail() {
                         echo "❌ ERROR: $1"
@@ -361,11 +368,12 @@ pipeline {
 
                     export HOME=${HOME}
 
+                    section "CI SELF TEST"
                     echo "=============================="
                     echo "🧪 CI SELF TEST"
                     echo "=============================="
 
-
+                    section "1. Required ENV variables"
                     # -----------------------------
                     # 1. Required ENV variables
                     # -----------------------------
@@ -383,15 +391,17 @@ pipeline {
                     require_env CONTAINER_CACHE
 
 
+                    section "2. Workspace & cache mounts"
                     # -----------------------------
                     # 2. Workspace & cache mounts
                     # -----------------------------
-                    test -d "${WORKSPACE}"          || fail "missing: ${WORKSPACE}"
-                    test -w "${WORKSPACE}"          || fail "not writable: ${WORKSPACE}"
-                    test -d "${CONTAINER_CACHE}"    || fail "missing: ${CONTAINER_CACHE}"
-                    test -w "${CONTAINER_CACHE}"    || fail "not writable: ${CONTAINER_CACHE}"
+                    check test -d "${WORKSPACE}"
+                    check test -w "${WORKSPACE}"
+                    check test -d "${CONTAINER_CACHE}"
+                    check test -w "${CONTAINER_CACHE}"
                     echo "✅ Workspace & cache are mounted and writable"
 
+                    section "3. Toolchain availability"
                     # -----------------------------
                     # 3. Toolchain availability
                     # -----------------------------
@@ -402,24 +412,30 @@ pipeline {
                     flutter --version | head -n 1
                     cargo --version
 
+                    section "4. Android SDK / NDK sanity"
                     # -----------------------------
                     # 4. Android SDK / NDK sanity
                     # -----------------------------
-                    test -d "${ANDROID_SDK_ROOT}" || { echo "❌ SDK Root not found"; exit 1; }
-                    test -d "${ANDROID_NDK_HOME}" || { echo "❌ NDK Home not found"; exit 1; }
-                    test -d "${ANDROID_NDK_TOOLCHAIN_DIR}" || { echo "❌ NDK toolchain not found"; exit 1; }
+                    check test -d "${ANDROID_SDK_ROOT}"
+                    check test -d "${ANDROID_NDK_HOME}"
+                    check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
 
                     echo "✅ Android SDK & NDK OK"
 
+                    section "5. Flutter doctor (CI-safe)"
                     # -----------------------------
                     # 5. Flutter doctor (CI-safe)
                     # -----------------------------
                     flutter doctor -v || true
 
+
                     echo "=============================="
                     echo "✅ CI SELF TEST PASSED"
                     echo "=============================="
                     """
+
+                    sync || true
+                    sleep 1
             }
         }
 
