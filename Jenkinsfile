@@ -296,7 +296,6 @@ pipeline {
                 script {
                     sh """
 
-                        # Create a dedicated Jenkins HOME for Flutter inside the container
                         export HOME=${HOME}
                         export WORKSPACE=${WORKSPACE}
                         export CONTAINER_CACHE=${CONTAINER_CACHE}
@@ -314,7 +313,7 @@ pipeline {
 
                         # Optional: Run Flutter to verify it's all good
                         flutter --version
-                        
+
                     """
                 }
             }
@@ -794,7 +793,7 @@ pipeline {
                         #################
 
                         flutter pub get
-                        flutter build apk --${params.BUILD_MODE} --no-daemon
+                        flutter build apk --${params.BUILD_MODE}
                     """
                 }
             }
