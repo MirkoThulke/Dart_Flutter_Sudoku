@@ -1,7 +1,7 @@
 plugins {
     // Aligne with gradle/wrapper/gradle-wrapper.properties and Dockerfile !!!
-    id "com.android.application" version "8.9.0" apply false
-    id "com.android.library" version "8.9.0" apply false
+    id "com.android.application" version "8.1.0" apply false
+    id "com.android.library" version "8.1.0" apply false
 
     // Let Flutter define the Kotlin version !!!
     id "org.jetbrains.kotlin.android" apply false
