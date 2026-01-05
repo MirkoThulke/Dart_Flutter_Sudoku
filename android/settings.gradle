@@ -8,9 +8,12 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-
-        // Required so Gradle can see Flutter’s local plugins
         maven { url = uri("$flutterSdkPath/packages/flutter_tools/gradle") }
+    }
+
+    plugins {
+        id "com.android.application" version "8.1.0"
+        id "com.android.library"     version "8.1.0"
     }
 }
 
