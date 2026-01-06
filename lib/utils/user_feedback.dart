@@ -34,7 +34,7 @@ class FeedbackHelper {
   static Future<void> sendFeedback(BuildContext context) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'support@yourapp.com', // <-- replace with your email
+      path: 'info_net@gmx.com', // <-- replace with your email
       query: 'subject=App Feedback&body=Describe your feedback here...',
     );
 

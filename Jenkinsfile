@@ -793,7 +793,14 @@ pipeline {
                         #################
 
                         flutter pub get
-                        flutter build apk --${params.BUILD_MODE}
+                        flutter build apk --${params.BUILD_MODE} \
+                            -- \
+                            -Dkotlin.daemon.enabled=false \
+                            -Dkotlin.compiler.execution.strategy=in-process \
+                            -Dorg.gradle.daemon=false
+                            # Disables Gradle daemon at runtime
+                            # Disables Kotlin compiler daemon
+                            # Forces in-process Kotlin compilation
                     """
                 }
             }
