@@ -2,8 +2,6 @@ pluginManagement {
     def flutterSdkPath = System.getenv("FLUTTER_ROOT")
     assert flutterSdkPath != null : "❌ FLUTTER_ROOT environment variable is not set!"
 
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
-
     repositories {
         google()
         mavenCentral()
@@ -11,10 +9,14 @@ pluginManagement {
         maven { url = uri("$flutterSdkPath/packages/flutter_tools/gradle") }
     }
 
+    // 🔒 AGP MUST be pinned BEFORE Flutter is included
     plugins {
         id "com.android.application" version "8.1.0"
         id "com.android.library"     version "8.1.0"
     }
+
+    // ⚠️ This MUST come AFTER the pin
+    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 }
 
 plugins {
@@ -22,3 +24,4 @@ plugins {
 }
 
 include(":app")
+
