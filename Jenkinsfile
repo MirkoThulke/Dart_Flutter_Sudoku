@@ -255,6 +255,14 @@ pipeline {
         DOCKER_AGENT_ARGS_JENKINS   = "-v /home/mirko/jenkins_cache:${WORKSPACE}/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
         DOCKER_AGENT_ARGS_ROOT      = "--user root -v /home/mirko/jenkins_cache:${WORKSPACE}/cache -v /home/mirko/jenkins_home_host_mount:/home/jenkins"
 
+        // Gradle options
+        GRADLE_OPTS                 ="-Dorg.gradle.daemon=false \
+                                        -Dkotlin.daemon.enabled=false \
+                                        -Dkotlin.compiler.execution.strategy=in-process \
+                                        -Xmx1536m -Xms512m"
+                                        // Disables Gradle daemon at runtime
+                                        // Disables Kotlin compiler daemon
+                                        // Forces in-process Kotlin compilation
 
         // Test scripts : 
         INTEGRATION_TEST_SCRIPT     = '${WORKSPACE}/scripts/run_integration_test.sh'
@@ -790,17 +798,12 @@ pipeline {
                         export ANDROID_NDK_HOME=${ANDROID_NDK_HOME}
                         export ANDROID_NDK_TOOLCHAIN_DIR=${ANDROID_NDK_TOOLCHAIN_DIR}
                         export HOME=${HOME}
-                        #################
+                        ################# 
 
+                        export GRADLE_OPTS="${GRADLE_OPTS}"
                         flutter pub get
-                        flutter build apk --${params.BUILD_MODE} \
-                            -- \
-                            -Dkotlin.daemon.enabled=false \
-                            -Dkotlin.compiler.execution.strategy=in-process \
-                            -Dorg.gradle.daemon=false
-                            # Disables Gradle daemon at runtime
-                            # Disables Kotlin compiler daemon
-                            # Forces in-process Kotlin compilation
+                        flutter build apk --${params.BUILD_MODE}
+
                     """
                 }
             }
@@ -876,13 +879,25 @@ pipeline {
                 archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: true
             }
         }
+
+        stage('Clean Workspace') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                sh 'rm -rf ${WORKSPACE}/*'
+            }
+        }
+
     }
 
     post {
-        always {
-            cleanWs()
-        }
+
         success { echo "✅ Build succeeded" }
         failure { echo "❌ Build failed" }
+
     }
 }
