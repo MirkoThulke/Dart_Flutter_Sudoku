@@ -58,11 +58,6 @@ fi
 # -----------------------------------------------------------
 # 2️⃣ Build checks
 # -----------------------------------------------------------
-echo "⚙️ Building Android APK (release mode)..."
-flutter build apk --release
-
-echo "📦 Building Android AppBundle (Play Store release)..."
-flutter build appbundle --release
 
 echo "📝 Build artifacts ready:"
 ls -lh build/app/outputs/**/*.aab || true
@@ -75,19 +70,35 @@ echo "🧪 Running Flutter integration tests on Android..."
 
 ANDROID_STATUS=1
 
+# Install but do not build again (assumes APK/AAB already built)
+
+DEVICE_ID=$(adb devices | awk 'NR==2{print $1}')
+
+echo "📲 Installing APK on device $DEVICE_ID"
+adb install -r "$APK_PATH"
+echo "🚗 Running integration tests on device $DEVICE_ID"
+
+
 flutter drive \
   --driver=integration_test/driver.dart \
   --target=integration_test/basic_app_flow_test.dart \
-  -d $(adb devices | awk 'NR==2{print $1}') \
+  -d "$DEVICE_ID" \
+  --no-build \
   1> "$ANDROID_RESULT" \
   2> "$ANDROID_LOG" || ANDROID_STATUS=$?
 
 if [ $ANDROID_STATUS -eq 0 ]; then
   echo "✅ Android integration tests passed"
+
+  #checksum check to guarantee integrity of the APK used during tests
+  sha256sum "$APK_PATH" > "$REPORT_DIR/apk.sha256" 
+
 else
   echo "❌ Android integration tests failed (exit $ANDROID_STATUS)"
+  
   echo "📄 First 40 lines of log:"
   head -n 40 "$ANDROID_LOG"
+
 fi
 
 # -----------------------------------------------------------

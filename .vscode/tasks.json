@@ -151,7 +151,7 @@
     },
     // --------- CI / Headless Chrome ----------
     {
-      "label": "integration-test-ci-chrome-hadless-docker",
+      "label": "integration-test-ci-chrome-headless",
       "type": "shell",
       "command": "./scripts/run_integration_test.sh",
       "args": [],

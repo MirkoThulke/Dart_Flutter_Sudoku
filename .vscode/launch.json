@@ -97,18 +97,17 @@
       "name": "sudoku (integration-test - usb - tcp - host)",
       "type": "dart",
       "request": "launch",
-      "program": "${workspaceFolder}/scripts/run_integration_test_ci.sh",
       "preLaunchTask": "integration-test-usb-tcp-host",
       "noDebug": true,
       "console": "terminal"
     },
     // --------- CI Headless Chrome ----------
     {
-      "name": "sudoku (integration-test-ci - chrome - headless- docker)",
+      "name": "sudoku (integration-test-ci - chrome - headless)",
       "request": "launch",
       "type": "dart",
       "program": "${workspaceFolder}/integration_test/driver.dart",
-      "preLaunchTask": "integration-test-ci-chrome-hadless-docker",
+      "preLaunchTask": "integration-test-ci-chrome-headless",
       "noDebug": true
     }
   ]
