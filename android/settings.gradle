@@ -11,8 +11,8 @@ pluginManagement {
 
     // 🔒 AGP MUST be pinned BEFORE Flutter is included
     plugins {
-        id "com.android.application" version "8.5.2"
-        id "com.android.library"     version "8.5.2"
+        id "com.android.application" version "8.4.2"
+        id "com.android.library"     version "8.4.2"
     }
 
     // ⚠️ This MUST come AFTER the pin
