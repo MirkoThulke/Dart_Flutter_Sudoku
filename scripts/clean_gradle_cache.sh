@@ -6,9 +6,17 @@ echo "🧹 Cleaning Flutter & Gradle caches..."
 # ------------------------------------------------------------
 # Detect script and project root
 # ------------------------------------------------------------
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_ROOT"
+PROJECT_ROOT="$(pwd)"
+
+GRADLE_USER_HOME_EFFECTIVE="${GRADLE_USER_HOME:-$HOME/.gradle}"
+FLUTTER_HOME="${FLUTTER_ROOT:-$FLUTTER_HOME}"
+PUB_CACHE_EFFECTIVE="${PUB_CACHE:-$HOME/.pub-cache}"
+
+echo "🏠 HOME: $HOME"
+echo "📦 GRADLE_USER_HOME: ${GRADLE_USER_HOME:-<default>}"
+echo "📦 PUB_CACHE: ${PUB_CACHE:-<default>}"
+echo "🦋 FLUTTER_ROOT: ${FLUTTER_ROOT:-<unset>}"
+
 
 # ------------------------------------------------------------
 # Detect Docker environment
@@ -21,17 +29,12 @@ else
     echo "🐧 Running on Host (WSL2 or Linux)"
 fi
 
-# ------------------------------------------------------------
-# Determine HOME directory safely
-# ------------------------------------------------------------
-if [ "$IS_DOCKER" = true ]; then
-    HOME="${HOME:-/home/flutteruser}"
-else
-    # WSL2 HOST usually has a valid HOME already
-    HOME="${HOME}"
-fi
 
+# ------------------------------------------------------------
+# Print HOME directory
+# ------------------------------------------------------------
 echo "🏠 HOME directory: $HOME"
+
 
 # ------------------------------------------------------------
 # Stop Gradle daemons
@@ -46,13 +49,12 @@ fi
 # ------------------------------------------------------------
 # Clean GLOBAL Gradle cache
 # ------------------------------------------------------------
-GRADLE_CACHE="$HOME/.gradle/caches"
-echo "🗑 Removing Gradle cache at $GRADLE_CACHE"
 
-rm -rf "$GRADLE_CACHE/transforms-*" \
-       "$GRADLE_CACHE/modules-2" \
-       "$GRADLE_CACHE/jars-9" \
-       "$GRADLE_CACHE/daemon" || true
+
+echo "🗑 Removing Gradle cache at $GRADLE_USER_HOME_EFFECTIVE"
+
+rm -rf "$GRADLE_USER_HOME_EFFECTIVE" || true
+
 
 # ------------------------------------------------------------
 # Clean PROJECT build folders
@@ -65,8 +67,9 @@ rm -rf "$PROJECT_ROOT/.gradle" \
        "$PROJECT_ROOT/android/.gradle" || true
 
 # ------------------------------------------------------------
-# Remove Flutter bin cache (very important for plugin errors)
+# Remove Flutter bin cache and .dart_tool (very important for plugin errors)
 # ------------------------------------------------------------
+
 # Try to determine FLUTTER_HOME if not set
 if [ -z "$FLUTTER_HOME" ]; then
     # Try common locations
@@ -78,8 +81,13 @@ if [ -z "$FLUTTER_HOME" ]; then
 fi
 
 if [ -n "$FLUTTER_HOME" ]; then
+
     echo "🗑 Removing Flutter cache at $FLUTTER_HOME/bin/cache"
     rm -rf "$FLUTTER_HOME/bin/cache" || true
+
+    echo "🗑 Removing Flutter tools dart tool cache"
+    rm -rf "$FLUTTER_HOME/packages/flutter_tools/.dart_tool" || true
+
 else
     echo "⚠️ Could not detect FLUTTER_HOME, skipping Flutter cache clean."
 fi
@@ -88,7 +96,8 @@ fi
 # Clean Dart pub cache (safe in WSL & Docker)
 # ------------------------------------------------------------
 echo "🗑 Cleaning Dart pub cache..."
-rm -rf "$HOME/.pub-cache" || true
+
+rm -rf "$PUB_CACHE_EFFECTIVE"
 
 # ------------------------------------------------------------
 # Flutter clean & dependency restore
