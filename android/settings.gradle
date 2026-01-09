@@ -1,26 +1,10 @@
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-}
-
+// MUST be first
 pluginManagement {
-    def flutterSdkPath = System.getenv("FLUTTER_ROOT")
-    assert flutterSdkPath != null : "❌ FLUTTER_ROOT environment variable is not set!"
-
     repositories {
         google()
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("$flutterSdkPath/packages/flutter_tools/gradle") }
     }
-
-    // 🔒 AGP MUST be pinned BEFORE Flutter is included
-    plugins {
-        id "com.android.application" version "8.4.2"
-        id "com.android.library"     version "8.4.2"
-    }
-
-    // ⚠️ This MUST come AFTER the pin
-    includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     resolutionStrategy {
         eachPlugin {
@@ -31,9 +15,21 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+// MUST be second
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
-include(":app")
+// MUST be third (Flutter requires this)
+plugins {
+    id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
+}
 
+// Everything else AFTER
+rootProject.name = "android"
+
+include(":app")
