@@ -1,3 +1,7 @@
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+}
+
 pluginManagement {
     def flutterSdkPath = System.getenv("FLUTTER_ROOT")
     assert flutterSdkPath != null : "❌ FLUTTER_ROOT environment variable is not set!"
@@ -17,6 +21,14 @@ pluginManagement {
 
     // ⚠️ This MUST come AFTER the pin
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id.startsWith("com.android.")) {
+                useModule("com.android.tools.build:gradle:8.4.2")
+            }
+        }
+    }
 }
 
 plugins {
