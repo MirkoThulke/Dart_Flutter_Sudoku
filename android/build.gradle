@@ -1,26 +1,12 @@
-buildscript {
-    ext.kotlin_version = '1.9.22' // Kotlin version
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:8.4.2"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        // Flutter Gradle plugin is applied via flutter.gradle, not Maven
-    }
+plugins {
+    id "com.android.application" apply false
+    id "com.android.library" apply false
+    id "org.jetbrains.kotlin.android" apply false
 }
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-apply from: "$rootDir/versions.gradle"
 
 rootProject.buildDir = "../build"
+
+apply from: "${rootDir}/versions.gradle"
 
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

@@ -1,11 +1,29 @@
-apply plugin: "com.android.application"
-apply plugin: "kotlin-android"
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { stream ->
+        localProperties.load(stream)
+    }
+}
 
-// Apply Flutter Gradle plugin (local to Flutter SDK)
+def flutterRoot = localProperties.getProperty("flutter.sdk")
+if (flutterRoot == null) {
+    flutterRoot = System.getenv("FLUTTER_ROOT")
+}
+
+if (flutterRoot == null) {
+    throw new GradleException(
+        "Flutter SDK not found. Define flutter.sdk in local.properties or set FLUTTER_ROOT"
+    )
+}
+
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
-// Import versions from versions.gradle
-apply from: "$rootDir/versions.gradle"
+plugins {
+    id "com.android.application"
+}
+
+apply from: "${rootDir}/versions.gradle"
 
 android {
     namespace "com.mtulli.sudoku"
@@ -21,25 +39,14 @@ android {
         versionName flutter.versionName
     }
 
-    signingConfigs {
-        release {
-            if (System.getenv("KEYSTORE_PASSWORD")) {
-                storeFile file(System.getenv("KEYSTORE_PATH"))
-                storePassword System.getenv("KEYSTORE_PASSWORD")
-                keyAlias System.getenv("KEY_ALIAS")
-                keyPassword System.getenv("KEY_PASSWORD")
-            }
-        }
-    }
-
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile(
+                "proguard-android-optimize.txt"
+            ), "proguard-rules.pro"
 
-            // Flutter 3.16+ requirement
             ndk {
                 debugSymbolLevel = "FULL"
             }
@@ -49,12 +56,4 @@ android {
     buildFeatures {
         buildConfig true
     }
-
-    packagingOptions {
-        jniLibs.useLegacyPackaging = false
-    }
-}
-
-dependencies {
-    // Flutter injects everything automatically
 }
