@@ -167,7 +167,12 @@
 
 pipeline {
 
-    agent { label 'any' }
+    agent {
+        docker {
+            image 'flutter_rust_env'
+            args "${DOCKER_AGENT_ARGS_JENKINS}"
+        }
+    }
 
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
@@ -510,6 +515,23 @@ pipeline {
             }
         }
 
+        stage('Validate Repo Layout') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                sh """
+                pwd
+                ls -la
+                test -f pubspec.yaml
+                test -d android
+                test -f android/gradlew
+                """
+            }
+        }
 
 
         stage('Validate Repo Structure') {
@@ -712,6 +734,12 @@ pipeline {
         }
 
         stage('Verify the workspace layout') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh """
                     pwd
@@ -721,12 +749,16 @@ pipeline {
         }
 
         stage('Gradle Sanity Check') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
-                sh """
-                    cd android
-                    # remove stacktrace for better log visibility once stable
-                    ./gradlew help --no-daemon --stacktrace 
-                """
+                dir('android') {
+                    sh './gradlew help --no-daemon'
+                }
             }
         }
 
