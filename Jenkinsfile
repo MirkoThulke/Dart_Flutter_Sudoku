@@ -292,17 +292,16 @@ pipeline {
 
     stages {
 
+
         stage('Check Workspace') {
             steps {
                     sh  """
                         echo "PWD: $PWD"
                         echo "WORKSPACE: $WORKSPACE"
                         ls -la "$WORKSPACE"
-                        ls -la "$WORKSPACE/android"
-                        test -f "$WORKSPACE/android/gradlew" && echo "✅ gradlew found" || echo "❌ gradlew missing"
                      """
             }
-    }
+        }
 
 
         stage('Setup Environment') {
