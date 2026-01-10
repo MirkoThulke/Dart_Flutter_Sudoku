@@ -3,6 +3,12 @@ pluginManagement {
         id "org.jetbrains.kotlin.android" version "1.9.22"
     }
 
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id.startsWith("com.android.")) {
@@ -11,4 +17,7 @@ pluginManagement {
         }
     }
 }
+
+rootProject.name = "android"
+include(":app")
 
