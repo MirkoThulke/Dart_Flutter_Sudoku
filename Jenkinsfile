@@ -711,6 +711,14 @@ pipeline {
             }
         }
 
+        stage('Verify the workspace layout') {
+            steps {
+                sh """
+                    pwd
+                    ls -la
+                """
+            }
+        }
 
         stage('Gradle Sanity Check') {
             steps {
