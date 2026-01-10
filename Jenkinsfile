@@ -716,7 +716,8 @@ pipeline {
             steps {
                 sh """
                     cd android
-                    ./gradlew help --no-daemon
+                    # remove stacktrace for better log visibility once stable
+                    ./gradlew help --no-daemon --stacktrace 
                 """
             }
         }
