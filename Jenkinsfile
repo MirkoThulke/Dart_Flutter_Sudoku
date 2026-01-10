@@ -813,8 +813,6 @@ pipeline {
 
                         export GRADLE_OPTS="${GRADLE_OPTS}"
 
-                        $WORKSPACE/android/gradlew help --no-daemon
-
                         flutter pub get
                         flutter build apk --${params.BUILD_MODE}
 
