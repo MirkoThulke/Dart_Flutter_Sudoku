@@ -6,15 +6,9 @@ pluginManagement {
     }
 
     plugins {
+        id "com.android.application" version "8.4.2"
+        id "com.android.library" version "8.4.2"
         id "org.jetbrains.kotlin.android" version "1.9.22"
-    }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id.startsWith("com.android.")) {
-                useModule("com.android.tools.build:gradle:8.4.2")
-            }
-        }
     }
 }
 
