@@ -5,10 +5,18 @@ pluginManagement {
         gradlePluginPortal()
     }
 
+    // Only declare Kotlin with a version
     plugins {
-        id "com.android.application" version "8.4.2"
-        id "com.android.library" version "8.4.2"
         id "org.jetbrains.kotlin.android" version "1.9.22"
+    }
+
+    // Use resolution strategy for Android plugins
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id.startsWith("com.android.")) {
+                useModule("com.android.tools.build:gradle:8.4.2")
+            }
+        }
     }
 }
 
@@ -22,3 +30,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "android"
 include(":app")
+

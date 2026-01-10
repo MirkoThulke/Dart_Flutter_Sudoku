@@ -1,12 +1,6 @@
 plugins {
-    // Defined in android/settings.gradle !!!
     id "com.android.application" apply false
     id "com.android.library" apply false
-
-    // Let Flutter define the Kotlin version !!!
-    id "org.jetbrains.kotlin.android" apply false
-
-    id "dev.flutter.flutter-gradle-plugin" apply false
 }
 
 rootProject.buildDir = "../build"
@@ -21,4 +15,3 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-
