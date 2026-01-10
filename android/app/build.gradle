@@ -1,31 +1,7 @@
 plugins {
     id "com.android.application"
+    id "dev.flutter.flutter-gradle-plugin"
 }
-
-/* ---------------- Flutter bootstrap (AFTER plugins) ---------------- */
-
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withInputStream { stream ->
-        localProperties.load(stream)
-    }
-}
-
-def flutterRoot = localProperties.getProperty("flutter.sdk")
-if (flutterRoot == null) {
-    flutterRoot = System.getenv("FLUTTER_ROOT")
-}
-
-if (flutterRoot == null) {
-    throw new GradleException(
-        "Flutter SDK not found. Define flutter.sdk in local.properties or set FLUTTER_ROOT"
-    )
-}
-
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-
-/* ---------------- Your normal config ---------------- */
 
 apply from: "${rootDir}/versions.gradle"
 
@@ -66,6 +42,4 @@ android {
     }
 }
 
-dependencies {
-    // Flutter injects dependencies automatically
-}
+dependencies {}
