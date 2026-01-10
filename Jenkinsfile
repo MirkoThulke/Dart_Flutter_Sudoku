@@ -727,15 +727,16 @@ pipeline {
 
 
         stage('Flutter Bootstrap') {
-            agent
+            agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
                     args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
+            }
             steps {
-                sh '''
+                sh """
                     flutter pub get
-                '''
+                """
             }
         }
 
