@@ -722,53 +722,6 @@ pipeline {
             }
         }
 
-        stage('Verify the workspace layout') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
-                }
-            }
-            steps {
-                sh """
-                    pwd
-                    ls -la
-                """
-            }
-        }
-
-
-        stage('Flutter Bootstrap') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
-                }
-            }
-            steps {
-                sh """
-                    flutter pub get
-                """
-            }
-        }
-
-
-        stage('Gradle Sanity Check') {
-                    agent {
-                        docker {
-                            image "${FLUTTER_IMAGE}"
-                            args "${DOCKER_AGENT_ARGS_JENKINS}"
-                        }
-                    }
-                    steps {
-                                dir('android') {
-                                    sh """
-                                            chmod +x gradlew
-                                            $WORKSPACE/android/gradlew help --no-daemon
-                                        """
-                                }
-                    }
-        }
 
 
         stage('Build Rust (Android FFI)') {
@@ -860,6 +813,9 @@ pipeline {
                         ################# 
 
                         export GRADLE_OPTS="${GRADLE_OPTS}"
+
+                        $WORKSPACE/android/gradlew help --no-daemon
+
                         flutter pub get
                         flutter build apk --${params.BUILD_MODE}
 
