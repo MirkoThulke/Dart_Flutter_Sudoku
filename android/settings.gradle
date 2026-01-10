@@ -12,18 +12,8 @@ pluginManagement {
     }
 }
 
-
-// 👇 Flutter plugin is provided via included build
-def flutterSdkPath = {
-    def properties = new Properties()
-    file("local.properties").withInputStream { properties.load(it) }
-    return properties.getProperty("flutter.sdk")
-}()
-
-includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
-
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
