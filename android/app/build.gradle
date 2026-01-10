@@ -1,7 +1,6 @@
 plugins {
     id "com.android.application"
-    id "dev.flutter.flutter-gradle-plugin"
-    // Kotlin is handled in root build.gradle
+    id "dev.flutter.flutter-gradle-plugin"  // version comes from buildscript
 }
 
 apply from: "${rootDir}/versions.gradle"
@@ -38,7 +37,6 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
-            // Required in Flutter 3.16+
             ndk {
                 debugSymbolLevel = "FULL"
             }
@@ -55,5 +53,6 @@ android {
 }
 
 dependencies {
-    // Nothing needed here, Flutter injects dependencies automatically.
+    // Flutter injects automatically
 }
+

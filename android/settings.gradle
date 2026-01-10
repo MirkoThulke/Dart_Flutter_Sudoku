@@ -1,22 +1,4 @@
-pluginManagement {
-    plugins {
-        id "org.jetbrains.kotlin.android" version "1.9.22"
-    }
-
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id.startsWith("com.android.")) {
-                useModule("com.android.tools.build:gradle:8.4.2")
-            }
-        }
-    }
-}
+// settings.gradle
 
 rootProject.name = "android"
 include(":app")
