@@ -1,6 +1,6 @@
 plugins {
     id "com.android.application"
-    id "dev.flutter.flutter-gradle-plugin"
+    // id "org.jetbrains.kotlin.android"  <- leave commented out, root build.gradle handles Kotlin
 }
 
 apply from: "${rootDir}/versions.gradle"
