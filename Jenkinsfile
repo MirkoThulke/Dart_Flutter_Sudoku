@@ -712,6 +712,16 @@ pipeline {
         }
 
 
+        stage('Gradle Sanity Check') {
+            steps {
+                sh """
+                    cd android
+                    ./gradlew help --no-daemon
+                """
+            }
+        }
+
+
         stage('Build Rust (Android FFI)') {
             agent {
                 docker {
