@@ -510,24 +510,6 @@ pipeline {
             }
         }
 
-        stage('Validate Repo Layout') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
-                }
-            }
-            steps {
-                sh """
-                pwd
-                ls -la
-                test -f pubspec.yaml
-                test -d android
-                test -f android/gradlew
-                """
-            }
-        }
-
 
         stage('Validate Repo Structure') {
             agent {
