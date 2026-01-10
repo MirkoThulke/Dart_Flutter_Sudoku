@@ -725,18 +725,31 @@ pipeline {
             }
         }
 
-        stage('Gradle Sanity Check') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
-                }
-            }
+
+        stage('Flutter Bootstrap') {
             steps {
-                dir('android') {
-                    sh './gradlew help --no-daemon'
-                }
+                sh '''
+                    flutter pub get
+                '''
             }
+        }
+
+
+        stage('Gradle Sanity Check') {
+                    agent {
+                        docker {
+                            image "${FLUTTER_IMAGE}"
+                            args "${DOCKER_AGENT_ARGS_JENKINS}"
+                        }
+                    }
+                    steps {
+                                dir('android') {
+                                    sh '''
+                                            chmod +x gradlew
+                                            ./gradlew help --no-daemon
+                                        '''
+                                }
+                    }
         }
 
 
