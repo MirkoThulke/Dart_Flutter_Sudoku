@@ -1,18 +1,26 @@
 buildscript {
+    ext.kotlin_version = '1.9.22' // Kotlin version
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:8.4.2"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22"
-        classpath "dev.flutter:flutter-gradle-plugin:1.0.0" // Flutter Gradle plugin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Flutter Gradle plugin is applied via flutter.gradle, not Maven
     }
 }
 
-rootProject.buildDir = "../build"
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 
-apply from: "${rootDir}/versions.gradle"
+apply from: "$rootDir/versions.gradle"
+
+rootProject.buildDir = "../build"
 
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -22,4 +30,3 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-

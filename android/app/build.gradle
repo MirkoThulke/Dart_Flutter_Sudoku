@@ -1,9 +1,11 @@
-plugins {
-    id "com.android.application"
-    id "dev.flutter.flutter-gradle-plugin"  // version comes from buildscript
-}
+apply plugin: "com.android.application"
+apply plugin: "kotlin-android"
 
-apply from: "${rootDir}/versions.gradle"
+// Apply Flutter Gradle plugin (local to Flutter SDK)
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+// Import versions from versions.gradle
+apply from: "$rootDir/versions.gradle"
 
 android {
     namespace "com.mtulli.sudoku"
@@ -37,6 +39,7 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
 
+            // Flutter 3.16+ requirement
             ndk {
                 debugSymbolLevel = "FULL"
             }
@@ -53,6 +56,5 @@ android {
 }
 
 dependencies {
-    // Flutter injects automatically
+    // Flutter injects everything automatically
 }
-
