@@ -1,4 +1,4 @@
-// MUST be first
+// 1️⃣ FIRST — nothing before this
 pluginManagement {
     repositories {
         google()
@@ -15,7 +15,7 @@ pluginManagement {
     }
 }
 
-// MUST be second
+// 2️⃣ SECOND — nothing before this except pluginManagement
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -24,12 +24,11 @@ dependencyResolutionManagement {
     }
 }
 
-// MUST be third (Flutter requires this)
+// 3️⃣ THIRD — plugins block MUST be here
 plugins {
     id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
 }
 
-// Everything else AFTER
+// 4️⃣ ONLY AFTER plugins {}
 rootProject.name = "android"
-
 include(":app")
