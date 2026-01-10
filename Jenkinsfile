@@ -167,12 +167,7 @@
 
 pipeline {
 
-    agent {
-        docker {
-            image 'flutter_rust_env'
-            args "${DOCKER_AGENT_ARGS_JENKINS}"
-        }
-    }
+    agent { label 'any' }
 
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
