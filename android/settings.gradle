@@ -1,4 +1,3 @@
-// 1️⃣ FIRST — pluginManagement ONLY
 pluginManagement {
     repositories {
         google()
@@ -15,12 +14,15 @@ pluginManagement {
     }
 }
 
-// 2️⃣ SECOND — plugins block
-plugins {
-    id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
-}
+// 👇 Flutter plugin is provided via included build
+def flutterSdkPath = {
+    def properties = new Properties()
+    file("local.properties").withInputStream { properties.load(it) }
+    return properties.getProperty("flutter.sdk")
+}()
 
-// 3️⃣ THIRD — dependency resolution (MUST be after plugins)
+includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -29,6 +31,5 @@ dependencyResolutionManagement {
     }
 }
 
-// 4️⃣ LAST — project structure
 rootProject.name = "android"
 include(":app")
