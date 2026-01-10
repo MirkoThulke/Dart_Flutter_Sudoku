@@ -5,6 +5,10 @@ pluginManagement {
         gradlePluginPortal()
     }
 
+    plugins {
+        id "org.jetbrains.kotlin.android" version "1.9.22"
+    }
+
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id.startsWith("com.android.")) {
@@ -13,6 +17,7 @@ pluginManagement {
         }
     }
 }
+
 
 // 👇 Flutter plugin is provided via included build
 def flutterSdkPath = {
