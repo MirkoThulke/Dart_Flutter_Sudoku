@@ -170,7 +170,7 @@
 
 pipeline {
 
-    agent none
+    agent { label 'any' }
 
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
