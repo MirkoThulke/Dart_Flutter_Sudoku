@@ -202,6 +202,19 @@ pipeline {
         //  Never assume / is the workspace
 
 
+        //  Jenkins owns:
+        //  /var/jenkins_home/workspace/project
+
+        // Docker container:
+        //  - sees workspace
+        //  - uses tools
+        //  - is disposable
+
+        //  Source code:
+        //  - never lives in container FS
+        //  - always lives in Jenkins workspace
+
+
         // Flutter build container
         FLUTTER_IMAGE           = 'flutter_rust_env'
 
@@ -515,6 +528,11 @@ pipeline {
                 }
             }
             steps {
+                sh '''
+                    echo "PWD: $(pwd)"
+                    echo "WORKSPACE: $WORKSPACE"
+                    find . -maxdepth 2 -type d
+                '''
                 cleanWs()
                 checkout scm
                 sh 'ls -la'
