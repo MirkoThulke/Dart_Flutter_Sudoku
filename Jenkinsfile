@@ -320,7 +320,7 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
     ) {
         // export all dynamic env vars inside container
         sh """
-            set -euo pipefail
+            set -euo
             ${env.envExports}
         """
         body()
@@ -337,7 +337,7 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
         sh """
-            set -euo pipefail
+            set -euo
             ${env.envExports}
         """
         body()
@@ -432,7 +432,7 @@ pipeline {
                 // now WORKSPACE exists
                 env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
-                
+
                 env.envExports = """
 
                     export HOME="${HOME}"
