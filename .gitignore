@@ -62,8 +62,8 @@ android/app/src/main/cpp/cmake-build-*/
 
 # Gradle Wrapper (keep scripts and JAR)
 .gradle/
-gradlew.bat
-gradlew
+!gradlew.bat
+!gradlew
 !gradle/wrapper/gradle-wrapper.properties
 !gradle/wrapper/gradle-wrapper.jar
 
@@ -125,7 +125,6 @@ Thumbs.db
 tmp/
 .cache/
 .wslconfig
-
 
 
 integration_test/desktop_test_report.json

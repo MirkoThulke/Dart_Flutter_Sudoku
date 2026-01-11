@@ -511,11 +511,13 @@ pipeline {
         }
 
         /*
-        Stages before checkout:
+        1. Stages before checkout:
         - Image existence
         - Container self-test
 
-        Stages after checkout:
+        2. ## CHECKOUT STAGE ##
+
+        3. Stages after checkout:
         - Validate repo structure
         - Build
         */
@@ -528,11 +530,6 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                    echo "PWD: $(pwd)"
-                    echo "WORKSPACE: $WORKSPACE"
-                    find . -maxdepth 2 -type d
-                '''
                 cleanWs()
                 checkout scm
                 sh 'ls -la'
@@ -540,7 +537,7 @@ pipeline {
         }
 
 
-        stage('Gradle Sanity Check') {
+        stage('Flutter → Android Materialization') {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
@@ -548,13 +545,34 @@ pipeline {
                 }
             }
             steps {
-                dir('android') {
-                    sh '''
-                        chmod +x gradlew
-                        sed -i 's/\r$//' gradlew
-                        ./gradlew help --no-daemon
-                    '''
+                sh '''
+                    flutter pub get
+                    flutter build apk --debug --no-shrink -v
+                '''
+            }
+        }
+
+
+        stage('Gradle Deep Diagnostics') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
                 }
+            }
+            steps {
+                sh '''
+                    cd android
+
+                    ./gradlew -version
+                    ./gradlew help \
+                      --stacktrace \
+                      --info \
+                      --warning-mode=all \
+                      --no-daemon
+
+                    ./gradlew buildEnvironment
+                '''
             }
         }
 
