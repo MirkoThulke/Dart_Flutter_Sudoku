@@ -540,6 +540,21 @@ pipeline {
         }
 
 
+        stage('Gradle Sanity Check') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
+            steps {
+                dir('android') {
+                sh './gradlew help --no-daemon'
+                }
+            }
+        }
+
+
         stage('Validate Repo Structure') {
             agent {
                 docker {
