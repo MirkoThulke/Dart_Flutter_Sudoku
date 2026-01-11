@@ -421,45 +421,51 @@ pipeline {
         PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
     }
 
-    // Dynamic paths inside container (workspace-dependent)
-    script {
-    env.envExports = """
+    stages {
+        stage('Setup Env') {
+            steps {
+                // Dynamic paths inside container (workspace-dependent)
+                script {
+                env.envExports = """
 
-        export HOME="${HOME}"
+                    export HOME="${HOME}"
 
-        # Ephemeral workspace
-        export CONTAINER_WORKSPACE="${WORKSPACE}/jenkins_container_workspace"
+                    # Ephemeral workspace
+                    export CONTAINER_WORKSPACE="${WORKSPACE}/jenkins_container_workspace"
 
-        # Persistent caches
-        export CONTAINER_CACHE="${WORKSPACE}/jenkins_container_cache"
-        export GRADLE_USER_HOME="${CONTAINER_CACHE}/.gradle"
-        export PUB_CACHE="${CONTAINER_CACHE}/.pub-cache"
+                    # Persistent caches
+                    export CONTAINER_CACHE="${WORKSPACE}/jenkins_container_cache"
+                    export GRADLE_USER_HOME="${CONTAINER_CACHE}/.gradle"
+                    export PUB_CACHE="${CONTAINER_CACHE}/.pub-cache"
 
-        # Flutter ephemeral build dirs
-        export FLUTTER_BUILD_DIRS_1="${CONTAINER_WORKSPACE}/build"
-        export FLUTTER_BUILD_DIRS_2="${CONTAINER_WORKSPACE}/android/build"
-        export FLUTTER_BUILD_DIRS_3="${CONTAINER_WORKSPACE}/.gradle"
-        export FLUTTER_BUILD_DIRS_4="${CONTAINER_WORKSPACE}/android/.gradle"
+                    # Flutter ephemeral build dirs
+                    export FLUTTER_BUILD_DIRS_1="${CONTAINER_WORKSPACE}/build"
+                    export FLUTTER_BUILD_DIRS_2="${CONTAINER_WORKSPACE}/android/build"
+                    export FLUTTER_BUILD_DIRS_3="${CONTAINER_WORKSPACE}/.gradle"
+                    export FLUTTER_BUILD_DIRS_4="${CONTAINER_WORKSPACE}/android/.gradle"
 
-        # Rust / Android FFI
-        export RUST_PROJECT_DIR="${CONTAINER_WORKSPACE}/rust/rust_lib"
-        export ANDROID_JNI_LIBS_DIR="${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
+                    # Rust / Android FFI
+                    export RUST_PROJECT_DIR="${CONTAINER_WORKSPACE}/rust/rust_lib"
+                    export ANDROID_JNI_LIBS_DIR="${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
 
-        # Toolchains
-        export FLUTTER_ROOT="${FLUTTER_ROOT}"
-        export RUSTUP_HOME="${RUSTUP_HOME}"
-        export CARGO_HOME="${CARGO_HOME}"
-        export RUST_CARGO_DIR="${RUST_CARGO_DIR}"
-        export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
-        export ANDROID_NDK_HOME="${ANDROID_NDK_HOME}"
-        export ANDROID_NDK_TOOLCHAIN_DIR="${ANDROID_NDK_TOOLCHAIN_DIR}"
+                    # Toolchains
+                    export FLUTTER_ROOT="${FLUTTER_ROOT}"
+                    export RUSTUP_HOME="${RUSTUP_HOME}"
+                    export CARGO_HOME="${CARGO_HOME}"
+                    export RUST_CARGO_DIR="${RUST_CARGO_DIR}"
+                    export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
+                    export ANDROID_NDK_HOME="${ANDROID_NDK_HOME}"
+                    export ANDROID_NDK_TOOLCHAIN_DIR="${ANDROID_NDK_TOOLCHAIN_DIR}"
 
-        # Scripts (repo relative)
-        export INTEGRATION_TEST_SCRIPT="${CONTAINER_WORKSPACE}/scripts/run_integration_test.sh"
-        export PLANTUML_SCRIPT="${CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1"
-        export SCRIPTS_DIR_CONTAINER="${CONTAINER_WORKSPACE}/scripts"
+                    # Scripts (repo relative)
+                    export INTEGRATION_TEST_SCRIPT="${CONTAINER_WORKSPACE}/scripts/run_integration_test.sh"
+                    export PLANTUML_SCRIPT="${CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1"
+                    export SCRIPTS_DIR_CONTAINER="${CONTAINER_WORKSPACE}/scripts"
 
-    """
+                """
+                }
+            }
+        }
     }
 
 
