@@ -543,9 +543,16 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
+
                         bash -c '
+
                             set -Eeuo pipefail
                             trap "echo ❌ CI FAILED at line \$LINENO; exit 1" ERR
+
+                            # Mandatory only in case child process use those variables
+                            # Added for robustness only
+                            ${envExports}
+                            #################
 
                             section() {
                                 echo
