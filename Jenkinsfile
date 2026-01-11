@@ -312,6 +312,40 @@
 //  5) Toolchains are read-only inside container
 
 
+// Helper for default Jenkins user inside container
+def insideFlutterContainerJenkinsUser(body) {
+    docker.image(FLUTTER_IMAGE).inside(
+        "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
+        "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
+    ) {
+        // export all dynamic env vars
+        sh """
+            set -euo pipefail
+            ${env.envExports}
+        """
+        body()
+    }
+}
+
+
+// Helper for root user inside container
+def insideFlutterContainerRootUser(body) {
+    docker.image(FLUTTER_IMAGE).inside(
+        "--user root " +
+        "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
+        "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
+    ) {
+        // export all dynamic env vars
+        sh """
+            set -euo pipefail
+            ${env.envExports}
+        """
+        body()
+    }
+}
+
+
+
 pipeline {
 
     agent { label 'any' }
@@ -426,38 +460,6 @@ pipeline {
         export SCRIPTS_DIR_CONTAINER="${CONTAINER_WORKSPACE}/scripts"
 
     """
-    }
-
-    // Helper for default Jenkins user inside container
-    def insideFlutterContainerJenkinsUser(body) {
-        docker.image(FLUTTER_IMAGE).inside(
-            "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
-            "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
-        ) {
-            // export all dynamic env vars
-            sh """
-                set -euo pipefail
-                ${env.envExports}
-            """
-            body()
-        }
-    }
-
-
-    // Helper for root user inside container
-    def insideFlutterContainerRootUser(body) {
-        docker.image(FLUTTER_IMAGE).inside(
-            "--user root " +
-            "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
-            "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
-        ) {
-            // export all dynamic env vars
-            sh """
-                set -euo pipefail
-                ${env.envExports}
-            """
-            body()
-        }
     }
 
 
