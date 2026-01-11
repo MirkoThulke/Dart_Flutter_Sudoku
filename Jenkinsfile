@@ -310,6 +310,12 @@ pipeline {
 
 
         stage('Check Workspace') {
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                     sh  """
                         echo "PWD: $PWD"
