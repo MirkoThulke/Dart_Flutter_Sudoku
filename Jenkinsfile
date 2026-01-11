@@ -166,21 +166,6 @@
 //  ------------------------------------------------------------
 
 
-// Reusable Docker agent definition
-def flutterDockerAgent_Jenkins = {
-    docker {
-        image env.FLUTTER_IMAGE
-        args  env.DOCKER_AGENT_ARGS_JENKINS
-        reuseNode true
-    }
-}
-def flutterDockerAgent_Root= {
-    docker {
-        image env.FLUTTER_IMAGE
-        args  env.DOCKER_AGENT_ARGS_ROOT
-        reuseNode true
-    }
-}
 
 
 pipeline {
@@ -336,7 +321,12 @@ pipeline {
 
 
         stage('Setup Environment') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 script {
                     sh """
@@ -366,7 +356,12 @@ pipeline {
 
 
         stage('Add GIT safe.directories') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh """
                     set -euo
@@ -382,7 +377,12 @@ pipeline {
 
 
         stage('CI Self-Test') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 sh """
@@ -466,7 +466,12 @@ pipeline {
 
 
         stage('Check Mount') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
 
                 sh 'echo "Container Cache: $CONTAINER_CACHE" && ls -la $CONTAINER_CACHE || echo "Cache empty"'
@@ -476,7 +481,12 @@ pipeline {
 
 
         stage('Verify Container Layout') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh """
                     set -euo
@@ -516,7 +526,12 @@ pipeline {
         */
 
         stage('Checkout') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 cleanWs()
                 checkout scm
@@ -526,7 +541,12 @@ pipeline {
 
 
         stage('Flutter → Android Materialization') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh '''
                     flutter pub get
@@ -537,7 +557,12 @@ pipeline {
 
 
         stage('Gradle Deep Diagnostics') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh '''
                     cd android
@@ -556,7 +581,12 @@ pipeline {
 
 
         stage('Validate Repo Structure') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 script {
                     // scripts directory (repo-relative)
@@ -583,7 +613,12 @@ pipeline {
 
         stage('Clean Environment Flutter') {
             // use Root agent to have permissions to delete all files
-            agent flutterDockerAgent_Root
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 echo "🧹 Cleaning Flutter build files"
                 sh """
@@ -630,7 +665,12 @@ pipeline {
         stage('Deep Clean LIGHT (For Deployment)') {
             when { expression { params.DEEP_CLEAN_LIGHT == true } }
             // use Root agent to have permissions to delete all files
-            agent flutterDockerAgent_Root
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 echo "☢️ Deep Clean LIGHT enabled"
                 sh """
@@ -685,7 +725,12 @@ pipeline {
         stage('Deep Clean FULL (Optional)') {
             when { expression { params.DEEP_CLEAN_FULL == true } }
             // use Root agent to have permissions to delete all files
-            agent flutterDockerAgent_Root
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
+                }
+            }
             steps {
                 echo "☢️ Deep Clean FULL enabled"
                 sh """
@@ -740,7 +785,12 @@ pipeline {
 
 
         stage('Build Rust (Android FFI)') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 echo "🦀 Building Rust backend for Android (FFI)"
                 sh """
@@ -789,7 +839,12 @@ pipeline {
 
 
         stage('Build APK/AAB') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 script {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
@@ -829,7 +884,12 @@ pipeline {
 
 
         stage('Run Integration Tests') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh """
                     set -euo
@@ -862,14 +922,24 @@ pipeline {
         }
 
         stage('Generate Diagrams & PDF') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh "pwsh ${PLANTUML_SCRIPT}"
             }
         }
 
         stage('Archive Artifacts') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh """
                     set -euo
@@ -884,7 +954,12 @@ pipeline {
         }
 
         stage('Clean Workspace') {
-            agent flutterDockerAgent_Jenkins
+            agent {
+                docker {
+                    image "${FLUTTER_IMAGE}"
+                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                }
+            }
             steps {
                 sh 'rm -rf ${WORKSPACE}/*'
             }
