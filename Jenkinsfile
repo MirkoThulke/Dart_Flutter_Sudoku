@@ -471,31 +471,32 @@ pipeline {
 
 
         stage('Setup Environment') {
-        steps {
-            script {
-                insideFlutterContainerJenkinsUser {
-                sh """
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser {
+                    sh """
 
-                    # Mandatory only in case child process use those variables
-                    # Added for robustness only
-                    ${envExports}
-                    #################
+                        # Mandatory only in case child process use those variables
+                        # Added for robustness only
+                        ${envExports}
+                        #################
 
-                    # Create the required  directories inside the container
-                    mkdir -p "${CONTAINER_WORKSPACE}" 
-                    mkdir -p "${CONTAINER_CACHE}"
-                    mkdir -p $HOME/.config/flutter
+                        # Create the required  directories inside the container
+                        mkdir -p "${CONTAINER_WORKSPACE}" 
+                        mkdir -p "${CONTAINER_CACHE}"
+                        mkdir -p $HOME/.config/flutter
 
-                    # Optional: verify the directories
-                    echo "inside container:"
-                    ls -la "${CONTAINER_WORKSPACE}"
-                    ls -la "${CONTAINER_CACHE}"
-                    ls -la "$HOME/.config"
+                        # Optional: verify the directories
+                        echo "inside container:"
+                        ls -la "${CONTAINER_WORKSPACE}"
+                        ls -la "${CONTAINER_CACHE}"
+                        ls -la "$HOME/.config"
 
-                    # Optional: Run Flutter to verify it's all good
-                    flutter --version
+                        # Optional: Run Flutter to verify it's all good
+                        flutter --version
 
-                """
+                    """
+                    }
                 }
             }
         }
@@ -1028,9 +1029,8 @@ pipeline {
     }
 
     post {
-
         success { echo "✅ Build succeeded" }
         failure { echo "❌ Build failed" }
-
     }
+
 }
