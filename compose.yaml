@@ -30,7 +30,7 @@ services:
 
     volumes:
       # Jenkins home folder
-      - /home/mirko/jenkins_home_host_mount:/var/jenkins_home
+      - /home/mirko/jenkins_host_workspace:/var/jenkins_home
       # Docker socket for Docker-in-Docker builds
       - /var/run/docker.sock:/var/run/docker.sock
 

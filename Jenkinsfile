@@ -1,4 +1,72 @@
 //  ------------------------------------------------------------
+//  ------------------------------------------------------------
+//  RUN THE JENKINS CONTAINER — STEP 1/4
+//
+//  Prepare HOST directories (persistent)
+//
+//  sudo mkdir -p /home/mirko/jenkins_host_workspace
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
+//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+//
+//  sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
+//  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
+//  sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
+//
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
+//  sudo chmod -R 770 /home/mirko/jenkins_host_cache
+
+// Start the Jenkins Docker container via : compose build via your compose.yaml file
+//     docker compose up -d --build
+//     docker compose down
+//     docker compose logs -f
+//     docker compose ps
+//
+//  Check ownership and permissions of the Jenkins workspace:
+//   ls -ld /home/mirko/jenkins_home_host_mount
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+// RUN THE JENINS CONTAINER !! STEP 2/4
+//  ------------------------------------------------------------
+//   Enter the jenkins container shell:
+//     cd jenkins
+//     docker exec -it jenkins_sudoku_container bash
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//  RUN THE JENKINS CONTAINER — STEP 3/4
+//
+//  Print initial admin password:
+//
+//  cat /var/jenkins_home/secrets/initialAdminPassword
+//  exit
+//
+//  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//  RUN THE JENKINS CONTAINER — STEP 4/4
+//  ------------------------------------------------------------
+//
+//  Open Jenkins UI:
+//    http://localhost:8080
+//
+//  Configure Pipeline Job:
+//
+//  - Select "Pipeline"
+//  - Configure GitHub repository
+//  - Jenkins will CHECK OUT SOURCE CODE
+//    into its dynamic workspace
+//  - Select path to Jenkinsfile
+//
+//  IMPORTANT:
+//  - Source code lives in Jenkins workspace at runtime
+//  - Source code is NOT baked into any container image
+//  - Build containers receive source code via bind mount
+//  ------------------------------------------------------------
+//  ------------------------------------------------------------
+
+
+//  ------------------------------------------------------------
 //  CI Workflow: GitHub → Jenkins (container) → flutter_rust_env (build container)
 //
 //  CORE CONCEPTS (IMPORTANT):
@@ -214,53 +282,6 @@
 //     - Stateless
 //     - Receives source code via bind mount from Jenkins workspace
 //     - Uses host-mounted caches
-//
-//  ------------------------------------------------------------
-//  RUN THE JENKINS CONTAINER — STEP 1/4
-//
-//  Prepare HOST directories (persistent)
-//
-//  sudo mkdir -p /home/mirko/jenkins_host_workspace
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
-//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
-//
-//  sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
-//  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
-//  sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
-//
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
-//  sudo chmod -R 770 /home/mirko/jenkins_host_cache
-//
-//  ------------------------------------------------------------
-//  RUN THE JENKINS CONTAINER — STEP 3/4
-//
-//  Print initial admin password:
-//
-//  cat /var/jenkins_home/secrets/initialAdminPassword
-//  exit
-//
-//  ------------------------------------------------------------
-
-//  ------------------------------------------------------------
-//  RUN THE JENKINS CONTAINER — STEP 4/4
-//  ------------------------------------------------------------
-//
-//  Open Jenkins UI:
-//    http://localhost:8080
-//
-//  Configure Pipeline Job:
-//
-//  - Select "Pipeline"
-//  - Configure GitHub repository
-//  - Jenkins will CHECK OUT SOURCE CODE
-//    into its dynamic workspace
-//  - Select path to Jenkinsfile
-//
-//  IMPORTANT:
-//  - Source code lives in Jenkins workspace at runtime
-//  - Source code is NOT baked into any container image
-//  - Build containers receive source code via bind mount
-//  ------------------------------------------------------------
 
 
 //  ------------------------------------------------------------
