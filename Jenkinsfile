@@ -313,12 +313,12 @@
 
 
 // Helper for default Jenkins user inside container
-def insideFlutterContainerJenkinsUser(body) {
-    docker.image(FLUTTER_IMAGE).inside(
-        "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
-        "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
+def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
+    docker.image(env.FLUTTER_IMAGE).inside(
+        "-v ${env.HOST_CACHE}:${containerCache} " +
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        // export all dynamic env vars
+        // export all dynamic env vars inside container
         sh """
             set -euo pipefail
             ${env.envExports}
@@ -328,14 +328,14 @@ def insideFlutterContainerJenkinsUser(body) {
 }
 
 
-// Helper for root user inside container
-def insideFlutterContainerRootUser(body) {
-    docker.image(FLUTTER_IMAGE).inside(
+
+// Helper for root user
+def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
+    docker.image(env.FLUTTER_IMAGE).inside(
         "--user root " +
-        "-v ${HOST_CACHE}:${CONTAINER_CACHE} " +
-        "-v ${HOST_WORKSPACE}:${CONTAINER_WORKSPACE}"
+        "-v ${env.HOST_CACHE}:${containerCache} " +
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        // export all dynamic env vars
         sh """
             set -euo pipefail
             ${env.envExports}
@@ -473,7 +473,10 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 script {
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
 
                         # Mandatory only in case child process use those variables
@@ -506,7 +509,10 @@ pipeline {
         stage('Add GIT safe.directories') {
             steps {
                 script {
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         set -euo
 
@@ -527,7 +533,10 @@ pipeline {
             steps {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         bash -c '
                             set -Eeuo pipefail
@@ -613,7 +622,10 @@ pipeline {
         stage('Check Mount') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                         sh """
                             # Mandatory only in case child process use those variables
                             # Added for robustness only
@@ -634,7 +646,10 @@ pipeline {
 
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         set -euo
     
@@ -680,7 +695,10 @@ pipeline {
                 cleanWs()
 
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                         checkout scm
                         sh """
                             ls -la
@@ -695,7 +713,10 @@ pipeline {
         stage('Flutter → Android Materialization') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         # Mandatory only in case child process use those variables
                         # Added for robustness only
@@ -715,7 +736,10 @@ pipeline {
 
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         # Mandatory only in case child process use those variables
                         # Added for robustness only
@@ -742,7 +766,10 @@ pipeline {
         stage('Validate Repo Structure') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     // scripts directory (repo-relative)
                     if (!fileExists('scripts')) {
                         error "❌ scripts/ directory not found in repository"
@@ -770,7 +797,10 @@ pipeline {
             // use Root agent to have permissions to delete all files
             steps {
                 script {                
-                    insideFlutterContainerRootUser {
+                    insideFlutterContainerRootUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                         echo "🧹 Cleaning Flutter build files"
                         sh """
                             set -euo
@@ -814,7 +844,10 @@ pipeline {
 
             steps {
                 script {                
-                    insideFlutterContainerRootUser {
+                    insideFlutterContainerRootUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     echo "☢️ Deep Clean LIGHT enabled"
                     sh """
                         set -euo
@@ -862,7 +895,10 @@ pipeline {
             // use Root agent to have permissions to delete all files
             steps {
                 script {                
-                    insideFlutterContainerRootUser {
+                    insideFlutterContainerRootUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     echo "☢️ Deep Clean FULL enabled"
                     sh """
                         set -euo
@@ -910,7 +946,10 @@ pipeline {
         stage('Build Rust (Android FFI)') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     echo "🦀 Building Rust backend for Android (FFI)"
                     sh """
                         set -euo
@@ -946,7 +985,10 @@ pipeline {
 
             steps {
                 script {     
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
                     sh """
 
@@ -970,7 +1012,10 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         set -euo
 
@@ -990,7 +1035,10 @@ pipeline {
 
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh "pwsh ${PLANTUML_SCRIPT}"
                     }
                 }
@@ -1001,7 +1049,10 @@ pipeline {
 
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     sh """
                         set -euo
 
@@ -1019,7 +1070,10 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser {
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
                     cleanWs()
                     }
                 }
