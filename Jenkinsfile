@@ -514,7 +514,7 @@ pipeline {
         stage('Add GIT safe.directories') {
             steps {
                 script {
-                    insideFlutterContainerJenkinsUser(
+                    insideFlutterContainerRootUser(
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
