@@ -348,7 +348,7 @@ pipeline {
             agent {
                 docker {
                     image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
+                    args "${DOCKER_AGENT_ARGS_ROOT}"
                 }
             }
             steps {
