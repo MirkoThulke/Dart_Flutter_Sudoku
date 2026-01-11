@@ -549,7 +549,11 @@ pipeline {
             }
             steps {
                 dir('android') {
-                sh './gradlew help --no-daemon'
+                    sh '''
+                        chmod +x gradlew
+                        sed -i 's/\r$//' gradlew
+                        ./gradlew help --no-daemon
+                    '''
                 }
             }
         }
