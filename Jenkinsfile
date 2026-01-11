@@ -309,23 +309,6 @@ pipeline {
     stages {
 
 
-        stage('Check Workspace') {
-            agent {
-                docker {
-                    image "${FLUTTER_IMAGE}"
-                    args "${DOCKER_AGENT_ARGS_JENKINS}"
-                }
-            }
-            steps {
-                    sh  """
-                        echo "PWD: $PWD"
-                        echo "WORKSPACE: $WORKSPACE"
-                        ls -la "$WORKSPACE"
-                     """
-            }
-        }
-
-
         stage('Setup Environment') {
             agent {
                 docker {
