@@ -428,6 +428,11 @@ pipeline {
             steps {
                 // Dynamic paths inside container (workspace-dependent)
                 script {
+
+                // now WORKSPACE exists
+                env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
+                env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
+                
                 env.envExports = """
 
                     export HOME="${HOME}"
