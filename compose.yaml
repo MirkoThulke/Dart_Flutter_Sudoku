@@ -14,7 +14,7 @@ services:
     container_name: jenkins_sudoku_container
 
     # Run Jenkins as the same UID/GID as host-mounted files
-    user: "1000:1000"
+    user: "2000:2000"
     group_add:
       - 1001   # host docker group
 
