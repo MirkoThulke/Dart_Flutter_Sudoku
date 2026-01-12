@@ -5,14 +5,14 @@
 //  Prepare HOST directories (persistent)
 //
 //  sudo mkdir -p /home/mirko/jenkins_host_workspace
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
+//  sudo chown -R 1000:1000 /home/mirko/jenkins_host_workspace
 //  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
 //
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
 //
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
+//  sudo chown -R 1000:1000 /home/mirko/jenkins_host_cache
 //  sudo chmod -R 770 /home/mirko/jenkins_host_cache
 
 // Start the Jenkins Docker container via : compose build via your compose.yaml file
@@ -315,6 +315,7 @@
 // Helper for default Jenkins user inside container
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
+        "--user 1000:1000 " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
@@ -844,7 +845,7 @@ pipeline {
                             fi
 
                             # Fix ownership
-                            chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                            chown -R 1000:1000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
                         """
                     }
                 }
@@ -894,7 +895,7 @@ pipeline {
                         fi
 
                         # Fix ownership
-                        chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                        chown -R 1000:1000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
 
                         echo "✅ Deep Clean LIGHT completed"
                     """
@@ -946,7 +947,7 @@ pipeline {
                         fi
 
                         # Fix ownership
-                        chown -R 2000:2000 ${WORKSPACE} ${CONTAINER_CACHE} || true
+                        chown -R 1000:1000 ${WORKSPACE} ${CONTAINER_CACHE} || true
 
                         echo "✅ Deep Clean FULL completed"
                     """
