@@ -497,6 +497,9 @@ pipeline {
                         mkdir -p "${CONTAINER_CACHE}"
                         mkdir -p $HOME/.config/flutter
 
+                        chown -R 2000:2000 "$HOME"
+                        chmod -R 770 "$HOME"
+
 
                         # Optional: verify the directories
                         echo "inside container:"
@@ -733,15 +736,14 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
+                        sh """
+                            # Mandatory only in case child process uses those variables
+                            ${envExports}
+                            #################
 
-                        flutter pub get
-                        flutter build apk --debug --no-shrink -v -- -i --stacktrace
-                    """
+                            flutter pub get
+                            flutter build apk --debug --no-shrink --verbose -- -i --stacktrace
+                        """
                     }
                 }
             }
