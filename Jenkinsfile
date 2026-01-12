@@ -15,6 +15,7 @@
 //  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
 //  sudo chmod -R 770 /home/mirko/jenkins_host_cache
 
+
 // Start the Jenkins Docker container via : compose build via your compose.yaml file
 //     docker compose up -d --build
 //     docker compose down
@@ -739,7 +740,7 @@ pipeline {
                         #################
 
                         flutter pub get
-                        flutter build apk --debug --no-shrink -v
+                        flutter build apk --debug --no-shrink -v --debug --stacktrace --info
                     """
                     }
                 }
