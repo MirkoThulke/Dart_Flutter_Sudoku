@@ -740,7 +740,7 @@ pipeline {
                         #################
 
                         flutter pub get
-                        flutter build apk --debug --no-shrink -v -- -i --stacktrace
+                        flutter build apk --debug --no-shrink -v --gradle-args="--stacktrace -i"
                     """
                     }
                 }
