@@ -435,7 +435,8 @@ pipeline {
 
                 env.envExports = """
 
-                    export HOME="${HOME}"
+                    # workspace owned home directory
+                    export HOME="${CONTAINER_WORKSPACE}/.home"
 
                     # Ephemeral workspace
                     export CONTAINER_WORKSPACE="${WORKSPACE}/jenkins_container_workspace"
@@ -493,6 +494,7 @@ pipeline {
                         mkdir -p "${CONTAINER_WORKSPACE}" 
                         mkdir -p "${CONTAINER_CACHE}"
                         mkdir -p $HOME/.config/flutter
+
 
                         # Optional: verify the directories
                         echo "inside container:"
@@ -576,10 +578,10 @@ pipeline {
                                 [ -n "\$val" ] || fail "Missing ENV variable: \$var"
                             }
 
-                            export HOME=${HOME}
 
                             section "CI SELF TEST"
 
+                            require_env HOME
                             require_env FLUTTER_ROOT
                             require_env RUST_CARGO_DIR
                             require_env RUSTUP_HOME
