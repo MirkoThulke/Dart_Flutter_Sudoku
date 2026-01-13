@@ -486,7 +486,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-
+                        set -euo
 
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
@@ -542,7 +542,8 @@ pipeline {
                     {
 
                         sh """
-                            set -Eeuo pipefail
+                            set -euo
+
                             trap "echo ❌ CI FAILED at line \$LINENO; exit 1" ERR
 
                             section() {
@@ -630,6 +631,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
+                            set -euo
 
                             echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
                             echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
@@ -712,6 +714,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
+                            set -euo
 
                             # temporary
                             ls -ld "\${GRADLE_USER_HOME}"
@@ -734,6 +737,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
+                        set -euo
 
                         cd android
 
@@ -961,6 +965,7 @@ pipeline {
                     {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
                     sh """
+                        set -euo
 
                         flutter pub get
                         flutter build apk --\${params.BUILD_MODE}
@@ -998,6 +1003,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
+                            set -euo
+
                             pwsh "\${PLANTUML_SCRIPT}"
                         """
                     }
@@ -1034,7 +1041,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    cleanWs()
+                        cleanWs()
                     }
                 }
             }
