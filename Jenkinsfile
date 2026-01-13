@@ -544,7 +544,7 @@ pipeline {
                         sh """
                             set -euo
 
-                            trap "echo ❌ CI FAILED at line \$LINENO; exit 1" ERR
+                            trap 'echo ❌ CI FAILED at line ${LINENO:-unknown}; exit 1' ERR
 
                             section() {
                                 echo
