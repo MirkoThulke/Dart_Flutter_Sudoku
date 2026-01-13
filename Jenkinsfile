@@ -320,15 +320,11 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        // export all dynamic env vars inside container
-        sh """
-            set -euo
-            ${env.envExports}
-        """
-        body()
+        withEnv(env.containerEnv) {
+            body()
+        }
     }
 }
-
 
 
 // Helper for root user
@@ -338,11 +334,9 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        sh """
-            set -euo
-            ${env.envExports}
-        """
-        body()
+        withEnv(env.containerEnv) {
+            body()
+        }
     }
 }
 
@@ -435,44 +429,45 @@ pipeline {
                 env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
 
-                env.envExports = """
+                // Prepare ENV exports for child processes
+                 env.containerEnv = [
 
-                    # workspace owned home directory
-                    export HOME="${CONTAINER_WORKSPACE}/.home"
+                # workspace owned home directory
+                "HOME=${env.CONTAINER_WORKSPACE}/.home",
 
-                    # Ephemeral workspace
-                    export CONTAINER_WORKSPACE="${WORKSPACE}/jenkins_container_workspace"
+                # Ephemeral workspace
+                "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
 
-                    # Persistent caches
-                    export CONTAINER_CACHE="${WORKSPACE}/jenkins_container_cache"
-                    export GRADLE_USER_HOME="${CONTAINER_CACHE}/.gradle"
-                    export PUB_CACHE="${CONTAINER_CACHE}/.pub-cache"
+                # Persistent caches
+                "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
+                "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
+                "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
-                    # Flutter ephemeral build dirs
-                    export FLUTTER_BUILD_DIRS_1="${CONTAINER_WORKSPACE}/build"
-                    export FLUTTER_BUILD_DIRS_2="${CONTAINER_WORKSPACE}/android/build"
-                    export FLUTTER_BUILD_DIRS_3="${CONTAINER_WORKSPACE}/.gradle"
-                    export FLUTTER_BUILD_DIRS_4="${CONTAINER_WORKSPACE}/android/.gradle"
+                # Flutter ephemeral build dirs
+                "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
+                "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
+                "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
+                "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
 
-                    # Rust / Android FFI
-                    export RUST_PROJECT_DIR="${CONTAINER_WORKSPACE}/rust/rust_lib"
-                    export ANDROID_JNI_LIBS_DIR="${CONTAINER_WORKSPACE}/android/app/src/main/jniLibs"
+                # Rust / Android FFI
+                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
+                "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
-                    # Toolchains
-                    export FLUTTER_ROOT="${FLUTTER_ROOT}"
-                    export RUSTUP_HOME="${RUSTUP_HOME}"
-                    export CARGO_HOME="${CARGO_HOME}"
-                    export RUST_CARGO_DIR="${RUST_CARGO_DIR}"
-                    export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
-                    export ANDROID_NDK_HOME="${ANDROID_NDK_HOME}"
-                    export ANDROID_NDK_TOOLCHAIN_DIR="${ANDROID_NDK_TOOLCHAIN_DIR}"
+                # Toolchains
+                "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
+                "RUSTUP_HOME=${env.RUSTUP_HOME}",
+                "CARGO_HOME=${env.CARGO_HOME}",
+                "RUST_CARGO_DIR=${env.RUST_CARGO_DIR}",
+                "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
+                "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
+                "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
 
-                    # Scripts (repo relative)
-                    export INTEGRATION_TEST_SCRIPT="${CONTAINER_WORKSPACE}/scripts/run_integration_test.sh"
-                    export PLANTUML_SCRIPT="${CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1"
-                    export SCRIPTS_DIR_CONTAINER="${CONTAINER_WORKSPACE}/scripts"
+                # Scripts (repo relative)
+                "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
+                "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
+                "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts"
+                ]
 
-                """
                 }
             }
         }
@@ -487,25 +482,21 @@ pipeline {
                     {
                     sh """
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
 
                         # Create the required  directories inside the container
-                        mkdir -p "${CONTAINER_WORKSPACE}" 
-                        mkdir -p "${CONTAINER_CACHE}"
-                        mkdir -p $HOME/.config/flutter
+                        mkdir -p "\${CONTAINER_WORKSPACE}" 
+                        mkdir -p "\${CONTAINER_CACHE}"
+                        mkdir -p \$HOME/.config/flutter
 
-                        chown -R 2000:2000 "$HOME"
-                        chmod -R 770 "$HOME"
+                        chown -R 2000:2000 "\$HOME"
+                        chmod -R 770 "\$HOME"
 
 
                         # Optional: verify the directories
                         echo "inside container:"
-                        ls -la "${CONTAINER_WORKSPACE}"
-                        ls -la "${CONTAINER_CACHE}"
-                        ls -la "$HOME/.config"
+                        ls -la "\${CONTAINER_WORKSPACE}"
+                        ls -la "\${CONTAINER_CACHE}"
+                        ls -la "\$HOME/.config"
 
                         # Optional: Run Flutter to verify it's all good
                         flutter --version
@@ -528,12 +519,7 @@ pipeline {
                     sh """
                         set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
-                        git config --system --add safe.directory ${FLUTTER_ROOT}
+                        git config --system --add safe.directory \${FLUTTER_ROOT}
                     """
                     }
                 }
@@ -549,17 +535,10 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
 
-                        bash -c '
-
+                        sh """
                             set -Eeuo pipefail
                             trap "echo ❌ CI FAILED at line \$LINENO; exit 1" ERR
-
-                            # Mandatory only in case child process use those variables
-                            # Added for robustness only
-                            ${envExports}
-                            #################
 
                             section() {
                                 echo
@@ -599,10 +578,10 @@ pipeline {
                             require_env CONTAINER_CACHE
 
                             section "Workspace & cache mounts"
-                            check test -d "${CONTAINER_WORKSPACE}"
-                            check test -w "${CONTAINER_WORKSPACE}"
-                            check test -d "${CONTAINER_CACHE}"
-                            check test -w "${CONTAINER_CACHE}"
+                            check test -d "\${CONTAINER_WORKSPACE}"
+                            check test -w "\${CONTAINER_WORKSPACE}"
+                            check test -d "\${CONTAINER_CACHE}"
+                            check test -w "\${CONTAINER_CACHE}"
                             echo "✅ Workspace & cache are mounted and writable"
 
                             section "Toolchain availability"
@@ -614,9 +593,9 @@ pipeline {
                             cargo --version
 
                             section "Android SDK / NDK sanity"
-                            check test -d "${ANDROID_SDK_ROOT}"
-                            check test -d "${ANDROID_NDK_HOME}"
-                            check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
+                            check test -d "\${ANDROID_SDK_ROOT}"
+                            check test -d "\${ANDROID_NDK_HOME}"
+                            check test -d "\${ANDROID_NDK_TOOLCHAIN_DIR}"
                             echo "✅ Android SDK & NDK OK"
 
                             section "Flutter doctor"
@@ -646,13 +625,9 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
-                            # Mandatory only in case child process use those variables
-                            # Added for robustness only
-                            ${envExports}
-                            #################
 
-                            echo "Container Cache: ${CONTAINER_CACHE}" && ls -la "${CONTAINER_CACHE}" || echo "Cache empty"
-                            echo "Container Workspace: ${CONTAINER_WORKSPACE}" && ls -la "${CONTAINER_WORKSPACE}" || echo "Cache empty"
+                            echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
+                            echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
                         """
                     }
                 }
@@ -671,12 +646,7 @@ pipeline {
                     {
                     sh """
                         set -euo
-    
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-    
+
                         echo "== Flutter =="
                         which flutter
                         flutter --version
@@ -686,7 +656,7 @@ pipeline {
                         ls -la
     
                         echo "== Cache =="
-                        ls -la ${CONTAINER_CACHE} || true
+                        ls -la \${CONTAINER_CACHE} || true
     
                         echo "== Env =="
                         env | sort
@@ -728,7 +698,7 @@ pipeline {
         }
 
 
-/*
+
         stage('Flutter → Android Materialization') {
             steps {
                 script {                
@@ -737,12 +707,9 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
-                            # Mandatory only in case child process uses those variables
-                            ${envExports}
-                            #################
 
                             # temporary
-                            ls -ld "${GRADLE_USER_HOME}"
+                            ls -ld "\${GRADLE_USER_HOME}"
 
                             flutter pub get
                             flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
@@ -762,10 +729,6 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
 
                         cd android
 
@@ -783,7 +746,7 @@ pipeline {
             }
         }
 
-*/
+
         stage('Validate Repo Structure') {
             steps {
                 script {                
@@ -826,32 +789,27 @@ pipeline {
                         sh """
                             set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
 
                             # Flutter / Gradle build artifacts
-                            rm -rf ${FLUTTER_BUILD_DIRS_1} \
-                                    ${FLUTTER_BUILD_DIRS_2} \
-                                    ${FLUTTER_BUILD_DIRS_3} \
-                                    ${FLUTTER_BUILD_DIRS_4}
+                            rm -rf \${FLUTTER_BUILD_DIRS_1} \
+                                    \${FLUTTER_BUILD_DIRS_2} \
+                                    \${FLUTTER_BUILD_DIRS_3} \
+                                    \${FLUTTER_BUILD_DIRS_4}
 
                             # Rust shared libraries
-                            rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+                            rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
 
                             # clean Rust target
-                            if [ -d "${RUST_PROJECT_DIR}" ]; then
+                            if [ -d "\${RUST_PROJECT_DIR}" ]; then
                                 echo "🧹 Cleaning Rust build targets..."
-                                cd "${RUST_PROJECT_DIR}"
+                                cd "\${RUST_PROJECT_DIR}"
                                 cargo clean
                             else
                                 echo "⚠️ Rust project not found, skipping Rust clean"
                             fi
 
                             # Fix ownership
-                            chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                            chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
                         """
                     }
                 }
@@ -873,35 +831,30 @@ pipeline {
                     sh """
                         set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
 
                         # Flutter / Gradle caches
-                        rm -rf ${GRADLE_USER_HOME}/caches/modules-* \
-                               ${GRADLE_USER_HOME}/daemon \
-                               ${PUB_CACHE}/hosted \
-                               ${FLUTTER_ROOT}/bin/cache \
-                               ${FLUTTER_BUILD_DIRS_1} \
-                               ${FLUTTER_BUILD_DIRS_2} \
-                               ${FLUTTER_BUILD_DIRS_3} \
-                               ${FLUTTER_BUILD_DIRS_4}
+                        rm -rf \${GRADLE_USER_HOME}/caches/modules-* \
+                               \${GRADLE_USER_HOME}/daemon \
+                               \${PUB_CACHE}/hosted \
+                               \${FLUTTER_ROOT}/bin/cache \
+                               \${FLUTTER_BUILD_DIRS_1} \
+                               \${FLUTTER_BUILD_DIRS_2} \
+                               \${FLUTTER_BUILD_DIRS_3} \
+                               \${FLUTTER_BUILD_DIRS_4}
 
                         # Rust libraries
-                        rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+                        rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
                         # clean Rust target
-                        if [ -d "${RUST_PROJECT_DIR}" ]; then
+                        if [ -d "\${RUST_PROJECT_DIR}" ]; then
                             echo "🧹 Cleaning Rust build targets..."
-                            cd "${RUST_PROJECT_DIR}"
+                            cd "\${RUST_PROJECT_DIR}"
                             cargo clean
                         else
                             echo "⚠️ Rust project not found, skipping Rust clean"
                         fi
 
                         # Fix ownership
-                        chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+                        chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
 
                         echo "✅ Deep Clean LIGHT completed"
                     """
@@ -924,36 +877,31 @@ pipeline {
                     sh """
                         set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
 
                         # Flutter / Gradle caches
-                        rm -rf ${GRADLE_USER_HOME}/caches \
-                               ${GRADLE_USER_HOME}/daemon \
-                               ${PUB_CACHE}/hosted \
-                               ${PUB_CACHE}/git \
-                               ${FLUTTER_ROOT}/bin/cache \
-                               ${FLUTTER_BUILD_DIRS_1} \
-                               ${FLUTTER_BUILD_DIRS_2} \
-                               ${FLUTTER_BUILD_DIRS_3} \
-                               ${FLUTTER_BUILD_DIRS_4}
+                        rm -rf \${GRADLE_USER_HOME}/caches \
+                               \${GRADLE_USER_HOME}/daemon \
+                               \${PUB_CACHE}/hosted \
+                               \${PUB_CACHE}/git \
+                               \${FLUTTER_ROOT}/bin/cache \
+                               \${FLUTTER_BUILD_DIRS_1} \
+                               \${FLUTTER_BUILD_DIRS_2} \
+                               \${FLUTTER_BUILD_DIRS_3} \
+                               \${FLUTTER_BUILD_DIRS_4}
 
                         # Rust build targets + shared libraries
-                        rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+                        rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
                         # clean Rust target
-                        if [ -d "${RUST_PROJECT_DIR}" ]; then
+                        if [ -d "\${RUST_PROJECT_DIR}" ]; then
                             echo "🧹 Cleaning Rust build targets..."
-                            cd "${RUST_PROJECT_DIR}"
+                            cd "\${RUST_PROJECT_DIR}"
                             cargo clean
                         else
                             echo "⚠️ Rust project not found, skipping Rust clean"
                         fi
 
                         # Fix ownership
-                        chown -R 2000:2000 ${WORKSPACE} ${CONTAINER_CACHE} || true
+                        chown -R 2000:2000 \${WORKSPACE} \${CONTAINER_CACHE} || true
 
                         echo "✅ Deep Clean FULL completed"
                     """
@@ -975,12 +923,8 @@ pipeline {
                     sh """
                         set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
 
-                        cd "${RUST_PROJECT_DIR}"
+                        cd "\${RUST_PROJECT_DIR}"
 
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
@@ -990,11 +934,11 @@ pipeline {
                           -t armeabi-v7a \\
                           -t arm64-v8a \\
                           -t x86_64 \\
-                          -o ${ANDROID_JNI_LIBS_DIR} \\
+                          -o \${ANDROID_JNI_LIBS_DIR} \\
                           build --release
 
                         echo "📦 Produced JNI libraries:"
-                        find ${ANDROID_JNI_LIBS_DIR} -name "*.so"
+                        find \${ANDROID_JNI_LIBS_DIR} -name "*.so"
                     """
                     }
                 }
@@ -1013,15 +957,8 @@ pipeline {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
                     sh """
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
-                        export GRADLE_OPTS="${GRADLE_OPTS}"
-
                         flutter pub get
-                        flutter build apk --${params.BUILD_MODE}
+                        flutter build apk --\${params.BUILD_MODE}
 
                     """
                     }
@@ -1040,12 +977,7 @@ pipeline {
                     sh """
                         set -euo
 
-                        # Mandatory only in case child process use those variables
-                        # Added for robustness only
-                        ${envExports}
-                        #################
-
-                        ${INTEGRATION_TEST_SCRIPT}
+                        \${INTEGRATION_TEST_SCRIPT}
                     """
                     }
                 }
@@ -1060,7 +992,9 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh "pwsh ${PLANTUML_SCRIPT}"
+                        sh """
+                            pwsh "\${PLANTUML_SCRIPT}"
+                        """
                     }
                 }
             }
