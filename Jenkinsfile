@@ -536,8 +536,8 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 script {                
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
-                        "${WORKSPACE}/jenkins_container_cache") 
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache")
                     {
                     sh """
                         set -euo
@@ -545,23 +545,23 @@ pipeline {
                         section() {
                             echo
                             echo "=============================="
-                            echo "$1"
+                            echo "\$1"
                             echo "=============================="
                         }
 
                         fail() {
-                            echo "❌ ERROR: $1"
+                            echo "❌ ERROR: \$1"
                             exit 1
                         }
 
                         check() {
-                            "$@" || fail "Command failed: $*"
+                            "\$@" || fail "Command failed: \$*"
                         }
 
                         require_env() {
-                            var="$1"
-                            val="${!var:-}"
-                            [ -n "$val" ] || fail "Missing ENV variable: $var"
+                            var="\$1"
+                            val="\${!var:-}"
+                            [ -n "\$val" ] || fail "Missing ENV variable: \$var"
                         }
 
                         section "CI SELF TEST"
@@ -579,10 +579,10 @@ pipeline {
                         require_env CONTAINER_CACHE
 
                         section "Workspace & cache mounts"
-                        check test -d "${CONTAINER_WORKSPACE}"
-                        check test -w "${CONTAINER_WORKSPACE}"
-                        check test -d "${CONTAINER_CACHE}"
-                        check test -w "${CONTAINER_CACHE}"
+                        check test -d "\${CONTAINER_WORKSPACE}"
+                        check test -w "\${CONTAINER_WORKSPACE}"
+                        check test -d "\${CONTAINER_CACHE}"
+                        check test -w "\${CONTAINER_CACHE}"
                         echo "✅ Workspace & cache are mounted and writable"
 
                         section "Toolchain availability"
@@ -594,9 +594,9 @@ pipeline {
                         cargo --version
 
                         section "Android SDK / NDK sanity"
-                        check test -d "${ANDROID_SDK_ROOT}"
-                        check test -d "${ANDROID_NDK_HOME}"
-                        check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
+                        check test -d "\${ANDROID_SDK_ROOT}"
+                        check test -d "\${ANDROID_NDK_HOME}"
+                        check test -d "\${ANDROID_NDK_TOOLCHAIN_DIR}"
                         echo "✅ Android SDK & NDK OK"
 
                         section "Flutter doctor"
