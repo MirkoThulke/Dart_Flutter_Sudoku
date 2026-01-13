@@ -751,7 +751,7 @@ pipeline {
                 }
             }
         }
-*/
+
 
         stage('Gradle Deep Diagnostics') {
 
@@ -783,7 +783,7 @@ pipeline {
             }
         }
 
-
+*/
         stage('Validate Repo Structure') {
             steps {
                 script {                
