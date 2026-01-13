@@ -736,11 +736,17 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                        sh '''
-                            '"${envExports}"'
+                        sh """
+                            # Mandatory only in case child process uses those variables
+                            ${envExports}
+                            #################
+
+                            # temporary
+                            ls -ld ${GRADLE_USER_HOME}
+
                             flutter pub get
                             flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
-                        '''
+                        """
                     }
                 }
             }
