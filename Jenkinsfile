@@ -429,31 +429,38 @@ pipeline {
                 env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
 
+
+
                 // Prepare ENV exports for child processes
+                /*
+                    # workspace owned home directory
+                    # Ephemeral workspace
+                    # Persistent caches
+                    # Flutter ephemeral build dirs
+                    # Rust / Android FFI
+                    # Toolchains
+                    # Scripts (repo relative)
+                */
+
                  env.containerEnv = [
 
-                # workspace owned home directory
+
                 "HOME=${env.CONTAINER_WORKSPACE}/.home",
 
-                # Ephemeral workspace
                 "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
 
-                # Persistent caches
                 "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
                 "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                 "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
-                # Flutter ephemeral build dirs
                 "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
                 "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
                 "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
                 "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
 
-                # Rust / Android FFI
                 "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
-                # Toolchains
                 "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
                 "RUSTUP_HOME=${env.RUSTUP_HOME}",
                 "CARGO_HOME=${env.CARGO_HOME}",
@@ -462,7 +469,6 @@ pipeline {
                 "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
                 "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
 
-                # Scripts (repo relative)
                 "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
                 "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts"
