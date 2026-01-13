@@ -741,8 +741,11 @@ pipeline {
                             ${envExports}
                             #################
 
+                            # temporary
+                            ls -ld ${GRADLE_USER_HOME}
+
                             flutter pub get
-                            flutter build apk --debug --verbose
+                            flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
                         """
                     }
                 }
