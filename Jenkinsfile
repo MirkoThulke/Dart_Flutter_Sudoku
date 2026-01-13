@@ -539,36 +539,33 @@ pipeline {
                         "${WORKSPACE}/jenkins_container_workspace",
                         "${WORKSPACE}/jenkins_container_cache") 
                     {
-                        sh '''
-                        #!/usr/bin/env bash
-                        set -Eeuo pipefail
-        
-                        trap 'echo ❌ CI FAILED at line ${LINENO:-unknown}; exit 1' ERR
-        
+                    sh """
+                        set -euo
+
                         section() {
                             echo
                             echo "=============================="
                             echo "$1"
                             echo "=============================="
                         }
-        
+
                         fail() {
                             echo "❌ ERROR: $1"
                             exit 1
                         }
-        
+
                         check() {
                             "$@" || fail "Command failed: $*"
                         }
-        
+
                         require_env() {
                             var="$1"
                             val="${!var:-}"
                             [ -n "$val" ] || fail "Missing ENV variable: $var"
                         }
-        
+
                         section "CI SELF TEST"
-        
+
                         require_env HOME
                         require_env FLUTTER_ROOT
                         require_env RUST_CARGO_DIR
@@ -580,38 +577,38 @@ pipeline {
                         require_env PUB_CACHE
                         require_env WORKSPACE
                         require_env CONTAINER_CACHE
-        
+
                         section "Workspace & cache mounts"
                         check test -d "${CONTAINER_WORKSPACE}"
                         check test -w "${CONTAINER_WORKSPACE}"
                         check test -d "${CONTAINER_CACHE}"
                         check test -w "${CONTAINER_CACHE}"
                         echo "✅ Workspace & cache are mounted and writable"
-        
+
                         section "Toolchain availability"
                         check command -v flutter
                         check command -v dart
                         check command -v cargo
-        
+
                         flutter --version | head -n 1
                         cargo --version
-        
+
                         section "Android SDK / NDK sanity"
                         check test -d "${ANDROID_SDK_ROOT}"
                         check test -d "${ANDROID_NDK_HOME}"
                         check test -d "${ANDROID_NDK_TOOLCHAIN_DIR}"
                         echo "✅ Android SDK & NDK OK"
-        
+
                         section "Flutter doctor"
                         flutter doctor -v || true
-        
+
                         echo "=============================="
                         echo "✅ CI SELF TEST PASSED"
                         echo "=============================="
-        
+
                         sync || true
                         sleep 1
-                        '''
+                    """
                     }
                 }
             }
