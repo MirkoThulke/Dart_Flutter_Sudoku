@@ -320,7 +320,7 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        withEnv(env.containerEnv) {
+        withEnv(containerEnv) {
             body()
         }
     }
@@ -334,7 +334,7 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
-        withEnv(env.containerEnv) {
+        withEnv(containerEnv) {
             body()
         }
     }
@@ -442,8 +442,7 @@ pipeline {
                     # Scripts (repo relative)
                 */
 
-                 env.containerEnv = [
-
+                containerEnv = [
 
                 "HOME=${env.CONTAINER_WORKSPACE}/.home",
 
