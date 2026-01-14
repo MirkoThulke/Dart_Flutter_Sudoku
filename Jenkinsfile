@@ -501,8 +501,9 @@ pipeline {
                         mkdir -p "\${CONTAINER_CACHE}"
                         mkdir -p \$HOME/.config/flutter
 
-                        chown -R 2000:2000 "\$HOME"
-                        chmod -R 770 "\$HOME"
+
+                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME"
+                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME"
 
 
                         # Optional: verify the directories
