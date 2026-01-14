@@ -419,7 +419,7 @@ pipeline {
         ANDROID_NDK_TOOLCHAIN_DIR = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
         // Gradle options
-        GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Xmx1536m -Xms512m"
+        GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dorg.gradle.vfs.watch=false -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Xmx1536m -Xms512m"
 
         // PATH definition (binaries only)
         PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
@@ -714,88 +714,6 @@ pipeline {
 
 
 
-        stage('Flutter → Android Materialization') {
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                        sh """#!/usr/bin/env bash
-
-                            set -Eeuo pipefail
-
-                            # temporary
-                            ls -ld "\${GRADLE_USER_HOME}"
-
-                            flutter pub get
-                            flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
-                        """
-                    }
-                }
-            }
-        }
-
-
-        stage('Gradle Deep Diagnostics') {
-
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-                        cd android
-
-                        ./gradlew -version
-                        ./gradlew help \
-                        --stacktrace \
-                        --info \
-                        --warning-mode=all \
-                        --no-daemon
-
-                        ./gradlew buildEnvironment
-                    """
-                    }
-                }
-            }
-        }
-
-
-        stage('Validate Repo Structure') {
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    // scripts directory (repo-relative)
-                    if (!fileExists('scripts')) {
-                        error "❌ scripts/ directory not found in repository"
-                    }
-
-                    // Flutter mandatory file
-                    if (!fileExists('pubspec.yaml')) {
-                        error "❌ pubspec.yaml missing"
-                    }
-
-                    // Optional but recommended
-                    if (!fileExists('android')) {
-                        error "❌ android/ directory missing"
-                    }
-
-                    echo "✅ Repository structure valid"
-                    }
-                }
-            }
-        }
-
-
-
         stage('Clean Environment Flutter') {
             // use Root agent to have permissions to delete all files
             steps {
@@ -927,6 +845,88 @@ pipeline {
 
                         echo "✅ Deep Clean FULL completed"
                     """
+                    }
+                }
+            }
+        }
+
+
+
+        stage('Flutter → Android Materialization') {
+            steps {
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                        sh """#!/usr/bin/env bash
+
+                            set -Eeuo pipefail
+
+                            # temporary
+                            ls -ld "\${GRADLE_USER_HOME}"
+
+                            flutter pub get
+                            flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
+                        """
+                    }
+                }
+            }
+        }
+
+
+        stage('Gradle Deep Diagnostics') {
+
+            steps {
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                    sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+                        cd android
+
+                        ./gradlew -version
+                        ./gradlew help \
+                        --stacktrace \
+                        --info \
+                        --warning-mode=all \
+                        --no-daemon
+
+                        ./gradlew buildEnvironment
+                    """
+                    }
+                }
+            }
+        }
+
+
+        stage('Validate Repo Structure') {
+            steps {
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                    // scripts directory (repo-relative)
+                    if (!fileExists('scripts')) {
+                        error "❌ scripts/ directory not found in repository"
+                    }
+
+                    // Flutter mandatory file
+                    if (!fileExists('pubspec.yaml')) {
+                        error "❌ pubspec.yaml missing"
+                    }
+
+                    // Optional but recommended
+                    if (!fileExists('android')) {
+                        error "❌ android/ directory missing"
+                    }
+
+                    echo "✅ Repository structure valid"
                     }
                 }
             }
