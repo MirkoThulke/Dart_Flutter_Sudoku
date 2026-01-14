@@ -341,6 +341,8 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 }
 
 
+def containerEnv = []
+
 
 pipeline {
 
@@ -485,8 +487,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
                         # Create the required  directories inside the container
@@ -522,8 +523,7 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
                         git config --system --add safe.directory \${FLUTTER_ROOT}
@@ -541,8 +541,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache")
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         section() {
@@ -627,8 +627,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                        sh """
-                            #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                             set -Eeuo pipefail
 
                             echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
@@ -649,8 +649,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         echo "== Flutter =="
@@ -695,8 +695,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         checkout scm
-                        sh """
-                            #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                             set -Eeuo pipefail
 
                             ls -la
@@ -715,8 +715,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                        sh """
-                            #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                             set -Eeuo pipefail
 
                             # temporary
@@ -739,8 +739,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         cd android
@@ -799,8 +799,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         echo "🧹 Cleaning Flutter build files"
-                        sh """
-                            #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                             set -Eeuo pipefail
 
 
@@ -842,8 +842,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     echo "☢️ Deep Clean LIGHT enabled"
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
 
@@ -889,8 +889,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     echo "☢️ Deep Clean FULL enabled"
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
 
@@ -936,8 +936,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     echo "🦀 Building Rust backend for Android (FFI)"
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
 
@@ -972,8 +972,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         flutter pub get
@@ -993,8 +993,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         \${INTEGRATION_TEST_SCRIPT}
@@ -1012,8 +1012,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                        sh """
-                        #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                             pwsh "\${PLANTUML_SCRIPT}"
@@ -1031,8 +1031,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    sh """
-                        #!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+
                         set -Eeuo pipefail
 
                         mkdir -p build_outputs
