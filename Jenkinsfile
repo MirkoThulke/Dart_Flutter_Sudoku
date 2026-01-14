@@ -486,7 +486,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
@@ -522,7 +523,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         git config --system --add safe.directory \${FLUTTER_ROOT}
                     """
@@ -540,7 +542,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache")
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         section() {
                             echo
@@ -625,7 +628,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
-                            set -euo
+                            #!/usr/bin/env bash
+                            set -Eeuo pipefail
 
                             echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
                             echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
@@ -646,7 +650,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         echo "== Flutter =="
                         which flutter
@@ -691,6 +696,9 @@ pipeline {
                     {
                         checkout scm
                         sh """
+                            #!/usr/bin/env bash
+                            set -Eeuo pipefail
+
                             ls -la
                         """
                     }
@@ -708,7 +716,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
-                            set -euo
+                            #!/usr/bin/env bash
+                            set -Eeuo pipefail
 
                             # temporary
                             ls -ld "\${GRADLE_USER_HOME}"
@@ -731,7 +740,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         cd android
 
@@ -790,7 +800,8 @@ pipeline {
                     {
                         echo "🧹 Cleaning Flutter build files"
                         sh """
-                            set -euo
+                            #!/usr/bin/env bash
+                            set -Eeuo pipefail
 
 
                             # Flutter / Gradle build artifacts
@@ -832,7 +843,8 @@ pipeline {
                     {
                     echo "☢️ Deep Clean LIGHT enabled"
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
 
                         # Flutter / Gradle caches
@@ -878,7 +890,8 @@ pipeline {
                     {
                     echo "☢️ Deep Clean FULL enabled"
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
 
                         # Flutter / Gradle caches
@@ -924,7 +937,8 @@ pipeline {
                     {
                     echo "🦀 Building Rust backend for Android (FFI)"
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
 
                         cd "\${RUST_PROJECT_DIR}"
@@ -959,7 +973,8 @@ pipeline {
                     {
                     echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         flutter pub get
                         flutter build apk --\${params.BUILD_MODE}
@@ -979,7 +994,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         \${INTEGRATION_TEST_SCRIPT}
                     """
@@ -997,7 +1013,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """
-                            set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                             pwsh "\${PLANTUML_SCRIPT}"
                         """
@@ -1015,7 +1032,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """
-                        set -euo
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
 
                         mkdir -p build_outputs
 
