@@ -312,6 +312,12 @@
 //  4) Source code is bind-mounted into build container → reproducible, isolated builds
 //  5) Toolchains are read-only inside container
 
+import groovy.transform.Field
+
+@Field
+List<String> containerEnv = []
+
+
 
 // Helper for default Jenkins user inside container
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
@@ -341,7 +347,6 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 }
 
 
-def containerEnv = []
 
 
 pipeline {
