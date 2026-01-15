@@ -499,7 +499,10 @@ pipeline {
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
                         mkdir -p "\${CONTAINER_CACHE}"
-                        mkdir -p \$HOME/.config/flutter
+                        mkdir -p "\${CONTAINER_CACHE}/.gradle"
+                        mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
+                        mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
+                        mkdir -p "\$HOME/.config/flutter"
 
 
                         chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME"
