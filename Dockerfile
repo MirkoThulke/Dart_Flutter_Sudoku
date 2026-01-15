@@ -150,6 +150,7 @@ ARG RUST_VERSION=1.91.1
 
 ARG NDK_MAIN=28.2.13676358
 ARG CMAKE_MAIN=3.22.1
+ARG COMPILE_SDK_BACKUP=34
 ARG COMPILE_SDK=36
 ARG BUILD_TOOLS=36.0.0
 
@@ -204,6 +205,7 @@ FROM base AS android
 
 ARG ANDROID_SDK_TOOLS_VERSION
 ARG ANDROID_SDK_ROOT
+ARG COMPILE_SDK_BACKUP
 ARG COMPILE_SDK
 ARG BUILD_TOOLS
 ARG NDK_MAIN
@@ -240,12 +242,12 @@ RUN yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses
 # Install essential SDK packages and ensure they are in the image
 RUN ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
     "platform-tools" \
+    "platforms;android-${COMPILE_SDK_BACKUP}" \
     "platforms;android-${COMPILE_SDK}" \
+    "build-tools;${BUILD_TOOLS_BACKUP}" \
     "build-tools;${BUILD_TOOLS}" \
     "ndk;${NDK_MAIN}" \
     "cmake;${CMAKE_MAIN}"
-
-
 
 # ============================================================
 # Stage: flutter
@@ -326,6 +328,7 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
 FROM ubuntu:22.04 AS final
 
 ARG ANDROID_SDK_TOOLS_VERSION
+ARG COMPILE_SDK_BACKUP
 ARG COMPILE_SDK
 ARG BUILD_TOOLS
 ARG NDK_MAIN
@@ -405,6 +408,7 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
 # Jenkins user Ownership + Git safe.directory
 RUN chown -R 2000:2000 /opt/flutter 
 RUN chown -R 2000:2000 /opt/rust
+RUN chown -R 2000:2000 /opt/android
 RUN git config --system --add safe.directory /opt/flutter
 
 # Standard Jenkins User für Builds
