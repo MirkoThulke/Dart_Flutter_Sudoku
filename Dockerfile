@@ -276,7 +276,7 @@ RUN git config --global --add safe.directory /opt/flutter
 # Pre-cache Flutter artifacts
 RUN --mount=type=cache,target=/root/.pub-cache \
     flutter config --no-analytics \
-    && flutter precache --android --web
+    && flutter precache --android
 
 
 # ============================================================
