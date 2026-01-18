@@ -274,11 +274,15 @@ RUN set -eux; \
 RUN git config --global --add safe.directory /opt/flutter
 
 # Pre-cache Flutter artifacts
-RUN --mount=type=cache,target=/root/.pub-cache \
-    flutter config --no-analytics \
-    && flutter precache --android
+RUN flutter config --no-analytics \
+ && flutter precache \
+    --android \
+    --force
 
-
+# Verify Android artifacts are present
+RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
+ && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
+ && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 # ============================================================
 # Stage: rust
 # ============================================================
@@ -417,6 +421,8 @@ RUN git config --system --add safe.directory /opt/flutter
 # Standard Jenkins User für Builds
 USER 2000
 
+# Final Flutter materialization (must be non-root)
+RUN flutter precache --android --force
 
 WORKDIR /app
 CMD ["/bin/bash"]
