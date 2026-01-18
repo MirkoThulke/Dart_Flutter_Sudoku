@@ -873,7 +873,7 @@ pipeline {
                             flutter pub get
 
                             # Precache only Android artifacts (debug + release)
-                            flutter precache --android --debug --release
+                            flutter precache --android
 
                             # Then build the APK
                             flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
