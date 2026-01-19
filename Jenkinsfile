@@ -465,6 +465,9 @@ pipeline {
                 "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
                 "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
 
+                "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
+                "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
+
                 "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -504,9 +507,11 @@ pipeline {
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
                         mkdir -p "\$HOME/.config/flutter"
 
+                        mkdir -p "\$XDG_CONFIG_HOME/flutter"
+                        mkdir -p "\$XDG_CACHE_HOME"
 
-                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME"
-                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME"
+                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
+                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
 
 
                         # Optional: verify the directories

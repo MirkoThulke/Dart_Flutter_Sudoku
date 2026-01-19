@@ -413,15 +413,23 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
 
 
 # Jenkins user Ownership + Git safe.directory
-RUN chown -R 2000:2000 /opt/flutter 
-RUN chown -R 2000:2000 /opt/rust
-RUN chown -R 2000:2000 /opt/android
+RUN chown -R 2000:2000 /opt/flutter \
+ && chown -R 2000:2000 /opt/rust \
+ && chown -R 2000:2000 /opt/android
 RUN git config --system --add safe.directory /opt/flutter
+
+# Create writable HOME for Jenkins user
+RUN mkdir -p /home/jenkins \
+ && chown -R 2000:2000 /home/jenkins
+
+ENV HOME=/home/jenkins
+ENV XDG_CONFIG_HOME=/home/jenkins/.config
+ENV XDG_CACHE_HOME=/home/jenkins/.cache
 
 # Standard Jenkins User für Builds
 USER 2000
 
-# Final Flutter materialization (must be non-root)
+# Final Flutter materialization (correct UID + HOME)
 RUN flutter precache --android --force
 
 WORKDIR /app
