@@ -6,8 +6,8 @@ ext {
     cmakeMain_ext = "3.22.1"
     cmakeLegacy_ext = "3.22.1"
 
-    compileSdkVersion_ext = 36
-    targetSdkVersion_ext = 36
+    compileSdkVersion_ext = 34
+    targetSdkVersion_ext = 34
     minSdkVersion_ext = 24
     
 }

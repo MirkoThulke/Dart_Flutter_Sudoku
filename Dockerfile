@@ -60,6 +60,8 @@
 # Factory reset !! (removes all images, containers, volumes, networks not in use):
 #  docker system prune -a --volumes -f
 #  docker buildx prune --all --force
+#  docker system prune -af --volumes
+#  docker builder prune -af
 #
 # enter the docker container interactively:
 #   docker run -it --rm -v /home/mirko/sudoku:/app flutter_rust_env /bin/bash
@@ -151,9 +153,9 @@ ARG RUST_VERSION=1.91.1
 ARG NDK_MAIN=28.2.13676358
 ARG CMAKE_MAIN=3.22.1
 ARG COMPILE_SDK_BACKUP=34
-ARG COMPILE_SDK=36
+ARG COMPILE_SDK=34
 ARG BUILD_TOOLS_BACKUP=34.0.0
-ARG BUILD_TOOLS=36.0.0
+ARG BUILD_TOOLS=34.0.0
 
 ARG BUILD_MODE=ci
 
@@ -220,6 +222,10 @@ ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
 
+ENV JAVA_TOOL_OPTIONS="-Dhttps.protocols=TLSv1.2"
+ENV _JAVA_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
+
 # Retry helper
 RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
  > /usr/local/bin/retry \
@@ -241,14 +247,25 @@ RUN set -eux; \
 RUN yes | ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
 
-# Install essential SDK packages and ensure they are in the image
-RUN ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
-    "platform-tools" \
-    "platforms;android-${COMPILE_SDK_BACKUP}" \
-    "platforms;android-${COMPILE_SDK}" \
-    "build-tools;${BUILD_TOOLS_BACKUP}" \
-    "build-tools;${BUILD_TOOLS}" \
-    "ndk;${NDK_MAIN}" \
+# Install essential SDK packages (split to avoid TLS/network failures)
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} "platform-tools"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "platforms;android-${COMPILE_SDK_BACKUP}"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "platforms;android-${COMPILE_SDK}"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "build-tools;${BUILD_TOOLS_BACKUP}"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "build-tools;${BUILD_TOOLS}"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
+    "ndk;${NDK_MAIN}"
+
+RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
     "cmake;${CMAKE_MAIN}"
 
 # ============================================================
@@ -413,9 +430,9 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
 
 
 # Jenkins user Ownership + Git safe.directory
-RUN chown -R 2000:2000 /opt/flutter \
- && chown -R 2000:2000 /opt/rust \
- && chown -R 2000:2000 /opt/android
+RUN chown -R 2000:2000 /opt/flutter
+RUN chown -R 2000:2000 /opt/rust
+RUN chown -R 2000:2000 /opt/android
 RUN git config --system --add safe.directory /opt/flutter
 
 # Create writable HOME for Jenkins user
