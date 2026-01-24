@@ -71,6 +71,16 @@
 //  ------------------------------------------------------------
 //  CI Workflow: GitHub → Jenkins (container) → flutter_rust_env (build container)
 //
+//  
+//  Azure VM
+//   └─ docker build flutter_rust_env
+//   └─ docker push flutter_rust_env (Docker Hub or GHCR)
+//  
+//  Local PC (WSL)
+//   └─ docker pull flutter_rust_env
+//   └─ Jenkins runs locally
+//   └─ Builds & deploys app
+//
 //  CORE CONCEPTS (IMPORTANT):
 //  ------------------------------------------------------------
 //  - Jenkins workspaces are DYNAMIC and EPHEMERAL
