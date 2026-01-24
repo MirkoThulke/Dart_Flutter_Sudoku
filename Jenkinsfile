@@ -321,8 +321,9 @@ List<String> containerEnv = []
 
 
 // Helper for default Jenkins user inside container
+// Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
-    docker.image(env.FLUTTER_IMAGE).inside(
+    docker.image(env.FLUTTER_IMAGE).withPullPolicy(false).inside(
         "--user 2000:2000 " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
@@ -335,8 +336,9 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
 
 
 // Helper for root user
+// Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
-    docker.image(env.FLUTTER_IMAGE).inside(
+    docker.image(env.FLUTTER_IMAGE).withPullPolicy(false).inside(
         "--user root " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
@@ -400,7 +402,8 @@ pipeline {
         // Static paths 
 
         // Flutter build container
-        FLUTTER_IMAGE      = 'flutter_rust_env'
+        FLUTTER_IMAGE      = 'mirkoth/flutter_rust_env:latest'
+
 
         // Host mount paths
         HOST_CACHE         = '/home/mirko/jenkins_host_cache'
