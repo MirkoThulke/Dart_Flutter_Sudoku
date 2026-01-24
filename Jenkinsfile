@@ -18,6 +18,7 @@
 
 // Start the Jenkins Docker container via : compose build via your compose.yaml file
 //     docker compose up -d --build
+//     docker compose up -d --build --pull=never
 //     docker compose down
 //     docker compose logs -f
 //     docker compose ps
