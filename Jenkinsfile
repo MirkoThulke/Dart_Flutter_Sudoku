@@ -440,7 +440,15 @@ pipeline {
     }
 
     stages {
-
+        
+        stage('Prepare Flutter Image') {
+            steps {
+                script {
+                    // Tag the locally pulled/built image to localhost
+                    sh 'docker tag mirkoth/flutter_rust_env:latest localhost/flutter_rust_env:latest'
+                }
+            }
+        }
 
         stage('Setup Env') {
             steps {
@@ -513,8 +521,6 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        # Tag the flutter image to localhost to avoid pulling from docker hub
-                        docker tag mirkoth/flutter_rust_env:latest localhost/flutter_rust_env:latest
 
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
