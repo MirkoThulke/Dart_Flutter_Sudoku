@@ -323,7 +323,7 @@ List<String> containerEnv = []
 // Helper for default Jenkins user inside container
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
-    docker.image(env.FLUTTER_IMAGE).withPullPolicy(false).inside(
+    docker.image(env.FLUTTER_IMAGE).inside(
         "--user 2000:2000 " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
@@ -338,7 +338,7 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
 // Helper for root user
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
-    docker.image(env.FLUTTER_IMAGE).withPullPolicy(false).inside(
+    docker.image(env.FLUTTER_IMAGE).inside(
         "--user root " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
