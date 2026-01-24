@@ -412,7 +412,7 @@ pipeline {
         // Static paths 
 
         // Flutter build container
-        FLUTTER_IMAGE      = 'mirkoth/flutter_rust_env:latest'
+        FLUTTER_IMAGE = 'localhost/flutter_rust_env:latest'
 
 
         // Host mount paths
@@ -512,6 +512,9 @@ pipeline {
                     {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
+
+                        # Tag the flutter image to localhost to avoid pulling from docker hub
+                        docker tag mirkoth/flutter_rust_env:latest localhost/flutter_rust_env:latest
 
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
