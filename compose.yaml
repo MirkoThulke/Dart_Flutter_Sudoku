@@ -10,6 +10,10 @@
 
 services:
   jenkins:
+    build:
+      # Build Jenkins image from Dockerfile in current directory. Do not pull from Docker Hub.
+      context: .
+      dockerfile: Dockerfile
     image: jenkins_sudoku_image:2.528.3
     container_name: jenkins_sudoku_container
 
