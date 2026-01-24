@@ -440,7 +440,7 @@ pipeline {
     }
 
     stages {
-        
+
         stage('Prepare Flutter Image') {
             steps {
                 script {
@@ -520,7 +520,12 @@ pipeline {
                     {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
+                        
+                        # mark Flutter repo safe
+                        git config --global --add safe.directory /opt/flutter
 
+                        # Optional verification
+                        flutter --version
 
                         # Create the required  directories inside the container
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
