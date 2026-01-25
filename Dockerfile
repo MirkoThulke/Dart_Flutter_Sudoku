@@ -36,7 +36,7 @@
 
 # Build the environment image once:
 #   docker build -t flutter_rust_env .
-# or as delta build : docker build . -t sudoku:latest
+#   docker build --no-cache -t flutter_rust_env .
 
 # start an existing container interactively:
 #   docker start -ai flutter_rust_env
@@ -181,10 +181,14 @@ ENV ANDROID_SDK_ROOT=/opt/android/sdk
 ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
 ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
 ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
+ENV CHROME_USER_HOME=/usr/bin/google-chrome
 
 ENV RUSTUP_HOME=/opt/rust/rustup
 ENV CARGO_HOME=/opt/rust/cargo
+ENV RUST_HOME=/opt/rust
 ENV FLUTTER_ROOT=/opt/flutter
+ENV ANDROID_ROOT=/opt/android
+ENV GOOGLE_ROOT=/opt/google
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 
@@ -379,32 +383,34 @@ COPY --from=android ${ANDROID_SDK_ROOT}/cmake ${ANDROID_SDK_ROOT}/cmake
 COPY --from=android ${ANDROID_SDK_ROOT}/licenses ${ANDROID_SDK_ROOT}/licenses
 
 # Copy from Flutter stage to final image
-COPY --from=flutter /opt/flutter /opt/flutter
+COPY --from=flutter ${FLUTTER_ROOT} ${FLUTTER_ROOT}
 
 # Copy from Chrome stage to final image
-COPY --from=chrome /usr/bin/google-chrome /usr/bin/google-chrome
-COPY --from=chrome /opt/google /opt/google
+COPY --from=chrome ${CHROME_USER_HOME} ${CHROME_USER_HOME}
+COPY --from=chrome ${GOOGLE_ROOT} ${GOOGLE_ROOT}
 
 # Copy from Rust stage to final image (cargo and rustup)
-COPY --from=rust /opt/rust /opt/rust
+COPY --from=rust ${RUST_HOME} ${RUST_HOME}
 
 
-RUN git config --global --add safe.directory /opt/flutter
+RUN git config --global --add safe.directory ${FLUTTER_ROOT}
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
  && flutter doctor
 
 
-# Jenkins user Ownership + Git safe.directory
-RUN chown -R 2000:2000 /opt/flutter
-RUN chown -R 2000:2000 /opt/rust
-RUN chown -R 2000:2000 /opt/android
-RUN git config --system --add safe.directory /opt/flutter
+# Jenkins user Ownership
+RUN chown -R 2000:2000 ${FLUTTER_ROOT}
+RUN chown -R 2000:2000 ${RUST_HOME}
+RUN chown -R 2000:2000 ${ANDROID_ROOT}
+RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 
 # Create writable HOME for Jenkins user
-RUN mkdir -p /home/jenkins \
- && chown -R 2000:2000 /home/jenkins
+RUN mkdir -p ${HOME} \
+ && chown -R 2000:2000 ${HOME}
 
+# Git safe.director
+RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 
 # Standard Jenkins User für Builds
 USER 2000
