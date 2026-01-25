@@ -639,8 +639,8 @@ pipeline {
                         echo "RUSTUP_HOME=$RUSTUP_HOME"
                         echo "Listing CARGO_HOME:"
                         ls -la "$CARGO_HOME" || true
-                        echo "Searching for cargo:"
-                        find /opt/rust -name cargo -type f 2>/dev/null || true
+                        echo "Searching for cargo on filesystem (this may take a few seconds)..."
+                        find / -type f -name cargo 2>/dev/null | head -n 20
 
                         section "Toolchain availability"
                         check command -v flutter
