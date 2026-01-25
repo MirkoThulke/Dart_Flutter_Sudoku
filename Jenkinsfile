@@ -412,7 +412,8 @@ pipeline {
         // Static paths 
 
         // Flutter build container
-        FLUTTER_IMAGE = 'localhost/flutter_rust_env:latest'
+        FLUTTER_IMAGE       = 'localhost/flutter_rust_env:latest'
+        FLUTTER_IMAGE_PULL  = 'mirkoth/flutter_rust_env:latest'
 
 
         // Host mount paths
@@ -444,8 +445,25 @@ pipeline {
         stage('Prepare Flutter Image') {
             steps {
                 script {
-                    // Tag the locally pulled/built image to localhost
-                    sh 'docker tag mirkoth/flutter_rust_env:latest localhost/flutter_rust_env:latest'
+                    insideFlutterContainerRootUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                    sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+
+                        # Tag the locally pulled/built image to localhost
+                        docker tag ${FLUTTER_IMAGE_PULL} ${FLUTTER_IMAGE}
+
+                        docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
+                            echo "PATH=\$PATH"
+                            command -v java
+                            command -v flutter
+                            command -v cargo
+                            command -v sdkmanager
+                        '
+                    """
+                    }
                 }
             }
         }
@@ -633,14 +651,6 @@ pipeline {
                         check test -d "\${CONTAINER_CACHE}"
                         check test -w "\${CONTAINER_CACHE}"
                         echo "✅ Workspace & cache are mounted and writable"
-
-                        section "Rust specific Toolchain dirs"
-                        echo "CARGO_HOME=$CARGO_HOME"
-                        echo "RUSTUP_HOME=$RUSTUP_HOME"
-                        echo "Listing CARGO_HOME:"
-                        ls -la "$CARGO_HOME" || true
-                        echo "Searching for cargo on filesystem (this may take a few seconds)..."
-                        find / -type f -name cargo 2>/dev/null | head -n 20
 
                         section "Toolchain availability"
                         check command -v flutter

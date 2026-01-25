@@ -136,45 +136,91 @@
 
 
 # ============================================================
+# Base stage (ENV definitions)
+# ============================================================
+# ============================================================
 # Global Build Arguments
 #   Use ARG for build-time configuration (like versions of Java, Flutter, SDK tools).
+#   ARG values on top-level are default values for all stages, but values are not inherited inside the stages.
+#   ARG values are not available inside stage unless re-declared explicitly !
 #   Use ENV for runtime configuration (like paths, SDK roots, API keys for running container, PATH additions).
 # ============================================================
 
+# ============================================================
+#   Stage	            Base image	            Why
+# ============================================================
+#   env	                ubuntu:22.04	        Defines ENV only
+#   base	            env	                    Adds system packages
+#   android	            base	                Adds Android SDK
+#   flutter	            android	                Needs Android SDK + system + ENV
+#   rust	            base	                Needs system packages + ENV
+# ============================================================
 
-ARG JAVA_VERSION=17
+FROM ubuntu:22.04 AS env
+
+
+# VERSIONS
+ENV JAVA_VERSION=17
 
 # check for updates on https://developer.android.com/studio#command-line-tools-only
-ARG ANDROID_SDK_TOOLS_VERSION=13114758
+ENV ANDROID_SDK_TOOLS_VERSION=13114758
 
-ARG FLUTTER_VERSION=3.35.7
-ARG RUST_VERSION=1.91.1
+ENV FLUTTER_VERSION=3.35.7
+ENV RUST_VERSION=1.91.1
 
-ARG NDK_MAIN=28.2.13676358
-ARG CMAKE_MAIN=3.22.1
-ARG COMPILE_SDK_BACKUP=34
-ARG COMPILE_SDK=34
-ARG BUILD_TOOLS_BACKUP=34.0.0
-ARG BUILD_TOOLS=34.0.0
+ENV NDK_MAIN=28.2.13676358
+ENV CMAKE_MAIN=3.22.1
+ENV COMPILE_SDK_BACKUP=34
+ENV COMPILE_SDK=34
+ENV BUILD_TOOLS_BACKUP=34.0.0
+ENV BUILD_TOOLS=34.0.0
 
-ARG BUILD_MODE=ci
 
-ARG ANDROID_SDK_ROOT=/opt/android/sdk
-ARG RUSTUP_HOME=/opt/rust/rustup
-ARG CARGO_HOME=/opt/rust/cargo
-ARG FLUTTER_ROOT=/opt/flutter
+# PATHS
+ENV ANDROID_SDK_ROOT=/opt/android/sdk
+ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
+ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
+ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
+
+ENV RUSTUP_HOME=/opt/rust/rustup
+ENV CARGO_HOME=/opt/rust/cargo
+ENV FLUTTER_ROOT=/opt/flutter
+
+ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
+
+# JENKINS
+ENV HOME=/home/jenkins
+ENV XDG_CONFIG_HOME=/home/jenkins/.config
+ENV XDG_CACHE_HOME=/home/jenkins/.cache
+
+#OTHER OPTOIONS
+ENV FLUTTER_SUPPRESS_ANALYTICS=true
+ENV FLUTTER_ALLOW_ROOT=true
+
+ENV JAVA_TOOL_OPTIONS="-Dhttps.protocols=TLSv1.2"
+ENV _JAVA_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
+ENV BUILD_MODE=ci
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
+
+# PATH additions : 
+# ${JAVA_HOME}/bin
+# ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
+# ${FLUTTER_ROOT}/bin
+# ${FLUTTER_ROOT}/bin/cache/dart-sdk/bin
+# $CARGO_HOME/bin
+# ${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${CARGO_HOME}/bin:${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
+
 
 # ============================================================
 # Stage: base
 # ============================================================
 
-FROM ubuntu:22.04 AS base
-
-ARG JAVA_VERSION
-ARG ANDROID_SDK_ROOT
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
+FROM env AS base
 
 # Essential + 32-bit libraries
 RUN dpkg --add-architecture i386 \
@@ -186,8 +232,6 @@ RUN dpkg --add-architecture i386 \
       libc6:i386 libncurses6:i386 libstdc++6:i386 zlib1g:i386 \
       lib32z1 lib32ncurses6 lib32stdc++6 \
  && rm -rf /var/lib/apt/lists/*
-
-
 
 # Java
 RUN apt-get update \
@@ -204,27 +248,6 @@ RUN mkdir -p ${ANDROID_SDK_ROOT}
 # ============================================================
 
 FROM base AS android
-
-
-ARG ANDROID_SDK_TOOLS_VERSION
-ARG ANDROID_SDK_ROOT
-ARG COMPILE_SDK_BACKUP
-ARG COMPILE_SDK
-ARG BUILD_TOOLS_BACKUP
-ARG BUILD_TOOLS
-ARG NDK_MAIN
-ARG CMAKE_MAIN
-ARG JAVA_VERSION
-
-ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
-ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
-
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
-
-ENV JAVA_TOOL_OPTIONS="-Dhttps.protocols=TLSv1.2"
-ENV _JAVA_OPTIONS="-Djava.net.preferIPv4Stack=true"
-
 
 # Retry helper
 RUN printf '#!/bin/bash\nset -e\nfor i in 1 2 3; do "$@" && exit 0 || sleep $((i*10)); done; exit 1\n' \
@@ -274,12 +297,6 @@ RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
 
 FROM android AS flutter
 
-ARG FLUTTER_VERSION
-
-ENV FLUTTER_ROOT=/opt/flutter
-ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
-ENV FLUTTER_SUPPRESS_ANALYTICS=true
-
 # Download Flutter SDK tarball
 RUN set -eux; \
     cd /opt; \
@@ -300,21 +317,15 @@ RUN flutter config --no-analytics \
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
+
 # ============================================================
 # Stage: rust
 # ============================================================
 
 FROM base AS rust
 
-# Set installation paths
-
-ARG RUSTUP_HOME
-ARG CARGO_HOME
-ARG RUST_VERSION
-
-ENV RUSTUP_HOME=${RUSTUP_HOME}
-ENV CARGO_HOME=${CARGO_HOME}
-ENV PATH="$CARGO_HOME/bin:$PATH"
+# Sanity check
+RUN echo "RUSTUP_HOME=$RUSTUP_HOME" && echo "CARGO_HOME=$CARGO_HOME"
 
 # Install Rust and Cargo into /opt/rust
 RUN mkdir -p /opt/rust && \
@@ -332,8 +343,6 @@ RUN mkdir -p /opt/rust && \
 
 FROM base AS chrome
 
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
-
 RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
  | gpg --dearmor -o /usr/share/keyrings/google.gpg \
  && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
@@ -348,50 +357,7 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
 # Stage: final
 # ============================================================
 
-FROM ubuntu:22.04 AS final
-
-ARG ANDROID_SDK_TOOLS_VERSION
-ARG COMPILE_SDK_BACKUP
-ARG COMPILE_SDK
-ARG BUILD_TOOLS_BACKUP
-ARG BUILD_TOOLS
-ARG NDK_MAIN
-ARG CMAKE_MAIN
-ARG JAVA_VERSION
-ARG RUST_VERSION
-ARG FLUTTER_VERSION
-
-ARG ANDROID_SDK_ROOT
-ARG FLUTTER_ROOT
-ARG RUSTUP_HOME
-ARG CARGO_HOME
-
-ARG BUILD_MODE=ci
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-ENV FLUTTER_SUPPRESS_ANALYTICS=true
-ENV FLUTTER_ALLOW_ROOT=true
-
-ENV FLUTTER_ROOT=${FLUTTER_ROOT}
-ENV RUSTUP_HOME=${RUSTUP_HOME}
-ENV CARGO_HOME=${CARGO_HOME}
-
-ENV ANDROID_HOME=${ANDROID_SDK_ROOT}
-ENV ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT}
-ENV SDKMANAGER=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager
-ENV ANDROID_NDK_HOME=${ANDROID_SDK_ROOT}/ndk/${NDK_MAIN}
-
-
-ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
-ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
-
-
-ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${PATH}"
-ENV PATH="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
-ENV PATH="${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${PATH}"
-ENV PATH="$CARGO_HOME/bin:$PATH"
-
+FROM base AS final
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -439,15 +405,28 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN mkdir -p /home/jenkins \
  && chown -R 2000:2000 /home/jenkins
 
-ENV HOME=/home/jenkins
-ENV XDG_CONFIG_HOME=/home/jenkins/.config
-ENV XDG_CACHE_HOME=/home/jenkins/.cache
 
 # Standard Jenkins User für Builds
 USER 2000
 
 # Final Flutter materialization (correct UID + HOME)
 RUN flutter precache --android --force
+
+# Final sanity checks
+RUN echo "PATH=$PATH" \
+ && echo "Checking binaries:" \
+ && command -v java \
+ && command -v flutter \
+ && command -v cargo \
+ && command -v rustup \
+ && command -v sdkmanager
+
+RUN echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" \
+ && echo "FLUTTER_ROOT=$FLUTTER_ROOT" \
+ && echo "CARGO_HOME=$CARGO_HOME" \
+ && echo "RUSTUP_HOME=$RUSTUP_HOME" \
+ && echo "JAVA_HOME=$JAVA_HOME" \
+ && echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
 
 WORKDIR /app
 CMD ["/bin/bash"]
