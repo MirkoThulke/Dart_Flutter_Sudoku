@@ -308,6 +308,8 @@ RUN set -eux; \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
+# Make Flutter git repo safe for root (system-wide)
+RUN git config --system --add safe.directory /opt/flutter
 
 # Pre-cache Flutter artifacts
 RUN flutter config --no-analytics \
@@ -407,8 +409,7 @@ RUN chown -R 2000:2000 ${ANDROID_ROOT}
 RUN mkdir -p ${HOME} \
  && chown -R 2000:2000 ${HOME}
 
-# Git safe.director
-RUN git config --system --add safe.directory ${FLUTTER_ROOT}
+
 
 # Standard Jenkins User für Builds
 USER 2000
