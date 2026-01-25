@@ -470,6 +470,7 @@ pipeline {
                     # Rust / Android FFI
                     # Toolchains
                     # Scripts (repo relative)
+                    # "PATH=${env.PATH}" !!
                 */
 
                 containerEnv = [
@@ -504,6 +505,8 @@ pipeline {
                 "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
                 "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts"
+
+                "PATH=${env.PATH}"
                 ]
 
                 }
