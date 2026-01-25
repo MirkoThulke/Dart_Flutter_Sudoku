@@ -634,6 +634,14 @@ pipeline {
                         check test -w "\${CONTAINER_CACHE}"
                         echo "✅ Workspace & cache are mounted and writable"
 
+                        section "Rust specific Toolchain dirs"
+                        echo "CARGO_HOME=$CARGO_HOME"
+                        echo "RUSTUP_HOME=$RUSTUP_HOME"
+                        echo "Listing CARGO_HOME:"
+                        ls -la "$CARGO_HOME" || true
+                        echo "Searching for cargo:"
+                        find /opt/rust -name cargo -type f 2>/dev/null || true
+
                         section "Toolchain availability"
                         check command -v flutter
                         check command -v dart
