@@ -392,7 +392,8 @@ COPY --from=chrome ${GOOGLE_ROOT} ${GOOGLE_ROOT}
 # Copy from Rust stage to final image (cargo and rustup)
 COPY --from=rust ${RUST_HOME} ${RUST_HOME}
 
-
+# Make Flutter git repo safe for root (system-wide)
+RUN git config --system --add safe.directory /opt/flutter
 
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
