@@ -308,8 +308,6 @@ RUN set -eux; \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
-# Allow flutter git repo to run as root
-RUN git config --global --add safe.directory /opt/flutter
 
 # Pre-cache Flutter artifacts
 RUN flutter config --no-analytics \
