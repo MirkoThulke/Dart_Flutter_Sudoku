@@ -393,7 +393,7 @@ COPY --from=chrome ${GOOGLE_ROOT} ${GOOGLE_ROOT}
 COPY --from=rust ${RUST_HOME} ${RUST_HOME}
 
 
-RUN git config --global --add safe.directory ${FLUTTER_ROOT}
+
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
  && yes | flutter doctor --android-licenses \
  && flutter doctor
@@ -403,7 +403,7 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
 RUN chown -R 2000:2000 ${FLUTTER_ROOT}
 RUN chown -R 2000:2000 ${RUST_HOME}
 RUN chown -R 2000:2000 ${ANDROID_ROOT}
-RUN git config --system --add safe.directory ${FLUTTER_ROOT}
+
 
 # Create writable HOME for Jenkins user
 RUN mkdir -p ${HOME} \
