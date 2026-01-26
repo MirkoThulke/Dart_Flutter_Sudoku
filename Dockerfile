@@ -62,6 +62,8 @@
 #  docker buildx prune --all --force
 #  docker system prune -af --volumes
 #  docker builder prune -af
+#  docker builder prune -f  #Does not remove images !!
+#  docker image prune -f  # Does not remove containers !!
 #
 # enter the docker container interactively:
 #   docker run -it --rm -v /home/mirko/sudoku:/app flutter_rust_env /bin/bash

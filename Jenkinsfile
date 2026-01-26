@@ -445,28 +445,33 @@ pipeline {
         stage('Prepare Flutter Image') {
             steps {
                 script {
-                    insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        # Tag the locally pulled/built image to localhost
+                        echo "== Verifying base image =="
+                        docker inspect ${FLUTTER_IMAGE_PULL}
+
+                        echo "== Tagging image for local use =="
                         docker tag ${FLUTTER_IMAGE_PULL} ${FLUTTER_IMAGE}
 
+                        echo "== Verifying tagged image =="
+                        docker inspect ${FLUTTER_IMAGE}
+
+                        echo "== Smoke test image =="
                         docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
+                            set -e
                             echo "PATH=\$PATH"
                             command -v java
                             command -v flutter
                             command -v cargo
                             command -v sdkmanager
+                            flutter --version
                         '
                     """
-                    }
                 }
             }
         }
+
 
         stage('Setup Env') {
             steps {
