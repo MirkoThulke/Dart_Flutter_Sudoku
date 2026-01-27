@@ -319,6 +319,13 @@ RUN flutter config --no-analytics \
     --android \
     --force
 
+# Materialize Android engine AARs !!
+RUN flutter config --android-sdk ${ANDROID_SDK_ROOT}
+RUN flutter create /tmp/flutter_dummy \
+ && cd /tmp/flutter_dummy \
+ && flutter build apk --debug --no-shrink \
+ && rm -rf /tmp/flutter_dummy
+
 # Verify Android artifacts are present
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
@@ -417,8 +424,6 @@ RUN mkdir -p ${HOME} \
 # Standard Jenkins User für Builds
 USER 2000
 
-# Final Flutter materialization (correct UID + HOME)
-RUN flutter precache --android --force
 
 # Final sanity checks
 RUN echo "PATH=$PATH" \
