@@ -303,6 +303,7 @@ RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
 
 FROM android AS flutter
 
+
 # Download Flutter SDK tarball
 RUN set -eux; \
     cd /opt; \
@@ -313,21 +314,19 @@ RUN set -eux; \
 # Make Flutter git repo safe for root (system-wide)
 RUN git config --system --add safe.directory /opt/flutter
 
-# Pre-cache Flutter artifacts
-RUN flutter config --no-analytics \
- && flutter precache \
-    --android \
-    --force
+# Tell Flutter where Android SDK is
+RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
-# Materialize Android engine AARs !!
-RUN flutter config --android-sdk ${ANDROID_SDK_ROOT}
-RUN flutter create /tmp/flutter_dummy \
- && cd /tmp/flutter_dummy \
- && flutter build apk --debug --no-shrink \
- && rm -rf /tmp/flutter_dummy
+# Pre-cache Flutter engine binaries
+RUN flutter precache --android --force
 
-# Verify Android artifacts are present
-RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
+# Materialize Android engine AARs into local Maven repo !!
+RUN flutter build aar --debug
+RUN flutter build aar --release
+
+# Hard guards (fail fast if something is missing)
+RUN test -d /opt/flutter/bin/cache/artifacts/engine/android/maven/io/flutter \
+ && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
@@ -401,12 +400,11 @@ COPY --from=chrome ${GOOGLE_ROOT} ${GOOGLE_ROOT}
 # Copy from Rust stage to final image (cargo and rustup)
 COPY --from=rust ${RUST_HOME} ${RUST_HOME}
 
-# Make Flutter git repo safe for root (system-wide)
+# Make Flutter git repo safe for root
 RUN git config --system --add safe.directory /opt/flutter
 
-RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics \
- && yes | flutter doctor --android-licenses \
- && flutter doctor
+# Final sanity check (no downloads)
+RUN flutter doctor --verbose
 
 
 # Jenkins user Ownership
@@ -418,7 +416,6 @@ RUN chown -R 2000:2000 ${ANDROID_ROOT}
 # Create writable HOME for Jenkins user
 RUN mkdir -p ${HOME} \
  && chown -R 2000:2000 ${HOME}
-
 
 
 # Standard Jenkins User für Builds
