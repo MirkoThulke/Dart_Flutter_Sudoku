@@ -419,6 +419,14 @@ RUN mkdir -p ${HOME} \
 USER 2000
 
 
+# Generates both debug + release AARs !!
+RUN flutter create /tmp/flutter_dummy \
+ && cd /tmp/flutter_dummy \
+ && flutter build apk --debug --no-shrink \
+ && flutter build apk --release --no-shrink \
+ && rm -rf /tmp/flutter_dummy
+
+
 # Final sanity checks
 RUN echo "PATH=$PATH" \
  && echo "Checking binaries:" \
