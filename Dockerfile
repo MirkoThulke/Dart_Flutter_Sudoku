@@ -320,15 +320,12 @@ RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 # Pre-cache Flutter engine binaries
 RUN flutter precache --android --force
 
-# Materialize Android engine AARs into local Maven repo !!
-RUN flutter build aar --debug
-RUN flutter build aar --release
 
-# Hard guards (fail fast if something is missing)
-RUN test -d /opt/flutter/bin/cache/artifacts/engine/android/maven/io/flutter \
- && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
+# # Hard guards (APK-relevant only) (fail fast if something is missing)
+RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
+
 
 # ============================================================
 # Stage: rust
