@@ -317,15 +317,20 @@ RUN git config --system --add safe.directory /opt/flutter
 # Tell Flutter where Android SDK is
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
+# Switch to Jenkins UID before precache
+USER 2000
+
 # Pre-cache Flutter engine binaries
 RUN flutter precache --android --force
 
 
-# # Hard guards (APK-relevant only) (fail fast if something is missing)
+# Hard guards (APK-relevant only) (fail fast if something is missing)
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
+ # Final sanity check
+RUN flutter doctor -v
 
 # ============================================================
 # Stage: rust
