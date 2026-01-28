@@ -317,6 +317,10 @@ RUN git config --system --add safe.directory /opt/flutter
 # Tell Flutter where Android SDK is
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
+
+# Make Flutter folder writable by Jenkins user
+RUN chown -R 2000:2000 /opt/flutter
+
 # Switch to Jenkins UID before precache
 USER 2000
 
