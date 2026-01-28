@@ -412,9 +412,8 @@ pipeline {
         // Static paths 
 
         // Flutter build container
-        FLUTTER_IMAGE       = 'localhost/flutter_rust_env:latest'
         FLUTTER_IMAGE_PULL  = 'mirkoth/flutter_rust_env:latest'
-
+        FLUTTER_IMAGE       = 'mirkoth/flutter_rust_env:latest'
 
         // Host mount paths
         HOST_CACHE         = '/home/mirko/jenkins_host_cache'
@@ -451,14 +450,10 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
+                        docker pull ${FLUTTER_IMAGE_PULL}
+
                         echo "== Verifying base image =="
                         docker inspect ${FLUTTER_IMAGE_PULL}
-
-                        echo "== Tagging image for local use =="
-                        docker tag ${FLUTTER_IMAGE_PULL} ${FLUTTER_IMAGE}
-
-                        echo "== Verifying tagged image =="
-                        docker inspect ${FLUTTER_IMAGE}
 
                         echo "== Smoke test image =="
                         docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
@@ -552,19 +547,17 @@ pipeline {
                     {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
-                        
-                        # mark Flutter repo safe
-                        git config --global --add safe.directory /opt/flutter
 
-                        # Optional verification
-                        flutter --version
 
                         # Create the required  directories inside the container
+
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
+
                         mkdir -p "\${CONTAINER_CACHE}"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
+
                         mkdir -p "\$HOME/.config/flutter"
 
                         mkdir -p "\$XDG_CONFIG_HOME/flutter"
@@ -574,11 +567,13 @@ pipeline {
                         chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
 
 
+
                         # Optional: verify the directories
                         echo "inside container:"
                         ls -la "\${CONTAINER_WORKSPACE}"
                         ls -la "\${CONTAINER_CACHE}"
                         ls -la "\$HOME/.config"
+
 
                         # Optional: Run Flutter to verify it's all good
                         flutter --version
