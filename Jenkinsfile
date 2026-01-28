@@ -429,9 +429,12 @@ pipeline {
         CARGO_HOME         = '/opt/rust/cargo'
         RUST_CARGO_DIR     = '/opt/rust/cargo/bin'
 
-        ANDROID_SDK_ROOT   = '/opt/android/sdk'
-        ANDROID_NDK_HOME   = '/opt/android/sdk/ndk/28.2.13676358'
+        ANDROID_SDK_ROOT                        = '/opt/android/sdk'
+        ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL = 'true'
+
+        ANDROID_NDK_HOME          = '/opt/android/sdk/ndk/28.2.13676358'
         ANDROID_NDK_TOOLCHAIN_DIR = '/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin'
+
 
         // Gradle options
         GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dorg.gradle.vfs.watch=false -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Xmx1536m -Xms512m"
@@ -521,7 +524,10 @@ pipeline {
                 "RUSTUP_HOME=${env.RUSTUP_HOME}",
                 "CARGO_HOME=${env.CARGO_HOME}",
                 "RUST_CARGO_DIR=${env.RUST_CARGO_DIR}",
+
                 "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
+                "ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL=${env.ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL}",
+
                 "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
                 "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
 
@@ -936,15 +942,13 @@ pipeline {
                               --debug \
                               --ci \
                               --no-shrink \
-                              --no-android-sdk-update \
                               --verbose
-        
+
                             # Release artifacts
                             flutter build apk \
                               --release \
                               --ci \
                               --no-shrink \
-                              --no-android-sdk-update \
                               --verbose
 
                         """
