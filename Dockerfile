@@ -318,6 +318,12 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
 
+# Create writable HOME and Flutter cache for Jenkins user
+RUN mkdir -p /home/jenkins \
+    /home/jenkins/.pub-cache \
+    /home/jenkins/.config/flutter \
+ && chown -R 2000:2000 /home/jenkins
+
 # Make Flutter folder writable by Jenkins user
 RUN chown -R 2000:2000 /opt/flutter
 
