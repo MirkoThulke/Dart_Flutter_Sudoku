@@ -931,7 +931,22 @@ pipeline {
 
                             flutter pub get
 
-                            flutter build apk --debug --ci --verbose --prefixed-errors --no-shrink
+                            # Debug artifacts
+                            flutter build apk \
+                              --debug \
+                              --ci \
+                              --no-shrink \
+                              --no-android-sdk-update \
+                              --verbose
+        
+                            # Release artifacts
+                            flutter build apk \
+                              --release \
+                              --ci \
+                              --no-shrink \
+                              --no-android-sdk-update \
+                              --verbose
+
                         """
                     }
                 }
