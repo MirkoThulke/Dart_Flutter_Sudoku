@@ -450,7 +450,7 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        docker pull ${FLUTTER_IMAGE_PULL}
+                        # docker pull ${FLUTTER_IMAGE_PULL}
 
                         echo "== Verifying base image =="
                         docker inspect ${FLUTTER_IMAGE_PULL}
