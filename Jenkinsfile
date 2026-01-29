@@ -953,33 +953,35 @@ pipeline {
         }
 
 
-        stage('Gradle Deep Diagnostics') {
-
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-                        cd android
-
-                        ./gradlew -version
-                        ./gradlew help \
-                        --stacktrace \
-                        --info \
-                        --warning-mode=all \
-                        --no-daemon
-
-                        ./gradlew buildEnvironment
-                    """
-                    }
-                }
+        stage('Flutter Deep Diagnostics') {
+          steps {
+            script {
+              insideFlutterContainerJenkinsUser(
+                "${WORKSPACE}/jenkins_container_workspace",
+                "${WORKSPACE}/jenkins_container_cache") 
+              {
+                sh """#!/usr/bin/env bash
+                  set -Eeuo pipefail
+        
+                  cd android
+        
+                  echo "Flutter version:"
+                  flutter --version
+        
+                  echo "Flutter doctor:"
+                  flutter doctor -v
+        
+                  echo "Dependencies:"
+                  flutter pub get
+        
+                  echo "Verbose build:"
+                  flutter build apk --debug --verbose
+                """
+              }
             }
+          }
         }
+
 
 
         stage('Validate Repo Structure') {
