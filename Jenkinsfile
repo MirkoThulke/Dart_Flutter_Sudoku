@@ -859,9 +859,6 @@ pipeline {
                         # Fix ownership
                         chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
 
-                        # Precache Flutter artifacts
-                        flutter precache --android --force
-
                         echo "✅ Deep Clean LIGHT completed"
                     """
                     }
@@ -909,9 +906,6 @@ pipeline {
 
                         # Fix ownership
                         chown -R 2000:2000 \${WORKSPACE} \${CONTAINER_CACHE} || true
-
-                        # Precache Flutter artifacts
-                        flutter precache --android --force
 
                         echo "✅ Deep Clean FULL completed"
                     """
@@ -962,7 +956,6 @@ pipeline {
 
                             ls -ld $CONTAINER_CACHE $CONTAINER_WORKSPACE
                             ls -l $CONTAINER_CACHE/.pub-cache
-                            ls -l $CONTAINER_WORKSPACE/android/build
 
 
                             flutter pub get
@@ -980,6 +973,7 @@ pipeline {
                               --ci \
                               --no-shrink \
                               --verbose
+
 
                         """
                     }
