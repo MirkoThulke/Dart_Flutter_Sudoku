@@ -859,6 +859,9 @@ pipeline {
                         # Fix ownership
                         chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
 
+                        # Precache Flutter artifacts
+                        flutter precache --android --force
+
                         echo "✅ Deep Clean LIGHT completed"
                     """
                     }
@@ -907,9 +910,35 @@ pipeline {
                         # Fix ownership
                         chown -R 2000:2000 \${WORKSPACE} \${CONTAINER_CACHE} || true
 
+                        # Precache Flutter artifacts
+                        flutter precache --android --force
+
                         echo "✅ Deep Clean FULL completed"
                     """
                     }
+                }
+            }
+        }
+
+
+        stage('Flutter Precache after Deep Clean (Optional)') {
+            when { 
+                expression { params.DEEP_CLEAN_LIGHT || params.DEEP_CLEAN_FULL } 
+            }
+            // use Root agent to have permissions to delete all files
+            steps {
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}/jenkins_container_cache")
+                        {
+                            sh """#!/usr/bin/env bash
+
+                            set -Eeuo pipefail
+
+                            flutter precache --android --force
+                        """
+                        }
                 }
             }
         }
@@ -929,6 +958,12 @@ pipeline {
 
                             # temporary
                             ls -ld "\${GRADLE_USER_HOME}"
+
+
+                            ls -ld $CONTAINER_CACHE $CONTAINER_WORKSPACE
+                            ls -l $CONTAINER_CACHE/.pub-cache
+                            ls -l $CONTAINER_WORKSPACE/android/build
+
 
                             flutter pub get
 
