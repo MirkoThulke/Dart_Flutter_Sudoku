@@ -915,7 +915,7 @@ pipeline {
         }
 
 
-        stage('Flutter Precache after Deep Clean (Optional)') {
+        stage('Flutter → Android Materialization I (Only after Deep Clean): Precache + aar build') {
             when { 
                 expression { params.DEEP_CLEAN_LIGHT || params.DEEP_CLEAN_FULL } 
             }
@@ -931,6 +931,8 @@ pipeline {
                             set -Eeuo pipefail
 
                             flutter precache --android --force
+
+                            flutter build aar
                         """
                         }
                 }
@@ -939,7 +941,7 @@ pipeline {
 
 
 
-        stage('Flutter → Android Materialization') {
+        stage('Flutter → Android Materialization II') {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
