@@ -932,7 +932,6 @@ pipeline {
 
                             flutter precache --android --force
 
-                            flutter build aar
                         """
                         }
                 }
@@ -952,6 +951,8 @@ pipeline {
 
                             set -Eeuo pipefail
 
+                            flutter pub get
+
                             # temporary
                             ls -ld "\${GRADLE_USER_HOME}"
 
@@ -959,8 +960,6 @@ pipeline {
                             ls -ld $CONTAINER_CACHE $CONTAINER_WORKSPACE
                             ls -l $CONTAINER_CACHE/.pub-cache
 
-
-                            flutter pub get
 
                             # Debug artifacts
                             flutter build apk \
