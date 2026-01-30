@@ -891,7 +891,14 @@ pipeline {
                             flutter precache --android --force
 
                             # Generate all JNI artifacts. Use them in release build later.
-                            flutter build apk --debug --no-build-cache --no-shrink
+                            flutter build apk \
+                            --debug \
+                            --ci \
+                            --no-shrink \
+                            --verbose \
+                            -- \
+                            --no-build-cache \
+                            --no-daemon
 
                         """
                         }
