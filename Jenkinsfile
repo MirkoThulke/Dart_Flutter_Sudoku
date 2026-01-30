@@ -886,7 +886,12 @@ pipeline {
 
                             set -Eeuo pipefail
 
+                            flutter pub get
+
                             flutter precache --android --force
+
+                            # Generate all JNI artifacts. Use them in release build later.
+                            flutter build apk --debug --no-build-cache --no-shrink
 
                         """
                         }
@@ -909,14 +914,6 @@ pipeline {
 
                             flutter pub get
 
-                            # temporary
-                            ls -ld "\${GRADLE_USER_HOME}"
-
-
-                            ls -ld $CONTAINER_CACHE $CONTAINER_WORKSPACE
-                            ls -l $CONTAINER_CACHE/.pub-cache
-
-
                             # Debug artifacts
                             flutter build apk \
                               --debug \
@@ -930,7 +927,6 @@ pipeline {
                               --ci \
                               --no-shrink \
                               --verbose
-
 
                         """
                     }
