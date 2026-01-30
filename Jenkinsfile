@@ -359,6 +359,65 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
     }
 }
 
+// Helper function : shared cleanup function (Groovy) + parametrize behavior
+def flutterClean(Map opts = [:]) {
+    boolean deep      = opts.get('deep', false)
+    boolean veryDeep  = opts.get('veryDeep', false)
+
+    insideFlutterContainerRootUser(
+        "${env.WORKSPACE}/jenkins_container_workspace",
+        "${env.WORKSPACE}/jenkins_container_cache"
+    ) {
+        sh """#!/usr/bin/env bash
+            set -Eeuo pipefail
+
+            echo "🧹 Flutter clean (deep=${deep}, veryDeep=${veryDeep})"
+
+            # ----------------------------------------
+            # Always-clean (safe)
+            # ----------------------------------------
+            rm -rf \
+              ${FLUTTER_BUILD_DIRS_1} \
+              ${FLUTTER_BUILD_DIRS_2} \
+              ${FLUTTER_BUILD_DIRS_3} \
+              ${FLUTTER_BUILD_DIRS_4}
+
+            rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+
+            if [ -d "${RUST_PROJECT_DIR}" ]; then
+              cd "${RUST_PROJECT_DIR}"
+              cargo clean
+            fi
+
+            # ----------------------------------------
+            # Deep clean
+            # ----------------------------------------
+            if [ "${deep}" = "true" ]; then
+              rm -rf \
+                ${GRADLE_USER_HOME}/daemon \
+                ${PUB_CACHE}/hosted \
+                ${FLUTTER_ROOT}/bin/cache/artifacts \
+                ${FLUTTER_ROOT}/bin/cache/downloads
+            fi
+
+            # ----------------------------------------
+            # Very deep clean
+            # ----------------------------------------
+            if [ "${veryDeep}" = "true" ]; then
+              rm -rf \
+                ${GRADLE_USER_HOME}/caches \
+                ${PUB_CACHE}/git
+            fi
+
+            # ----------------------------------------
+            # Ownership fix
+            # ----------------------------------------
+            chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+
+            echo "✅ Flutter clean done"
+        """
+    }
+}
 
 
 
@@ -781,39 +840,8 @@ pipeline {
         stage('Clean Environment Flutter') {
             // use Root agent to have permissions to delete all files
             steps {
-                script {                
-                    insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                        echo "🧹 Cleaning Flutter build files"
-                        sh """#!/usr/bin/env bash
-
-                            set -Eeuo pipefail
-
-
-                            # Flutter / Gradle build artifacts
-                            rm -rf \${FLUTTER_BUILD_DIRS_1} \
-                                    \${FLUTTER_BUILD_DIRS_2} \
-                                    \${FLUTTER_BUILD_DIRS_3} \
-                                    \${FLUTTER_BUILD_DIRS_4}
-
-                            # Rust shared libraries
-                            rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
-
-                            # clean Rust target
-                            if [ -d "\${RUST_PROJECT_DIR}" ]; then
-                                echo "🧹 Cleaning Rust build targets..."
-                                cd "\${RUST_PROJECT_DIR}"
-                                cargo clean
-                            else
-                                echo "⚠️ Rust project not found, skipping Rust clean"
-                            fi
-
-                            # Fix ownership
-                            chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
-                        """
-                    }
+                script {
+                    flutterClean()
                 }
             }
         }
@@ -824,45 +852,10 @@ pipeline {
             // use Root agent to have permissions to delete all files
 
             steps {
-                script {                
-                    insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    echo "☢️ Deep Clean LIGHT enabled"
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-
-                        # Flutter / Gradle caches
-                        rm -rf \${GRADLE_USER_HOME}/caches/modules-* \
-                               \${GRADLE_USER_HOME}/daemon \
-                               \${PUB_CACHE}/hosted \
-                               \${FLUTTER_ROOT}/bin/cache \
-                               \${FLUTTER_BUILD_DIRS_1} \
-                               \${FLUTTER_BUILD_DIRS_2} \
-                               \${FLUTTER_BUILD_DIRS_3} \
-                               \${FLUTTER_BUILD_DIRS_4}
-
-                        # Rust libraries
-                        rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
-                        # clean Rust target
-                        if [ -d "\${RUST_PROJECT_DIR}" ]; then
-                            echo "🧹 Cleaning Rust build targets..."
-                            cd "\${RUST_PROJECT_DIR}"
-                            cargo clean
-                        else
-                            echo "⚠️ Rust project not found, skipping Rust clean"
-                        fi
-
-                        # Fix ownership
-                        chown -R 2000:2000 \${CONTAINER_WORKSPACE} \${CONTAINER_CACHE} || true
-
-                        echo "✅ Deep Clean LIGHT completed"
-                    """
-                    }
+                script {
+                    flutterClean(deep: true)
                 }
+            
             }
         }
 
@@ -871,51 +864,14 @@ pipeline {
             when { expression { params.DEEP_CLEAN_FULL == true } }
             // use Root agent to have permissions to delete all files
             steps {
-                script {                
-                    insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    echo "☢️ Deep Clean FULL enabled"
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-
-                        # Flutter / Gradle caches
-                        rm -rf \${GRADLE_USER_HOME}/caches \
-                               \${GRADLE_USER_HOME}/daemon \
-                               \${PUB_CACHE}/hosted \
-                               \${PUB_CACHE}/git \
-                               \${FLUTTER_ROOT}/bin/cache \
-                               \${FLUTTER_BUILD_DIRS_1} \
-                               \${FLUTTER_BUILD_DIRS_2} \
-                               \${FLUTTER_BUILD_DIRS_3} \
-                               \${FLUTTER_BUILD_DIRS_4}
-
-                        # Rust build targets + shared libraries
-                        rm -rf \${ANDROID_JNI_LIBS_DIR}/* || true
-                        # clean Rust target
-                        if [ -d "\${RUST_PROJECT_DIR}" ]; then
-                            echo "🧹 Cleaning Rust build targets..."
-                            cd "\${RUST_PROJECT_DIR}"
-                            cargo clean
-                        else
-                            echo "⚠️ Rust project not found, skipping Rust clean"
-                        fi
-
-                        # Fix ownership
-                        chown -R 2000:2000 \${WORKSPACE} \${CONTAINER_CACHE} || true
-
-                        echo "✅ Deep Clean FULL completed"
-                    """
-                    }
+                script {
+                    flutterClean(deep: true, veryDeep: true)
                 }
             }
         }
 
 
-        stage('Flutter → Android Materialization I (Only after Deep Clean): Precache + aar build') {
+        stage('Flutter → Android Materialization I (Only after Deep Clean): Precache') {
             when { 
                 expression { params.DEEP_CLEAN_LIGHT || params.DEEP_CLEAN_FULL } 
             }
