@@ -840,26 +840,33 @@ pipeline {
         - Build
         */
 
-        stage('Checkout') {
+       stage('Checkout') {
             steps {
                 // Clean workspace on host
                 cleanWs()
-
+        
                 script {
                     // Checkout happens in the host workspace
+                    checkout scm
+        
+                    // Then run inside container
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                            dir("${CONTAINER_WORKSPACE}") 
-                            {   // <-- ensure checkout goes here
-                            checkout scm
-                            }
+                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}/jenkins_container_cache"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+        
+                            cd \$CONTAINER_WORKSPACE
+        
+                            echo "Inside container workspace:"
+                            ls -la
+                        """
                     }
-                    
                 }
             }
         }
+
 
 
 
@@ -907,21 +914,18 @@ pipeline {
                     {
                         echo "🦀 Building Rust backend for Android (FFI)"
                         sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
+                        set -Eeuo pipefail
+
+                        echo "Inside container workspace:"
+                        ls -la ${CONTAINER_WORKSPACE}/rust
+                        
+                        # cd into Rust project
+                        cd ${CONTAINER_WORKSPACE}/rust/rust_lib
         
-                        if [ ! -d "${RUST_PROJECT_DIR}" ]; then
-                          echo "❌ Rust project not found at: ${RUST_PROJECT_DIR}"
-                          echo "📂 Available directories:"
-                              ls -la "${CONTAINER_WORKSPACE}"
-                              exit 1
-                            fi
+                        echo "🧹 Cleaning previous Rust build"
+                        cargo clean
         
-                        cd "\${RUST_PROJECT_DIR}"
-        
-                            echo "🧹 Cleaning previous Rust build"
-                            cargo clean
-        
-                            echo "⚙️ Building Rust libraries via cargo-ndk"
+                        echo "⚙️ Building Rust libraries via cargo-ndk"
                         cargo ndk \
                           -t armeabi-v7a \
                           -t arm64-v8a \
