@@ -916,6 +916,9 @@ pipeline {
                             # Restore Flutter engine + JNI libs
                             flutter precache --android --force
 
+                            # Verify engine artifacts exist
+                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine/android-* || exit 1
+
                             # DO NOT build APKs here
 
                         """
@@ -998,16 +1001,15 @@ pipeline {
                             set -Eeuo pipefail
 
                             flutter pub get
+                            
+                            echo "Engine cache check:"
+                            find \$FLUTTER_ROOT/bin/cache/artifacts/engine -maxdepth 2 -type d
 
                             flutter build apk \
                               --debug \
                               --ci \
                               --no-shrink \
-                              --verbose \
-                              -- \
-                              ${gradleDebugOpts}
-
-
+                              --verbose
                         """
                     }
                 }
@@ -1086,69 +1088,42 @@ pipeline {
                 script {
                     insideFlutterContainerJenkinsUser(
                         "${WORKSPACE}/jenkins_container_workspace",
-                        "${WORKSPACE}/jenkins_container_cache"
-                    ) {
-                        echo "Building ${params.BUILD_MODE.toUpperCase()} APK & AAB"
-
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-
-                            # Ensure dependencies
-                            flutter pub get
-
-                            # Set Gradle debug flags if requested
-                            GRADLE_OPTS_EXTRA=""
-                            if [ "${GRADLE_DEBUG}" = "true" ]; then
-                                GRADLE_OPTS_EXTRA="--stacktrace --info"
-                                echo "⚡ Gradle debug enabled: \$GRADLE_OPTS_EXTRA"
-                            fi
-
-                            # Only release builds are valid for Google Play
-                            if [ "${params.BUILD_MODE}" = "release" ]; then
-                                echo "🚀 Building release APK..."
-                                flutter build apk \
-                                  --release \
-                                  --ci \
-                                  --no-shrink \
-                                  --verbose \
-                                  -- \$GRADLE_OPTS_EXTRA
-
-                                echo "🚀 Building release AAB..."
-                                flutter build appbundle \
-                                  --release \
-                                  --ci \
-                                  --no-shrink \
-                                  --verbose \
-                                  -- \$GRADLE_OPTS_EXTRA
-
-                                # Copy artifacts to persistent folder
+                        "${WORKSPACE}/jenkins_container_cache") {
+                        
+                        def gradleDebug = params.GRADLE_DEBUG ? "--stacktrace --info" : ""
+        
+                        if (params.BUILD_MODE == 'release') {
+                            sh """
+                                set -Eeuo pipefail
+        
+                                echo "🚀 Building release APK/AAB"
+        
+                                flutter build apk --release --ci --no-shrink --verbose -- ${gradleDebug}
+                                flutter build appbundle --release --ci --no-shrink --verbose -- ${gradleDebug}
+        
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/release/*.apk build_outputs/ || true
                                 cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
-
-                                echo "✅ Release artifacts copied to build_outputs/"
-                            else
-                                echo "⚠️ Debug build requested — APK will be built for testing only"
-                                flutter build apk \
-                                  --debug \
-                                  --ci \
-                                  --no-shrink \
-                                  --verbose \
-                                  -- \$GRADLE_OPTS_EXTRA
-
+                            """
+                        } else {
+                            sh """
+                                set -Eeuo pipefail
+        
+                                echo "⚠️ Debug build"
+        
+                                flutter build apk --debug --ci --no-shrink --verbose -- ${gradleDebug}
+        
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/debug/*.apk build_outputs/ || true
-
-                                echo "✅ Debug APK copied to build_outputs/"
-                            fi
-                        """
-
-                        // Archive the outputs
+                            """
+                        }
+        
                         archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: false
                     }
                 }
             }
         }
+
 
 
         stage('Run Integration Tests') {
