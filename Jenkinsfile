@@ -842,8 +842,6 @@ pipeline {
 
        stage('Checkout') {
             steps {
-                // Clean workspace on host
-                cleanWs()
         
                 script {
                     // Checkout happens in the host workspace
