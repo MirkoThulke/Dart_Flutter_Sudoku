@@ -453,11 +453,6 @@ pipeline {
 
     }
 
-    def GRADLE_DEBUG_OPTS = ""
-
-    if (params.GRADLE_DEBUG) {
-        GRADLE_DEBUG_OPTS = "--debug --stacktrace --info"
-    }
 
     options {
         skipDefaultCheckout true
@@ -985,7 +980,12 @@ pipeline {
 
         stage('Flutter → Android Materialization II') {
             steps {
-                script {                
+                script {
+
+                    def gradleDebugOpts = params.GRADLE_DEBUG
+                    ? "--debug --stacktrace --info"
+                    : ""
+
                     insideFlutterContainerJenkinsUser(
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
@@ -1005,7 +1005,7 @@ pipeline {
                               --no-shrink \
                               --verbose \
                               -- \
-                              ${GRADLE_DEBUG_OPTS}
+                              ${gradleDebugOpts}
 
 
                         """
