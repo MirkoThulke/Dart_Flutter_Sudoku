@@ -443,7 +443,7 @@ pipeline {
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
         booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'DEEP CLEAN FULL for complete clean of all caches. RUNTIME high!!')
-        booleanParam(name: 'DEBUG_GRADLE', defaultValue: false, description: 'DEBUG GRADLE for debugging Gradle issues')
+        booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
 
         choice(
         name: 'BUILD_MODE',
@@ -451,6 +451,12 @@ pipeline {
         description: 'Choose build mode'
         )
 
+    }
+
+    def GRADLE_DEBUG_OPTS = ""
+
+    if (params.GRADLE_DEBUG) {
+        GRADLE_DEBUG_OPTS = "--debug --stacktrace --info"
     }
 
     options {
@@ -513,6 +519,7 @@ pipeline {
         // Gradle options
         GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dorg.gradle.vfs.watch=false -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Dgradle.download.retry=3 -Xmx1536m -Xms512m"
 
+
         // PATH definition (binaries only)
         PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
     }
@@ -555,13 +562,6 @@ pipeline {
                 env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
                 
-                env.GRADLE_DEBUG = params.DEBUG_GRADLE ? "true" : "false"
-
-                if (params.DEBUG_GRADLE) {
-                    env.GRADLE_DEBUG_OPTS = "--stacktrace --info"
-                } else {
-                    env.GRADLE_DEBUG_OPTS = ""
-                }
 
                 // Prepare ENV exports for child processes
                 /*
@@ -594,7 +594,7 @@ pipeline {
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
                 "RUST_PROJECT_DIR=${env.WORKSPACE}/rust/rust_lib",
-                
+
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
                 "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
@@ -611,9 +611,6 @@ pipeline {
                 "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
                 "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
-
-                "GRADLE_DEBUG=${env.GRADLE_DEBUG}",
-                "GRADLE_DEBUG_OPTS=${env.GRADLE_DEBUG_OPTS}",
 
                 "PATH=${env.PATH}"
                 ]
