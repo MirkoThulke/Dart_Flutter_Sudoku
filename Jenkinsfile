@@ -889,55 +889,6 @@ pipeline {
         }
 
 
-        stage('Flutter → Android Materialization I (Only after Deep Clean): Precache') {
-            // use Root agent to have permissions to delete all files
-            // Rules : 
-            //  - precache ≠ build
-            //  - debug build must happen once
-            //  - diagnostics must not build
-            //  - never rebuild debug after release
-            //  - if Gradle looks for io.flutter artifacts → engine cache is broken
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
-                        "${WORKSPACE}/jenkins_container_cache")
-                        {
-                            sh """#!/usr/bin/env bash
-
-                            set -Eeuo pipefail
-
-                            flutter pub get
-
-                            # Restore Flutter engine + JNI libs
-                            flutter precache --android --force
-
-                            echo "✅ Engine cache populated:"
-                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine
-                            # Verify engine artifacts exist
-                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine/android-* || exit 1
-
-                            # DO NOT build APKs here
-
-                        """
-                        }
-                }
-            }
-        }
-
-        /* 
-        Deep Clean
-        ↓
-        Materialization I (precache)
-        ↓
-        Build Rust (Android FFI)
-        ↓
-        Materialization II (debug warm-up)
-        ↓
-        Final Build 
-        */
-
-
         stage('Build Rust (Android FFI)') {
             steps {
                 script {                
@@ -991,6 +942,14 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
+                        // do:
+                        // flutter pub get
+                        // flutter precache --android
+                        // ONE flutter build apk --debug
+
+                        // Precache downloads bits.
+                        // A debug build wires Gradle.
+                        // Wiring must happen ONCE.
                         sh """#!/usr/bin/env bash
 
                             # debug triggers all engine + Gradle wiring
@@ -1000,10 +959,7 @@ pipeline {
 
                             flutter pub get
 
-                            # Precache if missing - Fail safe
-                            if [ ! -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/android-arm64" ]; then
-                                flutter precache --android --force
-                            fi
+                            flutter precache --android --force
 
                             echo "✅ Engine cache populated:"
                             ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine
@@ -1015,6 +971,8 @@ pipeline {
                               --ci \
                               --no-shrink \
                               --verbose
+
+                            echo "✅ Android engine + Gradle wiring complete"
                         """
                     }
                 }
@@ -1113,13 +1071,14 @@ pipeline {
                         } else {
                             sh """
                                 set -Eeuo pipefail
+                                
+                                echo "📦 Reusing previously built debug APK"
 
-                                echo "⚠️ Debug build"
-
-                                flutter build apk --debug --ci --no-shrink --verbose -- ${gradleDebug}
+                                test -f android/app/build/outputs/apk/debug/*.apk
 
                                 mkdir -p build_outputs
-                                cp android/app/build/outputs/apk/debug/*.apk build_outputs/ || true
+                                cp android/app/build/outputs/apk/debug/*.apk build_outputs/
+                                
                             """
                         }
 
