@@ -335,8 +335,8 @@ List<String> containerEnv = []
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user 2000:2000 " +
-        "-v ${env.HOST_CACHE}:${containerCache} " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}" +
+        "-v ${env.HOST_CACHE}:${containerCache} "
     ) {
         withEnv(containerEnv) {
             body()
@@ -350,8 +350,8 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
 def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user root " +
-        "-v ${env.HOST_CACHE}:${containerCache} " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}" +
+        "-v ${env.HOST_CACHE}:${containerCache} "
     ) {
         withEnv(containerEnv) {
             body()
@@ -382,12 +382,6 @@ def flutterClean(Map opts = [:]) {
               ${FLUTTER_BUILD_DIRS_3} \
               ${FLUTTER_BUILD_DIRS_4}
 
-            rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
-
-            if [ -d "${RUST_PROJECT_DIR}" ]; then
-              cd "${RUST_PROJECT_DIR}"
-              cargo clean
-            fi
 
             # ----------------------------------------
             # Deep clean (dependencies)
@@ -400,14 +394,34 @@ def flutterClean(Map opts = [:]) {
                 ${PUB_CACHE}/git
             fi
 
+
             # ----------------------------------------
-            # Very deep clean (Gradle reset)
+            # Very deep clean (Gradle reset) + cache nuking.
             # ----------------------------------------
             if [ "${veryDeep}" = "true" ]; then
               rm -rf \
                 ${GRADLE_USER_HOME}/caches \
                 ${GRADLE_USER_HOME}/wrapper
             fi
+
+
+            # ----------------------------------------
+            # Only remove JNI libs in deep cleans
+            # ----------------------------------------
+            if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
+                rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+            fi
+
+            # ----------------------------------------
+            # Only clean Rust when deep cleaning
+            # ----------------------------------------
+            if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
+                if [ -d "${RUST_PROJECT_DIR}" ]; then
+                    cd "${RUST_PROJECT_DIR}"
+                    cargo clean
+                fi
+            fi
+
 
             # ----------------------------------------
             # Ownership fix
@@ -429,7 +443,8 @@ pipeline {
     parameters {
         booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
         booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'DEEP CLEAN FULL for complete clean of all caches. RUNTIME high!!')
-        
+        booleanParam(name: 'DEBUG_GRADLE', defaultValue: false, description: 'DEBUG GRADLE for debugging Gradle issues')
+
         choice(
         name: 'BUILD_MODE',
         choices: ['debug', 'release'],
@@ -539,8 +554,14 @@ pipeline {
                 // now WORKSPACE exists
                 env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
+                
+                env.GRADLE_DEBUG = params.DEBUG_GRADLE ? "true" : "false"
 
-
+                if (params.DEBUG_GRADLE) {
+                    env.GRADLE_DEBUG_OPTS = "--stacktrace --info"
+                } else {
+                    env.GRADLE_DEBUG_OPTS = ""
+                }
 
                 // Prepare ENV exports for child processes
                 /*
@@ -589,6 +610,9 @@ pipeline {
                 "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
                 "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
+
+                "GRADLE_DEBUG=${env.GRADLE_DEBUG}",
+                "GRADLE_DEBUG_OPTS=${env.GRADLE_DEBUG_OPTS}",
 
                 "PATH=${env.PATH}"
                 ]
@@ -872,11 +896,18 @@ pipeline {
         }
 
 
+
         stage('Flutter → Android Materialization I (Only after Deep Clean): Precache') {
             when { 
                 expression { params.DEEP_CLEAN_LIGHT || params.DEEP_CLEAN_FULL } 
             }
             // use Root agent to have permissions to delete all files
+            // Rules : 
+            //  - precache ≠ build
+            //  - debug build must happen once
+            //  - diagnostics must not build
+            //  - never rebuild debug after release
+            //  - if Gradle looks for io.flutter artifacts → engine cache is broken
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
@@ -889,10 +920,10 @@ pipeline {
 
                             flutter pub get
 
+                            # Restore Flutter engine + JNI libs
                             flutter precache --android --force
 
-                            # Generate all JNI artifacts. Use them in release build later.
-                            flutter build apk --debug --ci --no-shrink --verbose
+                            # DO NOT build APKs here
 
                         """
                         }
@@ -900,6 +931,52 @@ pipeline {
             }
         }
 
+        /* 
+        Deep Clean
+        ↓
+        Materialization I (precache)
+        ↓
+        Build Rust (Android FFI)
+        ↓
+        Materialization II (debug warm-up)
+        ↓
+        Final Build 
+        */
+
+
+        stage('Build Rust (Android FFI)') {
+            steps {
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                    echo "🦀 Building Rust backend for Android (FFI)"
+                    sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+
+                        cd "\${RUST_PROJECT_DIR}"
+
+                        echo "🧹 Cleaning previous Rust build"
+                        cargo clean
+
+                        echo "⚙️ Building Rust libraries via cargo-ndk"
+                        cargo ndk \\
+                          -t armeabi-v7a \\
+                          -t arm64-v8a \\
+                          -t x86_64 \\
+                          -o \${ANDROID_JNI_LIBS_DIR} \\
+                          build --release
+
+                        echo "📦 Produced JNI libraries:"
+                        find \${ANDROID_JNI_LIBS_DIR} -name "*.so"
+                    """
+                    }
+                }
+            }
+        }
 
 
         stage('Flutter → Android Materialization II') {
@@ -911,23 +988,21 @@ pipeline {
                     {
                         sh """#!/usr/bin/env bash
 
+                            # debug triggers all engine + Gradle wiring
+                            # release will reuse the same caches
+
                             set -Eeuo pipefail
 
                             flutter pub get
 
-                            # Debug artifacts
                             flutter build apk \
                               --debug \
                               --ci \
                               --no-shrink \
-                              --verbose
+                              --verbose \
+                              -- \
+                              ${GRADLE_DEBUG_OPTS}
 
-                            # Release artifacts
-                            flutter build apk \
-                              --release \
-                              --ci \
-                              --no-shrink \
-                              --verbose
 
                         """
                     }
@@ -944,21 +1019,26 @@ pipeline {
                 "${WORKSPACE}/jenkins_container_cache") 
               {
                 sh """#!/usr/bin/env bash
-                  set -Eeuo pipefail
+
+                # read-only diagnostics !
+
+                    set -Eeuo pipefail
+
+                    echo "Flutter version:"
+                    flutter --version
+
+                    echo "Flutter doctor:"
+                    flutter doctor -v
+
+                    echo "Engine cache:"
+                    ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine || true
+
+                    echo "JNI intermediates:"
+                    find build -path "*jniLibs*" -maxdepth 6 || true
+
+                    echo "Gradle cache:"
+                    ls -lah \$GRADLE_USER_HOME/caches | head -n 20
         
-                  cd android
-        
-                  echo "Flutter version:"
-                  flutter --version
-        
-                  echo "Flutter doctor:"
-                  flutter doctor -v
-        
-                  echo "Dependencies:"
-                  flutter pub get
-        
-                  echo "Verbose build:"
-                  flutter build apk --debug --verbose
                 """
               }
             }
@@ -997,58 +1077,70 @@ pipeline {
 
 
 
-        stage('Build Rust (Android FFI)') {
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    echo "🦀 Building Rust backend for Android (FFI)"
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-
-                        cd "\${RUST_PROJECT_DIR}"
-
-                        echo "🧹 Cleaning previous Rust build"
-                        cargo clean
-
-                        echo "⚙️ Building Rust libraries via cargo-ndk"
-                        cargo ndk \\
-                          -t armeabi-v7a \\
-                          -t arm64-v8a \\
-                          -t x86_64 \\
-                          -o \${ANDROID_JNI_LIBS_DIR} \\
-                          build --release
-
-                        echo "📦 Produced JNI libraries:"
-                        find \${ANDROID_JNI_LIBS_DIR} -name "*.so"
-                    """
-                    }
-                }
-            }
-        }
-
-
         stage('Build APK/AAB') {
-
             steps {
-                script {     
+                script {
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                    echo "Building ${params.BUILD_MODE.toUpperCase()} APK/AAB"
-                    sh """#!/usr/bin/env bash
+                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}/jenkins_container_cache"
+                    ) {
+                        echo "Building ${params.BUILD_MODE.toUpperCase()} APK & AAB"
 
-                        set -Eeuo pipefail
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
 
-                        flutter pub get
-                        flutter build apk --\${params.BUILD_MODE}
+                            # Ensure dependencies
+                            flutter pub get
 
-                    """
+                            # Set Gradle debug flags if requested
+                            GRADLE_OPTS_EXTRA=""
+                            if [ "${GRADLE_DEBUG}" = "true" ]; then
+                                GRADLE_OPTS_EXTRA="--stacktrace --info"
+                                echo "⚡ Gradle debug enabled: \$GRADLE_OPTS_EXTRA"
+                            fi
+
+                            # Only release builds are valid for Google Play
+                            if [ "${params.BUILD_MODE}" = "release" ]; then
+                                echo "🚀 Building release APK..."
+                                flutter build apk \
+                                  --release \
+                                  --ci \
+                                  --no-shrink \
+                                  --verbose \
+                                  -- \$GRADLE_OPTS_EXTRA
+
+                                echo "🚀 Building release AAB..."
+                                flutter build appbundle \
+                                  --release \
+                                  --ci \
+                                  --no-shrink \
+                                  --verbose \
+                                  -- \$GRADLE_OPTS_EXTRA
+
+                                # Copy artifacts to persistent folder
+                                mkdir -p build_outputs
+                                cp android/app/build/outputs/apk/release/*.apk build_outputs/ || true
+                                cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
+
+                                echo "✅ Release artifacts copied to build_outputs/"
+                            else
+                                echo "⚠️ Debug build requested — APK will be built for testing only"
+                                flutter build apk \
+                                  --debug \
+                                  --ci \
+                                  --no-shrink \
+                                  --verbose \
+                                  -- \$GRADLE_OPTS_EXTRA
+
+                                mkdir -p build_outputs
+                                cp android/app/build/outputs/apk/debug/*.apk build_outputs/ || true
+
+                                echo "✅ Debug APK copied to build_outputs/"
+                            fi
+                        """
+
+                        // Archive the outputs
+                        archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: false
                     }
                 }
             }
@@ -1092,40 +1184,25 @@ pipeline {
             }
         }
 
-        stage('Archive Artifacts') {
 
+        stage('Container Cleanup') {
             steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                        sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-                        mkdir -p build_outputs
-
-                        find build -name "*.apk" -exec cp {} build_outputs/ \\; || true
-                        find build -name "*.aab" -exec cp {} build_outputs/ \\; || true
-                    """
-                    archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: true
+                script {
+                    insideFlutterContainerRootUser(...) {
+                        sh '''
+                          rm -rf "$CONTAINER_WORKSPACE"/*
+                          rm -rf "$CONTAINER_CACHE"/.gradle/caches/tmp || true
+                        '''
                     }
                 }
             }
         }
 
+
         stage('Clean Workspace') {
+            // No Docker involved. No ambiguity.
             steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                        cleanWs()
-                    }
-                }
-            }
+                cleanWs(deleteDirs: true, disableDeferredWipeout: true)
         }
 
     }
