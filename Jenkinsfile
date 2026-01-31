@@ -901,10 +901,26 @@ pipeline {
             }
         }
 
+        stage('Verify Rust Source') {
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser(
+                        "${WORKSPACE}",
+                        "${WORKSPACE}/jenkins_container_cache") {
+                        sh """
+                            echo "Container workspace: \$CONTAINER_WORKSPACE"
+                            ls -la \$CONTAINER_WORKSPACE/rust
+                            ls -la \$CONTAINER_WORKSPACE/rust/rust_lib/src
+                        """
+                    }
+                }
+            }
+        }
+
 
         stage('Build Rust (Android FFI)') {
             steps {
-                //  '/var/jenkins_home/workspace/Flutter_Docker_Pipeline/rust': No such file or directory
+                // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/rust/rust_lib: No such file or directory
                 script {
                     insideFlutterContainerJenkinsUser(
                     "${WORKSPACE}",
