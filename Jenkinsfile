@@ -889,11 +889,7 @@ pipeline {
         }
 
 
-
         stage('Flutter → Android Materialization I (Only after Deep Clean): Precache') {
-            when { 
-                expression { params.DEEP_CLEAN_LIGHT || params.DEEP_CLEAN_FULL } 
-            }
             // use Root agent to have permissions to delete all files
             // Rules : 
             //  - precache ≠ build
@@ -916,6 +912,8 @@ pipeline {
                             # Restore Flutter engine + JNI libs
                             flutter precache --android --force
 
+                            echo "✅ Engine cache populated:"
+                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine
                             # Verify engine artifacts exist
                             ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine/android-* || exit 1
 
@@ -1001,9 +999,16 @@ pipeline {
                             set -Eeuo pipefail
 
                             flutter pub get
-                            
-                            echo "Engine cache check:"
-                            find \$FLUTTER_ROOT/bin/cache/artifacts/engine -maxdepth 2 -type d
+
+                            # Precache if missing - Fail safe
+                            if [ ! -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/android-arm64" ]; then
+                                flutter precache --android --force
+                            fi
+
+                            echo "✅ Engine cache populated:"
+                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine
+                            # Verify engine artifacts exist
+                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine/android-* || exit 1
 
                             flutter build apk \
                               --debug \
@@ -1091,16 +1096,16 @@ pipeline {
                         "${WORKSPACE}/jenkins_container_cache") {
                         
                         def gradleDebug = params.GRADLE_DEBUG ? "--stacktrace --info" : ""
-        
+
                         if (params.BUILD_MODE == 'release') {
                             sh """
                                 set -Eeuo pipefail
-        
+
                                 echo "🚀 Building release APK/AAB"
-        
+
                                 flutter build apk --release --ci --no-shrink --verbose -- ${gradleDebug}
                                 flutter build appbundle --release --ci --no-shrink --verbose -- ${gradleDebug}
-        
+
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/release/*.apk build_outputs/ || true
                                 cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
@@ -1108,16 +1113,16 @@ pipeline {
                         } else {
                             sh """
                                 set -Eeuo pipefail
-        
+
                                 echo "⚠️ Debug build"
-        
+
                                 flutter build apk --debug --ci --no-shrink --verbose -- ${gradleDebug}
-        
+
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/debug/*.apk build_outputs/ || true
                             """
                         }
-        
+
                         archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: false
                     }
                 }
