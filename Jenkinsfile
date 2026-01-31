@@ -335,8 +335,8 @@ List<String> containerEnv = []
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user 2000:2000 " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}" +
-        "-v ${env.HOST_CACHE}:${containerCache} "
+        "-v ${env.HOST_CACHE}:${containerCache} " +
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
         withEnv(containerEnv) {
             body()
@@ -350,8 +350,8 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
 def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user root " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}" +
-        "-v ${env.HOST_CACHE}:${containerCache} "
+        "-v ${env.HOST_CACHE}:${containerCache} " +
+        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
         withEnv(containerEnv) {
             body()
