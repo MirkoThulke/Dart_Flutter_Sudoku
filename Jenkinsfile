@@ -1045,8 +1045,13 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
+                        sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+                        cd \${CONTAINER_WORKSPACE}
+                        """
                     
-                    cd \${CONTAINER_WORKSPACE}
                     // scripts directory (repo-relative)
                     if (!fileExists('scripts')) {
                         error "❌ scripts/ directory not found in repository"
