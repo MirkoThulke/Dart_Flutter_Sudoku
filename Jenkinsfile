@@ -904,7 +904,7 @@ pipeline {
 
         stage('Build Rust (Android FFI)') {
             steps {
-                // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace/rust/rust_lib
+                //  '/var/jenkins_home/workspace/Flutter_Docker_Pipeline/rust': No such file or directory
                 script {
                     insideFlutterContainerJenkinsUser(
                     "${WORKSPACE}",
@@ -914,13 +914,6 @@ pipeline {
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        echo "Inside container workspace:"
-                        ls -la ${CONTAINER_WORKSPACE}/rust
-
-                        pwd
-                        ls -la
-                        ls -la rust
-                        
                         # cd into Rust project
                         cd ${CONTAINER_WORKSPACE}/rust/rust_lib
         
