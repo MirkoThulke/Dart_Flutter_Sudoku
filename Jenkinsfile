@@ -495,7 +495,7 @@ pipeline {
 
         // Host mount paths
         HOST_CACHE         = '/home/mirko/jenkins_host_cache'
-        HOST_WORKSPACE     = '/home/mirko/jenkins_host_workspace'
+        HOST_WORKSPACE     = '/home/mirko/workspace/Flutter_Docker_Pipeline'
 
         // GIT Home inside container
         HOME               = '/home/jenkins'
@@ -645,8 +645,6 @@ pipeline {
 
                         chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
                         chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
-
-
 
                         # Optional: verify the directories
                         echo "inside container:"
