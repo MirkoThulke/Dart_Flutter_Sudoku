@@ -361,8 +361,8 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 
 // Helper function : shared cleanup function (Groovy) + parametrize behavior
 def flutterClean(Map opts = [:]) {
-    boolean deep      = opts.get('deep', false)
-    boolean veryDeep  = opts.get('veryDeep', false)
+    boolean deep     = opts.get('deep', false)
+    boolean veryDeep = opts.get('veryDeep', false)
 
     insideFlutterContainerRootUser(
         "${env.WORKSPACE}/jenkins_container_workspace",
@@ -374,7 +374,7 @@ def flutterClean(Map opts = [:]) {
             echo "🧹 Flutter clean (deep=${deep}, veryDeep=${veryDeep})"
 
             # ----------------------------------------
-            # Always-clean (safe)
+            # Always clean (SAFE)
             # ----------------------------------------
             rm -rf \
               ${FLUTTER_BUILD_DIRS_1} \
@@ -390,23 +390,23 @@ def flutterClean(Map opts = [:]) {
             fi
 
             # ----------------------------------------
-            # Deep clean
+            # Deep clean (dependencies)
             # ----------------------------------------
             if [ "${deep}" = "true" ]; then
               rm -rf \
                 ${GRADLE_USER_HOME}/daemon \
+                ${GRADLE_USER_HOME}/caches/modules-* \
                 ${PUB_CACHE}/hosted \
-                ${FLUTTER_ROOT}/bin/cache/artifacts \
-                ${FLUTTER_ROOT}/bin/cache/downloads
+                ${PUB_CACHE}/git
             fi
 
             # ----------------------------------------
-            # Very deep clean
+            # Very deep clean (Gradle reset)
             # ----------------------------------------
             if [ "${veryDeep}" = "true" ]; then
               rm -rf \
                 ${GRADLE_USER_HOME}/caches \
-                ${PUB_CACHE}/git
+                ${GRADLE_USER_HOME}/wrapper
             fi
 
             # ----------------------------------------
@@ -418,6 +418,7 @@ def flutterClean(Map opts = [:]) {
         """
     }
 }
+
 
 
 
