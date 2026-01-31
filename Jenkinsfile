@@ -1178,7 +1178,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         pwsh "\${PLANTUML_SCRIPT}"
-                        
+
                         """
                     }
                 }
@@ -1211,6 +1211,7 @@ pipeline {
             // No Docker involved. No ambiguity.
             steps {
                 cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+            }
         }
 
     }
