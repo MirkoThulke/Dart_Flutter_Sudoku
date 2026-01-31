@@ -373,6 +373,8 @@ def flutterClean(Map opts = [:]) {
 
             echo "🧹 Flutter clean (deep=${deep}, veryDeep=${veryDeep})"
 
+            cd \${CONTAINER_WORKSPACE}
+
             # ----------------------------------------
             # Always clean (SAFE)
             # ----------------------------------------
@@ -527,6 +529,8 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
+                        cd \${CONTAINER_WORKSPACE}
+
                         # docker pull ${FLUTTER_IMAGE_PULL}
 
                         echo "== Verifying base image =="
@@ -588,7 +592,7 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
+                "RUST_PROJECT_DIR=${{env.CONTAINER_WORKSPACE}/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -625,8 +629,9 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-
                         # Create the required  directories inside the container
+
+                        cd \${CONTAINER_WORKSPACE}
 
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
 
@@ -673,6 +678,8 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
+                        cd \${CONTAINER_WORKSPACE}
+
                         git config --system --add safe.directory \${FLUTTER_ROOT}
                     """
                     }
@@ -691,6 +698,8 @@ pipeline {
                     sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
+
+                        cd \${CONTAINER_WORKSPACE}
 
                         section() {
                             echo
@@ -776,6 +785,8 @@ pipeline {
 
                             set -Eeuo pipefail
 
+                            cd \${CONTAINER_WORKSPACE}
+
                             echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
                             echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
                         """
@@ -797,6 +808,8 @@ pipeline {
                     sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
+
+                        cd \${CONTAINER_WORKSPACE}
 
                         echo "== Flutter =="
                         which flutter
@@ -838,7 +851,8 @@ pipeline {
                     insideFlutterContainerJenkinsUser(
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    {  
+                        cd \${CONTAINER_WORKSPACE}
                         checkout scm
                         sh """#!/usr/bin/env bash
 
@@ -889,43 +903,43 @@ pipeline {
 
         stage('Build Rust (Android FFI)') {
             steps {
-                script {                
+                script {
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
-                    echo "🦀 Building Rust backend for Android (FFI)"
-                    sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
+                        echo "🦀 Building Rust backend for Android (FFI)"
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+        
                         if [ ! -d "${RUST_PROJECT_DIR}" ]; then
                           echo "❌ Rust project not found at: ${RUST_PROJECT_DIR}"
                           echo "📂 Available directories:"
-                          ls -la "${CONTAINER_WORKSPACE}"
-                          exit 1
-                        fi
-
+                              ls -la "${CONTAINER_WORKSPACE}"
+                              exit 1
+                            fi
+        
                         cd "\${RUST_PROJECT_DIR}"
-
-                        echo "🧹 Cleaning previous Rust build"
-                        cargo clean
-
-                        echo "⚙️ Building Rust libraries via cargo-ndk"
-                        cargo ndk \\
-                          -t armeabi-v7a \\
-                          -t arm64-v8a \\
-                          -t x86_64 \\
-                          -o \${ANDROID_JNI_LIBS_DIR} \\
-                          build --release
-
-                        echo "📦 Produced JNI libraries:"
+        
+                            echo "🧹 Cleaning previous Rust build"
+                            cargo clean
+        
+                            echo "⚙️ Building Rust libraries via cargo-ndk"
+                        cargo ndk \
+                          -t armeabi-v7a \
+                          -t arm64-v8a \
+                          -t x86_64 \
+                          -o \${ANDROID_JNI_LIBS_DIR} \
+                              build --release
+        
+                            echo "📦 Produced JNI libraries:"
                         find \${ANDROID_JNI_LIBS_DIR} -name "*.so"
-                    """
+                        """
                     }
                 }
             }
         }
+
 
 
         stage('Flutter → Android Materialization') {
@@ -954,6 +968,8 @@ pipeline {
                             # release will reuse the same caches
 
                             set -Eeuo pipefail
+
+                            cd \${CONTAINER_WORKSPACE}
 
                             flutter pub get
 
@@ -993,6 +1009,8 @@ pipeline {
 
                     set -Eeuo pipefail
 
+                    cd \${CONTAINER_WORKSPACE}
+
                     echo "Flutter version:"
                     flutter --version
 
@@ -1023,6 +1041,8 @@ pipeline {
                     "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
+                    
+                    cd \${CONTAINER_WORKSPACE}
                     // scripts directory (repo-relative)
                     if (!fileExists('scripts')) {
                         error "❌ scripts/ directory not found in repository"
@@ -1061,6 +1081,8 @@ pipeline {
 
                                 echo "🚀 Building release APK/AAB"
 
+                                cd \${CONTAINER_WORKSPACE}
+
                                 flutter build apk --release --ci --no-shrink --verbose -- ${gradleDebug}
                                 flutter build appbundle --release --ci --no-shrink --verbose -- ${gradleDebug}
 
@@ -1073,6 +1095,8 @@ pipeline {
                                 set -Eeuo pipefail
                                 
                                 echo "📦 Reusing previously built debug APK"
+
+                                cd \${CONTAINER_WORKSPACE}
 
                                 test -f android/app/build/outputs/apk/debug/*.apk
 
@@ -1101,6 +1125,8 @@ pipeline {
 
                         set -Eeuo pipefail
 
+                        cd \${CONTAINER_WORKSPACE}
+
                         \${INTEGRATION_TEST_SCRIPT}
                     """
                     }
@@ -1119,6 +1145,8 @@ pipeline {
                         sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
+
+                        cd \${CONTAINER_WORKSPACE}
 
                         pwsh "\${PLANTUML_SCRIPT}"
 
