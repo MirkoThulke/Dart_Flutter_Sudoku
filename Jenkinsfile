@@ -844,25 +844,19 @@ pipeline {
             steps {
                 // Clean workspace on host
                 cleanWs()
-        
+
                 script {
                     // Checkout happens in the host workspace
-                    checkout scm
-        
-                    // Then run inside container
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
-                        "${WORKSPACE}/jenkins_container_cache"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-        
-                            cd \$CONTAINER_WORKSPACE
-        
-                            echo "Inside container workspace:"
-                            ls -la
-                        """
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                            dir("${CONTAINER_WORKSPACE}") 
+                            {   // <-- ensure checkout goes here
+                            checkout scm
+                            }
                     }
+                    
                 }
             }
         }
@@ -905,9 +899,10 @@ pipeline {
 
         stage('Build Rust (Android FFI)') {
             steps {
+                // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace/rust/rust_lib
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_workspace",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         echo "🦀 Building Rust backend for Android (FFI)"
