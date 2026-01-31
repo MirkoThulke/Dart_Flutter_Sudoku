@@ -1177,7 +1177,8 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                            pwsh "\${PLANTUML_SCRIPT}"
+                        pwsh "\${PLANTUML_SCRIPT}"
+                        
                         """
                     }
                 }
@@ -1187,12 +1188,19 @@ pipeline {
 
         stage('Container Cleanup') {
             steps {
-                script {
-                    insideFlutterContainerRootUser(...) {
-                        sh '''
-                          rm -rf "$CONTAINER_WORKSPACE"/*
-                          rm -rf "$CONTAINER_CACHE"/.gradle/caches/tmp || true
-                        '''
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}/jenkins_container_cache") 
+                    {
+                        sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+                        rm -rf "$CONTAINER_WORKSPACE"/*
+                        rm -rf "$CONTAINER_CACHE"/.gradle/caches/tmp || true
+
+                        """
                     }
                 }
             }
