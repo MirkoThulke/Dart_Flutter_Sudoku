@@ -1171,7 +1171,7 @@ pipeline {
         always {
             // No Docker involved. No ambiguity.
             echo "🧹 Cleaning workspace regardless of build result"
-            cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+            // cleanWs(deleteDirs: true, disableDeferredWipeout: true)
         }
         success { echo "✅ Build succeeded" }
         failure { echo "❌ Build failed" }
