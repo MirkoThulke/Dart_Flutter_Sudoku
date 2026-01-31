@@ -593,7 +593,8 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
+                "RUST_PROJECT_DIR=${env.WORKSPACE}/rust/rust_lib",
+                
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
                 "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
@@ -956,6 +957,12 @@ pipeline {
 
                         set -Eeuo pipefail
 
+                        if [ ! -d "${RUST_PROJECT_DIR}" ]; then
+                          echo "❌ Rust project not found at: ${RUST_PROJECT_DIR}"
+                          echo "📂 Available directories:"
+                          ls -la "${CONTAINER_WORKSPACE}"
+                          exit 1
+                        fi
 
                         cd "\${RUST_PROJECT_DIR}"
 
