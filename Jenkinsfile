@@ -765,8 +765,6 @@ pipeline {
         }
 
 
-
-
         stage('Check Mount') {
             steps {
                 script {                
@@ -1129,19 +1127,14 @@ pipeline {
                 }
             }
         }
-
-
-
-        stage('Clean Workspace') {
-            // No Docker involved. No ambiguity.
-            steps {
-                cleanWs(deleteDirs: true, disableDeferredWipeout: true)
-            }
-        }
-
     }
 
     post {
+        always {
+            // No Docker involved. No ambiguity.
+            echo "🧹 Cleaning workspace regardless of build result"
+            cleanWs(deleteDirs: true, disableDeferredWipeout: true)
+        }
         success { echo "✅ Build succeeded" }
         failure { echo "❌ Build failed" }
     }
