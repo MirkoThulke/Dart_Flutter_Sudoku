@@ -918,6 +918,10 @@ pipeline {
 
                         echo "Inside container workspace:"
                         ls -la ${CONTAINER_WORKSPACE}/rust
+
+                        pwd
+                        ls -la
+                        ls -la rust
                         
                         # cd into Rust project
                         cd ${CONTAINER_WORKSPACE}/rust/rust_lib
