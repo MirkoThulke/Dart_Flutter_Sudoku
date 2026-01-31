@@ -365,7 +365,7 @@ def flutterClean(Map opts = [:]) {
     boolean veryDeep = opts.get('veryDeep', false)
 
     insideFlutterContainerRootUser(
-        "${env.WORKSPACE}/jenkins_container_workspace",
+        "${env.WORKSPACE}",
         "${env.WORKSPACE}/jenkins_container_cache"
     ) {
         sh """#!/usr/bin/env bash
@@ -556,7 +556,7 @@ pipeline {
                 script {
 
                 // now WORKSPACE exists
-                env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
+                env.CONTAINER_WORKSPACE = "${WORKSPACE}"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
                 
 
@@ -621,7 +621,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """#!/usr/bin/env bash
@@ -670,7 +670,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerRootUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """#!/usr/bin/env bash
@@ -690,7 +690,7 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache")
                     {
                     sh """#!/usr/bin/env bash
@@ -776,7 +776,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """#!/usr/bin/env bash
@@ -800,7 +800,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """#!/usr/bin/env bash
@@ -851,7 +851,7 @@ pipeline {
         
                     // Then run inside container
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}",
                         "${WORKSPACE}/jenkins_container_cache"
                     ) {
                         sh """#!/usr/bin/env bash
@@ -909,7 +909,7 @@ pipeline {
                 // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace/rust/rust_lib
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         echo "🦀 Building Rust backend for Android (FFI)"
@@ -952,7 +952,7 @@ pipeline {
                     : ""
 
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         // do:
@@ -1001,7 +1001,7 @@ pipeline {
           steps {
             script {
               insideFlutterContainerJenkinsUser(
-                "${WORKSPACE}/jenkins_container_workspace",
+                "${WORKSPACE}",
                 "${WORKSPACE}/jenkins_container_cache") 
               {
                 sh """#!/usr/bin/env bash
@@ -1039,7 +1039,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """#!/usr/bin/env bash
@@ -1076,7 +1076,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}",
                         "${WORKSPACE}/jenkins_container_cache") {
                         
                         def gradleDebug = params.GRADLE_DEBUG ? "--stacktrace --info" : ""
@@ -1124,7 +1124,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                     sh """#!/usr/bin/env bash
@@ -1145,7 +1145,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
+                    "${WORKSPACE}",
                     "${WORKSPACE}/jenkins_container_cache") 
                     {
                         sh """#!/usr/bin/env bash
