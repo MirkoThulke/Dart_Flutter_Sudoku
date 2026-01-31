@@ -590,7 +590,7 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.WORKSPACE}/rust/rust_lib",
+                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
