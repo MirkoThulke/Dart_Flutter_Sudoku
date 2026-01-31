@@ -529,8 +529,6 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
-
                         # docker pull ${FLUTTER_IMAGE_PULL}
 
                         echo "== Verifying base image =="
