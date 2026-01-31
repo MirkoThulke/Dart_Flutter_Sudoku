@@ -575,8 +575,8 @@ pipeline {
                 "HOME=${env.CONTAINER_WORKSPACE}/.home",
 
                 "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
-
                 "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
+
                 "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                 "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
@@ -588,7 +588,7 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.WORKSPACE}/rust/rust_lib",
+                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -930,7 +930,7 @@ pipeline {
         }
 
 
-        stage('Flutter → Android Materialization II') {
+        stage('Flutter → Android Materialization') {
             steps {
                 script {
 
@@ -971,6 +971,8 @@ pipeline {
                               --ci \
                               --no-shrink \
                               --verbose
+
+                            test -f "$FLUTTER_ROOT/bin/cache/artifacts/engine/android-arm64/flutter.jar"
 
                             echo "✅ Android engine + Gradle wiring complete"
                         """
@@ -1078,7 +1080,7 @@ pipeline {
 
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/debug/*.apk build_outputs/
-                                
+
                             """
                         }
 
@@ -1128,26 +1130,6 @@ pipeline {
             }
         }
 
-
-        stage('Container Cleanup') {
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
-                        sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-                        rm -rf "$CONTAINER_WORKSPACE"/*
-                        rm -rf "$CONTAINER_CACHE"/.gradle/caches/tmp || true
-
-                        """
-                    }
-                }
-            }
-        }
 
 
         stage('Clean Workspace') {
