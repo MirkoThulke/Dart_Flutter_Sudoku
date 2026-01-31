@@ -846,18 +846,22 @@ pipeline {
             steps {
                 // Clean workspace on host
                 cleanWs()
-
-                script {                
+        
+                script {
+                    // Checkout happens in the host workspace
+                    checkout scm
+        
+                    // Then run inside container
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}/jenkins_container_workspace",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {  
-                        cd \${CONTAINER_WORKSPACE}
-                        checkout scm
+                        "${WORKSPACE}/jenkins_container_workspace",
+                        "${WORKSPACE}/jenkins_container_cache"
+                    ) {
                         sh """#!/usr/bin/env bash
-
                             set -Eeuo pipefail
-
+        
+                            cd \$CONTAINER_WORKSPACE
+        
+                            echo "Inside container workspace:"
                             ls -la
                         """
                     }
