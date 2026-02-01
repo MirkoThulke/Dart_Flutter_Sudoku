@@ -505,7 +505,7 @@ pipeline {
         CARGO_HOME         = '/opt/rust/cargo'
         RUST_CARGO_DIR     = '/opt/rust/cargo/bin'
 
-        ANDROID_SDK_ROOT                        = '/opt/android/sdk'
+        ANDROID_SDK_ROOT   = '/opt/android/sdk'
         ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL = 'true'
 
         ANDROID_NDK_HOME          = '/opt/android/sdk/ndk/28.2.13676358'
@@ -662,7 +662,7 @@ pipeline {
                 }
             }
         }
-        
+
 
        /*
         1. Stages before checkout:
@@ -680,21 +680,35 @@ pipeline {
         
                 script {
                     // Checkout happens in the host workspace
-                    checkout scm
+
+                    // Make sure host-mounted paths exist
+                    sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+
+                        mkdir -p ${HOST_WORKSPACE}
+                        mkdir -p ${HOST_CACHE}
+                    """
+
+                    // Checkout repo directly into host workspace
+                    dir("${HOST_WORKSPACE}") {
+                        checkout scm
+                    }
+
+                    echo "Host workspace after checkout:"
+                    sh "ls -la ${HOST_WORKSPACE}"
         
-                    // Then run inside container
+                    // Run inside container using container paths
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
                     ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-        
-                            cd \$CONTAINER_WORKSPACE
-        
-                            echo "Inside container workspace:"
-                            ls -la
-                        """
+                    sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+
+                        echo "Inside container workspace:"
+                        cd \$CONTAINER_WORKSPACE
+                        ls -la
+                    """
                     }
                 }
             }
@@ -704,9 +718,9 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerRootUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
@@ -724,9 +738,9 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache")
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
@@ -810,9 +824,9 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         sh """#!/usr/bin/env bash
 
                             set -Eeuo pipefail
@@ -834,9 +848,9 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
@@ -900,8 +914,9 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}",
-                        "${WORKSPACE}/jenkins_container_cache") {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         sh """
                             echo "Container workspace: \$WORKSPACE"
                             ls -la \$WORKSPACE/rust
@@ -918,9 +933,9 @@ pipeline {
                 // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/rust/rust_lib: No such file or directory
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         echo "🦀 Building Rust backend for Android (FFI)"
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
@@ -958,9 +973,9 @@ pipeline {
                     : ""
 
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         // do:
                         // flutter pub get
                         // flutter precache --android
@@ -1006,10 +1021,10 @@ pipeline {
         stage('Flutter Deep Diagnostics') {
           steps {
             script {
-              insideFlutterContainerJenkinsUser(
-                "${WORKSPACE}",
-                "${WORKSPACE}/jenkins_container_cache") 
-              {
+                insideFlutterContainerJenkinsUser(
+                "${CONTAINER_WORKSPACE}",
+                "${CONTAINER_CACHE}"
+                ) {
                 sh """#!/usr/bin/env bash
 
                 # read-only diagnostics !
@@ -1045,9 +1060,9 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
@@ -1082,8 +1097,9 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}",
-                        "${WORKSPACE}/jenkins_container_cache") {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         
                         def gradleDebug = params.GRADLE_DEBUG ? "--stacktrace --info" : ""
 
@@ -1130,9 +1146,9 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
@@ -1151,9 +1167,9 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
-                    {
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
