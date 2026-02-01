@@ -906,9 +906,9 @@ pipeline {
                         "${WORKSPACE}",
                         "${WORKSPACE}/jenkins_container_cache") {
                         sh """
-                            echo "Container workspace: \$CONTAINER_WORKSPACE"
-                            ls -la \$CONTAINER_WORKSPACE/rust
-                            ls -la \$CONTAINER_WORKSPACE/rust/rust_lib/src
+                            echo "Container workspace: \$WORKSPACE"
+                            ls -la \$WORKSPACE/rust
+                            ls -la \$WORKSPACE/rust/rust_lib/src
                         """
                     }
                 }
