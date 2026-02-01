@@ -930,9 +930,9 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         sh """
-                            echo "Container workspace: \$WORKSPACE"
-                            ls -la \$WORKSPACE/rust
-                            ls -la \$WORKSPACE/rust/rust_lib/src
+                            echo "Container workspace: \$CONTAINER_WORKSPACE"
+                            ls -la \$CONTAINER_WORKSPACE/rust
+                            ls -la \$CONTAINER_WORKSPACE/rust/rust_lib/src
                         """
                     }
                 }
@@ -953,7 +953,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         # cd into Rust project
-                        cd ${WORKSPACE}/rust/rust_lib
+                        cd ${CONTAINER_WORKSPACE}/rust/rust_lib
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
