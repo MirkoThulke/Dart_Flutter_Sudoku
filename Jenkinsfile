@@ -677,42 +677,54 @@ pipeline {
         */
         stage('Checkout') {
             steps {
-        
                 script {
-                    // Checkout happens in the host workspace
-
-                    // Make sure host-mounted paths exist
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-
-                        mkdir -p ${HOST_WORKSPACE}
-                        mkdir -p ${HOST_CACHE}
-                    """
-
-                    // Checkout repo directly into host workspace
-                    dir("${HOST_WORKSPACE}") {
+                    // Checkout repo directly into the host-mounted folder
+                    dir("${CONTAINER_WORKSPACE}") {
                         checkout scm
                     }
 
-                    echo "Host workspace after checkout:"
-                    sh "ls -la ${HOST_WORKSPACE}"
-        
-                    // Run inside container using container paths
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
+                    // Optional: print a small summary to confirm files are present
+                    echo "Verifying checkout inside container workspace:"
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
+                        echo "Contents of ${CONTAINER_WORKSPACE}:"
+                        ls -la ${CONTAINER_WORKSPACE}
 
-                        echo "Inside container workspace:"
-                        cd \$CONTAINER_WORKSPACE
-                        ls -la
+                        # Optionally, check for key files like pubspec.yaml or main.dart
+                        if [ -f "${CONTAINER_WORKSPACE}/pubspec.yaml" ]; then
+                            echo "pubspec.yaml exists ✅"
+                        else
+                            echo "pubspec.yaml not found ❌"
+                        fi
+
+                        if [ -f "${CONTAINER_WORKSPACE}/main.dart" ]; then
+                            echo "main.dart exists ✅"
+                        else
+                            echo "main.dart not found ❌"
+                        fi
                     """
+
+                    // Run inside the container
+                    insideFlutterContainerJenkinsUser(
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+
+                            echo "Inside container, verifying workspace:"
+                            cd \$CONTAINER_WORKSPACE
+                            ls -la
+
+                            # Optional quick count of files
+                            echo "Number of files in workspace:"
+                            find . -type f | wc -l
+                        """
                     }
                 }
             }
         }
+
 
         stage('Add GIT safe.directories') {
             steps {
