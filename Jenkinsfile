@@ -274,7 +274,7 @@
 //  -p 8080:8080	                                    Jenkins web UI
 //  -p 50000:50000	                                    Jenkins agents
 //  -v …:/var/jenkins_home	                            Persist Jenkins data
-//  -v …:/CONTAINER_WORKSPACE	                            Persist Jenkins build data
+//  -v …:/CONTAINER_WORKSPACE	                        Persist Jenkins build data
 //  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
 //   jenkins_container_sudoku:lts	                    Jenkins image
 //
@@ -309,7 +309,7 @@
 //          └── /var/jenkins_home/workspace/job@N  ← ephemeral source code
 //              │
 //              └── docker run → flutter_rust_env
-//                  ├── /sudoku_app       ← bind-mounted workspace
+//                  ├── /sudoku_app               ← bind-mounted workspace
 //                  ├── /home/jenkins/.gradle     ← persistent host cache
 //                  ├── /home/jenkins/.pub-cache  ← persistent host cache
 //                  └── /home/jenkins/.cargo      ← persistent host cache
@@ -558,7 +558,7 @@ pipeline {
                 script {
 
                 // now WORKSPACE exists
-                env.CONTAINER_WORKSPACE = "${WORKSPACE}"
+                env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                 env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
                 
 
@@ -592,7 +592,7 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.WORKSPACE}/rust/rust_lib",
+                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -624,15 +624,14 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerRootUser(
-                    "${WORKSPACE}",
-                    "${WORKSPACE}/jenkins_container_cache") 
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}") 
                     {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
                         # Create the required  directories inside the container
 
-                        cd \${CONTAINER_WORKSPACE}
 
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
 
@@ -686,8 +685,8 @@ pipeline {
         
                     // Then run inside container
                     insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}",
-                        "${WORKSPACE}/jenkins_container_cache"
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
