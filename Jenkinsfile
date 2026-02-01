@@ -930,6 +930,8 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         sh """
+                            # cd into Rust project
+                            cd ${CONTAINER_WORKSPACE}
                             echo "Container workspace: \$CONTAINER_WORKSPACE"
                             ls -la \$CONTAINER_WORKSPACE/rust
                             ls -la \$CONTAINER_WORKSPACE/rust/rust_lib/src
