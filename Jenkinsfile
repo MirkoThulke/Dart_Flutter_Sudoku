@@ -417,8 +417,8 @@ def flutterClean(Map opts = [:]) {
             # Only clean Rust when deep cleaning
             # ----------------------------------------
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
-                if [ -d "${RUST_PROJECT_DIR}" ]; then
-                    cd "${RUST_PROJECT_DIR}"
+                if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}" ]; then
+                    cd "${REPO_CHECKOUT_RUST_SUBDIR}"
                     cargo clean
                 fi
             fi
@@ -594,7 +594,8 @@ pipeline {
                 "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "RUST_PROJECT_DIR=${env.CONTAINER_WORKSPACE}/rust/rust_lib",
+                "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
+                "REPO_CHECKOUT_RUST_SUBDIR=${env.REPO_CHECKOUT_DIR}/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -639,6 +640,7 @@ pipeline {
 
                         # Create the required  directories inside the container
 
+                        cd \${WORKSPACE}
 
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
 
@@ -682,22 +684,21 @@ pipeline {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
 
-                            # Ensure workspace exists
-                            mkdir -p "${CONTAINER_WORKSPACE}"
+                            cd \${WORKSPACE}
 
                             # Clone repo inside container
-                            if [ ! -d "${CONTAINER_WORKSPACE}/.git" ]; then
-                                git clone --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${CONTAINER_WORKSPACE}"
+                            if [ ! -d "${REPO_CHECKOUT_DIR}/.git" ]; then
+                                git clone --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${REPO_CHECKOUT_DIR}"
                             else
                                 echo "Repo already cloned"
-                                cd "${CONTAINER_WORKSPACE}"
+                                cd "${REPO_CHECKOUT_DIR}"
                                 git fetch --all
                                 git reset --hard origin/main
                             fi
 
                             # Verify files
-                            ls -la "${CONTAINER_WORKSPACE}"
-                            ls -la "${RUST_PROJECT_DIR}/src"
+                            ls -la "${REPO_CHECKOUT_DIR}"
+                            ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
                         """
                     }
                 }
@@ -715,7 +716,7 @@ pipeline {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${REPO_CHECKOUT_DIR}
 
                         git config --system --add safe.directory \${FLUTTER_ROOT}
                     """
@@ -736,7 +737,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${WORKSPACE}
 
                         section() {
                             echo
@@ -822,7 +823,7 @@ pipeline {
 
                             set -Eeuo pipefail
 
-                            cd \${CONTAINER_WORKSPACE}
+                            cd \${WORKSPACE}
 
                             echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
                             echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
@@ -846,7 +847,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${WORKSPACE}
 
                         echo "== Flutter =="
                         which flutter
@@ -913,16 +914,15 @@ pipeline {
                         set -Eeuo pipefail
                         
                         # Ensure we are in the workspace
-                        cd "${CONTAINER_WORKSPACE}"
+                        cd \${WORKSPACE}
 
                         sh "ls -la /"                # root level
-                        sh "ls -la /workspace"       # common mounted folder
                         sh "ls -la ${CONTAINER_WORKSPACE}" # what it actually sees
 
                         echo "Container workspace: ${CONTAINER_WORKSPACE}"
 
-                        if [ -d "${RUST_PROJECT_DIR}/src" ]; then
-                            ls -la "${RUST_PROJECT_DIR}/src"
+                        if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}/src" ]; then
+                            ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
                         else
                             echo "ERROR: rust_lib/src folder does not exist!"
                             exit 1
@@ -947,7 +947,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         # cd into Rust project
-                        cd "${RUST_PROJECT_DIR}"
+                        cd "${REPO_CHECKOUT_RUST_SUBDIR}"
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
@@ -997,7 +997,7 @@ pipeline {
 
                             set -Eeuo pipefail
 
-                            cd \${CONTAINER_WORKSPACE}
+                            cd \${REPO_CHECKOUT_DIR}
 
                             flutter pub get
 
@@ -1037,7 +1037,7 @@ pipeline {
 
                     set -Eeuo pipefail
 
-                    cd \${CONTAINER_WORKSPACE}
+                    cd \${WORKSPACE}
 
                     echo "Flutter version:"
                     flutter --version
@@ -1073,7 +1073,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${REPO_CHECKOUT_DIR}
                         """
                     
                     // scripts directory (repo-relative)
@@ -1115,7 +1115,7 @@ pipeline {
 
                                 echo "🚀 Building release APK/AAB"
 
-                                cd \${CONTAINER_WORKSPACE}
+                                cd \${REPO_CHECKOUT_DIR}
 
                                 flutter build apk --release --ci --no-shrink --verbose -- ${gradleDebug}
                                 flutter build appbundle --release --ci --no-shrink --verbose -- ${gradleDebug}
@@ -1130,7 +1130,7 @@ pipeline {
                                 
                                 echo "📦 Reusing previously built debug APK"
 
-                                cd \${CONTAINER_WORKSPACE}
+                                cd \${REPO_CHECKOUT_DIR}
 
                                 test -f android/app/build/outputs/apk/debug/*.apk
 
@@ -1159,7 +1159,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${REPO_CHECKOUT_DIR}
 
                         \${INTEGRATION_TEST_SCRIPT}
                     """
@@ -1180,7 +1180,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd \${CONTAINER_WORKSPACE}
+                        cd \${REPO_CHECKOUT_DIR}
 
                         pwsh "\${PLANTUML_SCRIPT}"
 
