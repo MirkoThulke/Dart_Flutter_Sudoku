@@ -923,13 +923,13 @@ pipeline {
                         ls -la /
 
                         echo "=== Container workspace ==="
-                        ls -la "${CONTAINER_WORKSPACE}"
+                        ls -la "\${CONTAINER_WORKSPACE}"
 
-                        echo "Container workspace: ${CONTAINER_WORKSPACE}"
+                        echo "Container workspace: \${CONTAINER_WORKSPACE}"
 
-                        if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}/src" ]; then
+                        if [ -d "\${REPO_CHECKOUT_RUST_SUBDIR}/src" ]; then
                             echo "=== Rust src directory ==="
-                            ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
+                            ls -la "\${REPO_CHECKOUT_RUST_SUBDIR}/src"
                         else
                             echo "ERROR: rust_lib/src folder does not exist!"
                             exit 1
@@ -954,7 +954,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         # cd into Rust project
-                        cd "${REPO_CHECKOUT_RUST_SUBDIR}"
+                        cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
@@ -964,11 +964,11 @@ pipeline {
                           -t armeabi-v7a \
                           -t arm64-v8a \
                           -t x86_64 \
-                          -o \${ANDROID_JNI_LIBS_DIR} \
+                          -o "\${ANDROID_JNI_LIBS_DIR}" \
                               build --release
         
                             echo "📦 Produced JNI libraries:"
-                        find \${ANDROID_JNI_LIBS_DIR} -name "*.so"
+                        find "\${ANDROID_JNI_LIBS_DIR}" -name "*.so"
                         """
                     }
                 }
@@ -979,16 +979,6 @@ pipeline {
 
         stage('Flutter → Android Materialization') {
             steps {
-                script {
-
-                    def gradleDebugOpts = params.GRADLE_DEBUG
-                    ? "--debug --stacktrace --info"
-                    : ""
-
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
                         // do:
                         // flutter pub get
                         // flutter precache --android
@@ -997,35 +987,56 @@ pipeline {
                         // Precache downloads bits.
                         // A debug build wires Gradle.
                         // Wiring must happen ONCE.
+                script {
+
+                    def gradleDebugOpts = params.GRADLE_DEBUG
+                    ? "--debug --stacktrace --info"
+                    : ""
+
+                    insideFlutterContainerRootUser(
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                         sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
 
-                            # debug triggers all engine + Gradle wiring
-                            # release will reuse the same caches
+                        echo "🔧 Precache Flutter engine as root"
 
-                            set -Eeuo pipefail
+                        # Ensure Flutter SDK cache is writable
+                        chown -R 2000:2000 "\${FLUTTER_ROOT}"
+                        chmod -R 770 "\${FLUTTER_ROOT}"
 
-                            cd \${REPO_CHECKOUT_DIR}
+                        # Precache Android artifacts
+                        flutter precache --android --force
 
-                            flutter pub get
+                        # Verify artifacts exist
+                        echo "✅ Engine cache populated:"
+                        ls -lah  "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/android-*"
 
-                            flutter precache --android --force
-
-                            echo "✅ Engine cache populated:"
-                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine
-                            # Verify engine artifacts exist
-                            ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine/android-* || exit 1
-
-                            flutter build apk \
-                              --debug \
-                              --ci \
-                              --no-shrink \
-                              --verbose
-
-                            test -f "$FLUTTER_ROOT/bin/cache/artifacts/engine/android-arm64/flutter.jar"
-
-                            echo "✅ Android engine + Gradle wiring complete"
                         """
                     }
+                    insideFlutterContainerJenkinsUser(
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+
+                        echo "📦 Flutter pub get and build APK"
+
+                        cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
+
+                        # Fetch Dart dependencies
+                        flutter pub get
+
+                        # Build debug APK (wires Gradle)
+                        flutter build apk --debug --ci --no-shrink "\${gradleDebugOpts}"
+
+                        echo "✅ Flutter build complete"
+
+                        """
+                    }
+
                 }
             }
         }
