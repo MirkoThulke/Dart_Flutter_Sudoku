@@ -914,14 +914,18 @@ pipeline {
                         set -Eeuo pipefail
                         
                         # Ensure we are in the workspace
-                        cd \${WORKSPACE}
+                        cd "\${WORKSPACE}"
 
-                        sh "ls -la /"                # root level
-                        sh "ls -la ${CONTAINER_WORKSPACE}" # what it actually sees
+                        echo "=== Root filesystem ==="
+                        ls -la /
+
+                        echo "=== Container workspace ==="
+                        ls -la "${CONTAINER_WORKSPACE}"
 
                         echo "Container workspace: ${CONTAINER_WORKSPACE}"
 
                         if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}/src" ]; then
+                            echo "=== Rust src directory ==="
                             ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
                         else
                             echo "ERROR: rust_lib/src folder does not exist!"
