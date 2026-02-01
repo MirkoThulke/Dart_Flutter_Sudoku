@@ -515,6 +515,9 @@ pipeline {
         // Gradle options
         GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dorg.gradle.vfs.watch=false -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Dgradle.download.retry=3 -Xmx1536m -Xms512m"
 
+        // Git branch 
+        GIT_REPO_URL        = 'https://github.com/MirkoThulke/Dart_Flutter_Sudoku.git'
+        GIT_BRANCH          = 'iteration3'
 
         // PATH definition (binaries only)
         PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
@@ -610,6 +613,11 @@ pipeline {
                 "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
 
+                "GRADLE_OPTS=${env.GRADLE_OPTS}",
+
+                "GIT_REPO_URL=${env.GIT_REPO_URL}",
+                "GIT_BRANCH=${env.GIT_BRANCH}",
+
                 "PATH=${env.PATH}"
                 ]
 
@@ -664,47 +672,9 @@ pipeline {
         }
 
 
-       /*
-        1. Stages before checkout:
-        - Image existence
-        - Container self-test
-
-        2. ## CHECKOUT STAGE ##
-
-        3. Stages after checkout:
-        - Validate repo structure
-        - Build
-        */
-        stage('Checkout') {
+        stage('Checkout in Container') {
             steps {
                 script {
-                    // Checkout repo directly into the host-mounted folder
-                    dir("${CONTAINER_WORKSPACE}") {
-                        checkout scm
-                    }
-
-                    // Optional: print a small summary to confirm files are present
-                    echo "Verifying checkout inside container workspace:"
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-                        echo "Contents of ${CONTAINER_WORKSPACE}:"
-                        ls -la ${CONTAINER_WORKSPACE}
-
-                        # Optionally, check for key files like pubspec.yaml or main.dart
-                        if [ -f "${CONTAINER_WORKSPACE}/pubspec.yaml" ]; then
-                            echo "pubspec.yaml exists ✅"
-                        else
-                            echo "pubspec.yaml not found ❌"
-                        fi
-
-                        if [ -f "${CONTAINER_WORKSPACE}/main.dart" ]; then
-                            echo "main.dart exists ✅"
-                        else
-                            echo "main.dart not found ❌"
-                        fi
-                    """
-
-                    // Run inside the container
                     insideFlutterContainerJenkinsUser(
                         "${CONTAINER_WORKSPACE}",
                         "${CONTAINER_CACHE}"
@@ -712,13 +682,22 @@ pipeline {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
 
-                            echo "Inside container, verifying workspace:"
-                            cd \$CONTAINER_WORKSPACE
-                            ls -la
+                            # Ensure workspace exists
+                            mkdir -p "${CONTAINER_WORKSPACE}"
 
-                            # Optional quick count of files
-                            echo "Number of files in workspace:"
-                            find . -type f | wc -l
+                            # Clone repo inside container
+                            if [ ! -d "${CONTAINER_WORKSPACE}/.git" ]; then
+                                git clone --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${CONTAINER_WORKSPACE}"
+                            else
+                                echo "Repo already cloned"
+                                cd "${CONTAINER_WORKSPACE}"
+                                git fetch --all
+                                git reset --hard origin/main
+                            fi
+
+                            # Verify files
+                            ls -la "${CONTAINER_WORKSPACE}"
+                            ls -la "${RUST_PROJECT_DIR}/src"
                         """
                     }
                 }
@@ -928,25 +907,22 @@ pipeline {
                     insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
-                    ) {
+                    ) { 
+
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
                         
                         # Ensure we are in the workspace
                         cd "${CONTAINER_WORKSPACE}"
 
+                        sh "ls -la /"                # root level
+                        sh "ls -la /workspace"       # common mounted folder
+                        sh "ls -la ${CONTAINER_WORKSPACE}" # what it actually sees
+
                         echo "Container workspace: ${CONTAINER_WORKSPACE}"
 
-                        # Use quotes to avoid weird path issues
-                        if [ -d "${CONTAINER_WORKSPACE}/rust" ]; then
-                            ls -la "${CONTAINER_WORKSPACE}/rust"
-                        else
-                            echo "ERROR: rust folder does not exist!"
-                            exit 1
-                        fi
-
-                        if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib/src" ]; then
-                            ls -la "${CONTAINER_WORKSPACE}/rust/rust_lib/src"
+                        if [ -d "${RUST_PROJECT_DIR}/src" ]; then
+                            ls -la "${RUST_PROJECT_DIR}/src"
                         else
                             echo "ERROR: rust_lib/src folder does not exist!"
                             exit 1
@@ -971,7 +947,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         # cd into Rust project
-                        cd ${CONTAINER_WORKSPACE}/rust/rust_lib
+                        cd "${RUST_PROJECT_DIR}"
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
