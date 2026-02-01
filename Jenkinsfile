@@ -929,12 +929,28 @@ pipeline {
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
-                        sh """
-                            # cd into Rust project
-                            cd ${CONTAINER_WORKSPACE}
-                            echo "Container workspace: \$CONTAINER_WORKSPACE"
-                            ls -la \$CONTAINER_WORKSPACE/rust
-                            ls -la \$CONTAINER_WORKSPACE/rust/rust_lib/src
+                        sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+                        
+                        # Ensure we are in the workspace
+                        cd "${CONTAINER_WORKSPACE}"
+
+                        echo "Container workspace: ${CONTAINER_WORKSPACE}"
+
+                        # Use quotes to avoid weird path issues
+                        if [ -d "${CONTAINER_WORKSPACE}/rust" ]; then
+                            ls -la "${CONTAINER_WORKSPACE}/rust"
+                        else
+                            echo "ERROR: rust folder does not exist!"
+                            exit 1
+                        fi
+
+                        if [ -d "${CONTAINER_WORKSPACE}/rust/rust_lib/src" ]; then
+                            ls -la "${CONTAINER_WORKSPACE}/rust/rust_lib/src"
+                        else
+                            echo "ERROR: rust_lib/src folder does not exist!"
+                            exit 1
+                        fi
                         """
                     }
                 }
