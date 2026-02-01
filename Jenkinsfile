@@ -618,41 +618,6 @@ pipeline {
             }
         }
 
-       /*
-        1. Stages before checkout:
-        - Image existence
-        - Container self-test
-
-        2. ## CHECKOUT STAGE ##
-
-        3. Stages after checkout:
-        - Validate repo structure
-        - Build
-        */
-        stage('Checkout') {
-            steps {
-        
-                script {
-                    // Checkout happens in the host workspace
-                    checkout scm
-        
-                    // Then run inside container
-                    insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}",
-                        "${WORKSPACE}/jenkins_container_cache"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-        
-                            cd \$CONTAINER_WORKSPACE
-        
-                            echo "Inside container workspace:"
-                            ls -la
-                        """
-                    }
-                }
-            }
-        }
 
 
         stage('Setup Environment') {
@@ -701,6 +666,41 @@ pipeline {
         }
         
 
+       /*
+        1. Stages before checkout:
+        - Image existence
+        - Container self-test
+
+        2. ## CHECKOUT STAGE ##
+
+        3. Stages after checkout:
+        - Validate repo structure
+        - Build
+        */
+        stage('Checkout') {
+            steps {
+        
+                script {
+                    // Checkout happens in the host workspace
+                    checkout scm
+        
+                    // Then run inside container
+                    insideFlutterContainerJenkinsUser(
+                        "${WORKSPACE}",
+                        "${WORKSPACE}/jenkins_container_cache"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+        
+                            cd \$CONTAINER_WORKSPACE
+        
+                            echo "Inside container workspace:"
+                            ls -la
+                        """
+                    }
+                }
+            }
+        }
 
         stage('Add GIT safe.directories') {
             steps {
