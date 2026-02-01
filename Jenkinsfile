@@ -364,9 +364,9 @@ def flutterClean(Map opts = [:]) {
     boolean veryDeep = opts.get('veryDeep', false)
 
     insideFlutterContainerRootUser(
-        "${env.WORKSPACE}",
-        "${env.WORKSPACE}/jenkins_container_cache"
-    ) {
+        "${CONTAINER_WORKSPACE}",
+        "${CONTAINER_CACHE}"
+        ) {
         sh """#!/usr/bin/env bash
             set -Eeuo pipefail
 
@@ -624,8 +624,8 @@ pipeline {
                 script {
                     insideFlutterContainerRootUser(
                     "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}") 
-                    {
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
