@@ -12,8 +12,8 @@
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
 //
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
-//  sudo chmod -R 770 /home/mirko/jenkins_host_cache
+//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
 
 
 // Start the Jenkins Docker container via : compose build via your compose.yaml file
@@ -929,7 +929,7 @@ pipeline {
                         set -Eeuo pipefail
 
                         # cd into Rust project
-                        cd ${CONTAINER_WORKSPACE}/rust/rust_lib
+                        cd ${WORKSPACE}/rust/rust_lib
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
