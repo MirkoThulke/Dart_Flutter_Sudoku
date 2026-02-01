@@ -11,9 +11,8 @@
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
-//
-//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
-//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
+//  sudo chmod -R 770 /home/mirko/jenkins_host_cache
 
 
 // Start the Jenkins Docker container via : compose build via your compose.yaml file
@@ -495,7 +494,7 @@ pipeline {
 
         // Host mount paths
         HOST_CACHE         = '/home/mirko/jenkins_host_cache'
-        HOST_WORKSPACE     = '/home/mirko/workspace/Flutter_Docker_Pipeline'
+        HOST_WORKSPACE     = '/home/mirko/jenkins_host_workspace'
 
         // GIT Home inside container
         HOME               = '/home/jenkins'
