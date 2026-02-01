@@ -578,7 +578,7 @@ pipeline {
 
                 containerEnv = [
 
-                "HOME=${env.CONTAINER_WORKSPACE}/.home",
+                "HOME=${env.HOME}",
 
                 "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
                 "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
@@ -649,6 +649,9 @@ pipeline {
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
 
+                        mkdir -p "\$HOME/.android"
+                        mkdir -p "\$HOME/.gradle"
+                        mkdir -p "\$HOME/.cache"
                         mkdir -p "\$HOME/.config/flutter"
 
                         mkdir -p "\$XDG_CONFIG_HOME/flutter"
