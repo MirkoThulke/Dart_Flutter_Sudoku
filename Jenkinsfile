@@ -595,7 +595,7 @@ pipeline {
                 "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
                 "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
-                "REPO_CHECKOUT_RUST_SUBDIR=${env.REPO_CHECKOUT_DIR}/rust/rust_lib",
+                "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
 
                 "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
