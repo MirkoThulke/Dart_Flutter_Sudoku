@@ -523,6 +523,43 @@ pipeline {
 
     stages {
 
+
+       /*
+        1. Stages before checkout:
+        - Image existence
+        - Container self-test
+
+        2. ## CHECKOUT STAGE ##
+
+        3. Stages after checkout:
+        - Validate repo structure
+        - Build
+        */
+        stage('Checkout') {
+            steps {
+        
+                script {
+                    // Checkout happens in the host workspace
+                    checkout scm
+        
+                    // Then run inside container
+                    insideFlutterContainerJenkinsUser(
+                        "${WORKSPACE}",
+                        "${WORKSPACE}/jenkins_container_cache"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+        
+                            cd \$CONTAINER_WORKSPACE
+        
+                            echo "Inside container workspace:"
+                            ls -la
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Prepare Flutter Image') {
             steps {
                 script {
@@ -826,46 +863,7 @@ pipeline {
             }
         }
 
-        /*
-        1. Stages before checkout:
-        - Image existence
-        - Container self-test
-
-        2. ## CHECKOUT STAGE ##
-
-        3. Stages after checkout:
-        - Validate repo structure
-        - Build
-        */
-
-       stage('Checkout') {
-            steps {
-        
-                script {
-                    // Checkout happens in the host workspace
-                    checkout scm
-        
-                    // Then run inside container
-                    insideFlutterContainerJenkinsUser(
-                        "${WORKSPACE}",
-                        "${WORKSPACE}/jenkins_container_cache"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-        
-                            cd \$CONTAINER_WORKSPACE
-        
-                            echo "Inside container workspace:"
-                            ls -la
-                        """
-                    }
-                }
-            }
-        }
-
-
-
-
+ 
         stage('Clean Environment Flutter') {
             // use Root agent to have permissions to delete all files
             steps {
