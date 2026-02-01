@@ -636,6 +636,9 @@ pipeline {
                         mkdir -p "\${CONTAINER_WORKSPACE}" 
 
                         mkdir -p "\${CONTAINER_CACHE}"
+                        mkdir -p "\${CONTAINER_CACHE}/gradle"
+                        mkdir -p "\${CONTAINER_CACHE}/pub"
+                        mkdir -p "\${CONTAINER_CACHE}/cargo"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
