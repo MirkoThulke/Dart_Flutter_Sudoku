@@ -586,6 +586,8 @@ pipeline {
                 "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                 "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
+                "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+
                 "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
                 "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
                 "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
@@ -649,6 +651,8 @@ pipeline {
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
                         mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
 
+                        mkdir -p "\$FLUTTER_CACHE_DIR"
+
                         mkdir -p "\$HOME/.android"
                         mkdir -p "\$HOME/.gradle"
                         mkdir -p "\$HOME/.cache"
@@ -657,8 +661,8 @@ pipeline {
                         mkdir -p "\$XDG_CONFIG_HOME/flutter"
                         mkdir -p "\$XDG_CACHE_HOME"
 
-                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
-                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME"
+                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
+                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
 
                         # Optional: verify the directories
                         echo "inside container:"
@@ -721,7 +725,7 @@ pipeline {
 
                         cd \${REPO_CHECKOUT_DIR}
 
-                        git config --system --add safe.directory \${FLUTTER_ROOT}
+                        git config --system --add safe.directory \${FLUTTER_CACHE_DIR}
                     """
                     }
                 }
@@ -768,6 +772,9 @@ pipeline {
 
                         require_env HOME
                         require_env FLUTTER_ROOT
+                        require_env FLUTTER_CACHE_DIR
+                        require_env CONTAINER_WORKSPACE
+                        require_env GRADLE_USER_HOME
                         require_env RUST_CARGO_DIR
                         require_env RUSTUP_HOME
                         require_env CARGO_HOME
@@ -1003,15 +1010,15 @@ pipeline {
                         echo "🔧 Precache Flutter engine as root"
 
                         # Ensure Flutter SDK cache is writable
-                        chown -R 2000:2000 "\${FLUTTER_ROOT}"
-                        chmod -R 770 "\${FLUTTER_ROOT}"
+                        chown -R 2000:2000 "\${FLUTTER_CACHE_DIR}"
+                        chmod -R 770 "\${FLUTTER_CACHE_DIR}"
 
                         # Precache Android artifacts
                         flutter precache --android --force
 
                         echo "✅ Verifying Android engine artifacts"
-                        ls -lah "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/"
-                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
+                        ls -lah "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine/"
+                        find "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         """
                     }
@@ -1034,7 +1041,7 @@ pipeline {
 
                         # Verify AFTER build
                         echo "✅ Engine artifacts:"
-                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
+                        find "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         echo "✅ Flutter build complete"
 
@@ -1068,7 +1075,7 @@ pipeline {
                     flutter doctor -v
 
                     echo "Engine cache:"
-                    ls -lah \$FLUTTER_ROOT/bin/cache/artifacts/engine || true
+                    ls -lah \$FLUTTER_CACHE_DIR/bin/cache/artifacts/engine || true
 
                     echo "JNI intermediates:"
                     find build -path "*jniLibs*" -maxdepth 6 || true
