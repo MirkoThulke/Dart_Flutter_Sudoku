@@ -644,25 +644,23 @@ pipeline {
 
                         cd \${WORKSPACE}
 
-                        mkdir -p "\${CONTAINER_WORKSPACE}" 
+                        mkdir -p \
+                            "$CONTAINER_WORKSPACE" \
+                            "$CONTAINER_CACHE/.gradle/{caches,wrapper}" \
+                            "$FLUTTER_CACHE_DIR" \
+                            "$HOME/.{android,gradle,cache,config/flutter}" \
+                            "$XDG_CONFIG_HOME/flutter" \
+                            "$XDG_CACHE_HOME"
 
-                        mkdir -p "\${CONTAINER_CACHE}"
-                        mkdir -p "\${CONTAINER_CACHE}/.gradle"
-                        mkdir -p "\${CONTAINER_CACHE}/.gradle/caches"
-                        mkdir -p "\${CONTAINER_CACHE}/.gradle/wrapper"
+                        # Set ownership and permissions (Jenkins user: 2000:2000) only once
+                        MARKER="$CONTAINER_CACHE/.permissions_ok"
 
-                        mkdir -p "\$FLUTTER_CACHE_DIR"
+                        if [ ! -f "$MARKER" ]; then
+                            chown -R 2000:2000 "$CONTAINER_WORKSPACE" "$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
+                            chmod -R 770 "$CONTAINER_WORKSPACE" "$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
+                            touch "$MARKER"
+                        fi
 
-                        mkdir -p "\$HOME/.android"
-                        mkdir -p "\$HOME/.gradle"
-                        mkdir -p "\$HOME/.cache"
-                        mkdir -p "\$HOME/.config/flutter"
-
-                        mkdir -p "\$XDG_CONFIG_HOME/flutter"
-                        mkdir -p "\$XDG_CACHE_HOME"
-
-                        chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
-                        chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
 
                         # Optional: verify the directories
                         echo "inside container:"
@@ -670,9 +668,6 @@ pipeline {
                         ls -la "\${CONTAINER_CACHE}"
                         ls -la "\$HOME/.config"
 
-
-                        # Optional: Run Flutter to verify it's all good
-                        flutter --version
 
                     """
                     }
