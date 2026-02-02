@@ -1009,9 +1009,9 @@ pipeline {
                         # Precache Android artifacts
                         flutter precache --android --force
 
-                        # Verify artifacts exist
-                        echo "✅ Engine cache populated:"
-                        ls -lah  "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/android-*"
+                        echo "✅ Verifying Android engine artifacts"
+                        ls -lah "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/"
+                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         """
                     }
@@ -1031,6 +1031,10 @@ pipeline {
 
                         # Build debug APK (wires Gradle)
                         flutter build apk --debug --ci --no-shrink "\${gradleDebugOpts}"
+
+                        # Verify AFTER build
+                        echo "✅ Engine artifacts:"
+                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         echo "✅ Flutter build complete"
 
