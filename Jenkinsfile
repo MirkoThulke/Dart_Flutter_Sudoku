@@ -1007,16 +1007,12 @@ pipeline {
 
                         echo "🔧 Precache Flutter engine as root"
 
-                        # Ensure Flutter SDK cache is writable
-                        chown -R 2000:2000 "\${FLUTTER_CACHE_DIR}"
-                        chmod -R 770 "\${FLUTTER_CACHE_DIR}"
-
                         # Precache Android artifacts
                         flutter precache --android --force
 
                         echo "✅ Verifying Android engine artifacts"
-                        ls -lah "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine/"
-                        find "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine" -name "flutter.jar"
+                        ls -lah "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/"
+                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         """
                     }
@@ -1039,7 +1035,7 @@ pipeline {
 
                         # Verify AFTER build
                         echo "✅ Engine artifacts:"
-                        find "\${FLUTTER_CACHE_DIR}/bin/cache/artifacts/engine" -name "flutter.jar"
+                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
 
                         echo "✅ Flutter build complete"
 
