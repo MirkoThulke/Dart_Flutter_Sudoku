@@ -1019,7 +1019,7 @@ pipeline {
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
-                        def gradleDebug = params.GRADLE_DEBUG ? "-- -- debug --stacktrace" : ""
+                        def gradleDebug = params.GRADLE_DEBUG ? "-- --debug --stacktrace" : ""
 
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
@@ -1132,7 +1132,7 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         
-                        def gradleDebug = params.GRADLE_DEBUG ? "-- -- debug --stacktrace" : ""
+                        def gradleDebug = params.GRADLE_DEBUG ? "-- --debug --stacktrace" : ""
 
                         if (params.BUILD_MODE == 'release') {
                             sh """
