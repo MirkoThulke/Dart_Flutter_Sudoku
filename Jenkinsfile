@@ -1031,7 +1031,7 @@ pipeline {
                         flutter pub get
 
                         # Build debug APK (wires Gradle)
-                        flutter build apk --debug --ci --no-shrink "\${gradleDebugOpts}"
+                        flutter build apk --debug --ci --no-shrink "${gradleDebugOpts}"
 
                         # Verify AFTER build
                         echo "✅ Engine artifacts:"
