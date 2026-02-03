@@ -1033,7 +1033,9 @@ pipeline {
                         # Build debug APK (wires Gradle)
 
                         if [ "${gradleDebugOn}" = "true" ]; then
-                            flutter build apk --debug --ci --no-shrink -- --debug --stacktrace
+                            export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
+                            export ORG_GRADLE_PROJECT_org_gradle_debug=true
+                            flutter build apk --debug --ci --no-shrink --verbose
                         else
                             flutter build apk --debug --ci --no-shrink
                         fi
@@ -1147,8 +1149,10 @@ pipeline {
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if [ "${gradleDebugOn}" = "true" ]; then
-                                    flutter build apk --release --ci --no-shrink -- --debug --stacktrace
-                                    flutter build appbundle --release --ci --no-shrink -- --debug --stacktrace
+                                    export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
+                                    export ORG_GRADLE_PROJECT_org_gradle_debug=true
+                                    flutter build apk --release --ci --no-shrink --verbose
+                                    flutter build appbundle --release --ci --no-shrink --verbose
                                 else
                                     flutter build apk --release --ci --no-shrink
                                     flutter build appbundle --release --ci --no-shrink
