@@ -514,6 +514,7 @@ pipeline {
 
         // Gradle options
         GRADLE_OPTS        = "-Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.worker.max-gradle-workers=1 -Dorg.gradle.vfs.watch=false -Dkotlin.daemon.enabled=false -Dkotlin.compiler.execution.strategy=in-process -Dgradle.download.retry=3 -Xmx1536m -Xms512m"
+        GRADLE_DEBUG_OPTS  = "--debug --stacktrace"
 
         // Git branch 
         GIT_REPO_URL        = 'https://github.com/MirkoThulke/Dart_Flutter_Sudoku.git'
@@ -617,6 +618,7 @@ pipeline {
                 "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
 
                 "GRADLE_OPTS=${env.GRADLE_OPTS}",
+                "GRADLE_DEBUG_OPTS=${env.GRADLE_DEBUG_OPTS}",
 
                 "GIT_REPO_URL=${env.GIT_REPO_URL}",
                 "GIT_BRANCH=${env.GIT_BRANCH}",
@@ -994,9 +996,6 @@ pipeline {
                         // Wiring must happen ONCE.
                 script {
 
-                    def gradleDebugOpts = params.GRADLE_DEBUG
-                    ? "--debug --stacktrace --info"
-                    : ""
 
                     insideFlutterContainerRootUser(
                     "${CONTAINER_WORKSPACE}",
@@ -1020,6 +1019,8 @@ pipeline {
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
+                        def gradleDebug = params.GRADLE_DEBUG ? "-- -- debug --stacktrace" : ""
+
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
@@ -1031,7 +1032,8 @@ pipeline {
                         flutter pub get
 
                         # Build debug APK (wires Gradle)
-                        flutter build apk --debug --ci --no-shrink "${gradleDebugOpts}"
+
+                        flutter build apk --debug --ci --no-shrink ${gradleDebug}
 
                         # Verify AFTER build
                         echo "✅ Engine artifacts:"
@@ -1130,7 +1132,7 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         
-                        def gradleDebug = params.GRADLE_DEBUG ? "--stacktrace --info" : ""
+                        def gradleDebug = params.GRADLE_DEBUG ? "-- -- debug --stacktrace" : ""
 
                         if (params.BUILD_MODE == 'release') {
                             sh """
@@ -1140,8 +1142,8 @@ pipeline {
 
                                 cd \${REPO_CHECKOUT_DIR}
 
-                                flutter build apk --release --ci --no-shrink --verbose -- ${gradleDebug}
-                                flutter build appbundle --release --ci --no-shrink --verbose -- ${gradleDebug}
+                                flutter build apk --release --ci --no-shrink ${gradleDebug}
+                                flutter build appbundle --release --ci --no-shrink  ${gradleDebug}
 
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/release/*.apk build_outputs/ || true
