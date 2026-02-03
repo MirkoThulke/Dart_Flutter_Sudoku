@@ -1027,6 +1027,12 @@ pipeline {
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
+                        echo "FLUTTER_ROOT=$FLUTTER_ROOT"
+                        which flutter
+                        flutter --version
+
+                        ls -la /opt/flutter/packages/flutter_tools/gradle/src/main || true
+
                         # Fetch Dart dependencies
                         flutter pub get
 
