@@ -554,41 +554,6 @@ pipeline {
 
 
 
-        stage('Prepare Flutter Image') {
-            steps {
-                script {
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-
-                        # docker pull ${FLUTTER_IMAGE_PULL}
-
-                        echo "== Verifying base image =="
-                        docker inspect ${FLUTTER_IMAGE_PULL}
-
-                        if [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
-                           [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
-                            echo "✅ Flutter engine artifacts present"
-                        else
-                            echo "❌ Flutter engine missing!"
-                            exit 1
-                        fi
-
-                        echo "== Smoke test image =="
-                        docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
-                            set -e
-                            echo "PATH=\$PATH"
-                            command -v java
-                            command -v flutter
-                            command -v cargo
-                            command -v sdkmanager
-                            flutter --version
-                        '
-                    """
-                }
-            }
-        }
-
-
 
         stage('Setup Env') {
             steps {
@@ -718,6 +683,47 @@ pipeline {
         }
 
 
+
+        stage('Prepare Flutter Image') {
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser(
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
+                    ) {
+                    sh """#!/usr/bin/env bash
+                        set -Eeuo pipefail
+
+                        # docker pull ${FLUTTER_IMAGE_PULL}
+
+                        echo "== Verifying base image =="
+                        docker inspect ${FLUTTER_IMAGE_PULL}
+
+                        if [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
+                           [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
+                            echo "✅ Flutter engine artifacts present"
+                        else
+                            echo "❌ Flutter engine missing!"
+                            exit 1
+                        fi
+
+                        echo "== Smoke test image =="
+                        docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
+                            set -e
+                            echo "PATH=\$PATH"
+                            command -v java
+                            command -v flutter
+                            command -v cargo
+                            command -v sdkmanager
+                            flutter --version
+                        '
+                    """
+                    }
+                }
+            }
+        }
+
+
         stage('Checkout in Container') {
             steps {
                 script {
@@ -748,7 +754,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('CI Self-Test') {
             steps {
