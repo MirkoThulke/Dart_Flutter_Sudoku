@@ -362,6 +362,9 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 def flutterClean(Map opts = [:]) {
     boolean deep     = opts.get('deep', false)
     boolean veryDeep = opts.get('veryDeep', false)
+    // Set first
+    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
+    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
 
     insideFlutterContainerJenkinsUser(
         "${CONTAINER_WORKSPACE}",
@@ -557,6 +560,10 @@ pipeline {
         stage('Prepare Flutter Image') {
             steps {
                 script {
+                    // Set first
+                    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
+                    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
+
                     insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
