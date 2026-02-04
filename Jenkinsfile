@@ -362,9 +362,6 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 def flutterClean(Map opts = [:]) {
     boolean deep     = opts.get('deep', false)
     boolean veryDeep = opts.get('veryDeep', false)
-    // Set first
-    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
-    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
 
     insideFlutterContainerJenkinsUser(
         "${CONTAINER_WORKSPACE}",
@@ -379,7 +376,7 @@ def flutterClean(Map opts = [:]) {
             # Verify Flutter SDK is read-only
             # ----------------------------------------
             echo "🔒 Verifying Flutter SDK immutability"
-            if [ -w "\$FLUTTER_ROOT" ]; then
+            if [ -w "$FLUTTER_ROOT" ]; then
                 echo "❌ Flutter SDK is writable — ABORT"
                 exit 1
             else
@@ -393,10 +390,10 @@ def flutterClean(Map opts = [:]) {
             # ----------------------------------------
             echo "🧹 Cleaning ephemeral build directories"
             rm -rf \
-                "\${FLUTTER_BUILD_DIRS_1:?}" \
-                "\${FLUTTER_BUILD_DIRS_2:?}" \
-                "\${FLUTTER_BUILD_DIRS_3:?}" \
-                "\${FLUTTER_BUILD_DIRS_4:?}" || true
+                "${FLUTTER_BUILD_DIRS_1:?}" \
+                "${FLUTTER_BUILD_DIRS_2:?}" \
+                "${FLUTTER_BUILD_DIRS_3:?}" \
+                "${FLUTTER_BUILD_DIRS_4:?}" || true
 
             # ----------------------------------------
             # Deep clean caches (dependencies)
@@ -404,10 +401,10 @@ def flutterClean(Map opts = [:]) {
             if [ "${deep}" = "true" ]; then
                 echo "🧹 Performing deep clean (Gradle & Pub caches)"
                 rm -rf \
-                    "\${GRADLE_USER_HOME:?}/daemon" \
-                    "\${GRADLE_USER_HOME:?}/caches/modules-*" \
-                    "\${PUB_CACHE:?}/hosted" \
-                    "\${PUB_CACHE:?}/git" || true
+                    "${GRADLE_USER_HOME:?}/daemon" \
+                    "${GRADLE_USER_HOME:?}/caches/modules-*" \
+                    "${PUB_CACHE:?}/hosted" \
+                    "${PUB_CACHE:?}/git" || true
             fi
 
             # ----------------------------------------
@@ -416,8 +413,8 @@ def flutterClean(Map opts = [:]) {
             if [ "${veryDeep}" = "true" ]; then
                 echo "🧹 Performing very deep clean (Gradle wrapper & caches)"
                 rm -rf \
-                    "\${GRADLE_USER_HOME:?}/caches" \
-                    "\${GRADLE_USER_HOME:?}/wrapper" || true
+                    "${GRADLE_USER_HOME:?}/caches" \
+                    "${GRADLE_USER_HOME:?}/wrapper" || true
             fi
 
             # ----------------------------------------
@@ -425,7 +422,7 @@ def flutterClean(Map opts = [:]) {
             # ----------------------------------------
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
                 echo "🧹 Removing JNI libraries"
-                rm -rf "\${ANDROID_JNI_LIBS_DIR:?}"/* || true
+                rm -rf "${ANDROID_JNI_LIBS_DIR:?}"/* || true
             fi
 
             # ----------------------------------------
@@ -434,7 +431,7 @@ def flutterClean(Map opts = [:]) {
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
                 if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}" ]; then
                     echo "🦀 Cleaning Rust build artifacts"
-                    cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
+                    cd "${REPO_CHECKOUT_RUST_SUBDIR}"
                     cargo clean || true
                 fi
             fi
@@ -443,13 +440,13 @@ def flutterClean(Map opts = [:]) {
             # Fix ownership of workspace and cache
             # ----------------------------------------
             echo "🛠 Fixing ownership for Jenkins user"
-            chown -R 2000:2000 "\${CONTAINER_WORKSPACE:?}" "\${CONTAINER_CACHE:?}" || true
+            chown -R 2000:2000 "${CONTAINER_WORKSPACE:?}" "${CONTAINER_CACHE:?}" || true
 
             # ----------------------------------------
             # Final Flutter SDK immutability check
             # ----------------------------------------
             echo "🔒 Re-checking Flutter SDK immutability"
-            if [ -w "\$FLUTTER_ROOT" ]; then
+            if [ -w "$FLUTTER_ROOT" ]; then
                 echo "❌ Flutter SDK is writable — ABORT"
                 exit 1
             else
@@ -560,14 +557,6 @@ pipeline {
         stage('Prepare Flutter Image') {
             steps {
                 script {
-                    // Set first
-                    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
-                    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
-
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
@@ -595,7 +584,6 @@ pipeline {
                             flutter --version
                         '
                     """
-                    }
                 }
             }
         }
@@ -606,14 +594,11 @@ pipeline {
             steps {
                 // Dynamic paths inside container (workspace-dependent)
                 script {
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
+
                     // now WORKSPACE exists
                     env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
                     env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
-
+                
 
                     // Prepare ENV exports for child processes
                     /*
@@ -678,7 +663,6 @@ pipeline {
                     "PATH=${env.PATH}"
                     ]
 
-                    }
                 }
             }
         }
