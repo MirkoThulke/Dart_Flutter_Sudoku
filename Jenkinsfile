@@ -390,10 +390,10 @@ def flutterClean(Map opts = [:]) {
             # ----------------------------------------
             echo "🧹 Cleaning ephemeral build directories"
             rm -rf \
-                "${FLUTTER_BUILD_DIRS_1:?}" \
-                "${FLUTTER_BUILD_DIRS_2:?}" \
-                "${FLUTTER_BUILD_DIRS_3:?}" \
-                "${FLUTTER_BUILD_DIRS_4:?}" || true
+                "\${FLUTTER_BUILD_DIRS_1:?}" \
+                "\${FLUTTER_BUILD_DIRS_2:?}" \
+                "\${FLUTTER_BUILD_DIRS_3:?}" \
+                "\${FLUTTER_BUILD_DIRS_4:?}" || true
 
             # ----------------------------------------
             # Deep clean caches (dependencies)
@@ -401,10 +401,10 @@ def flutterClean(Map opts = [:]) {
             if [ "${deep}" = "true" ]; then
                 echo "🧹 Performing deep clean (Gradle & Pub caches)"
                 rm -rf \
-                    "${GRADLE_USER_HOME:?}/daemon" \
-                    "${GRADLE_USER_HOME:?}/caches/modules-*" \
-                    "${PUB_CACHE:?}/hosted" \
-                    "${PUB_CACHE:?}/git" || true
+                    "\${GRADLE_USER_HOME:?}/daemon" \
+                    "\${GRADLE_USER_HOME:?}/caches/modules-*" \
+                    "\${PUB_CACHE:?}/hosted" \
+                    "\${PUB_CACHE:?}/git" || true
             fi
 
             # ----------------------------------------
