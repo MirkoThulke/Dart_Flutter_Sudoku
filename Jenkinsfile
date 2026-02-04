@@ -363,7 +363,7 @@ def flutterClean(Map opts = [:]) {
     boolean deep     = opts.get('deep', false)
     boolean veryDeep = opts.get('veryDeep', false)
 
-    insideFlutterContainerRootUser(
+    insideFlutterContainerJenkinsUser(
         "${CONTAINER_WORKSPACE}",
         "${CONTAINER_CACHE}"
     ) {
@@ -557,6 +557,10 @@ pipeline {
         stage('Prepare Flutter Image') {
             steps {
                 script {
+                    insideFlutterContainerJenkinsUser(
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
                     sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
@@ -565,8 +569,8 @@ pipeline {
                         echo "== Verifying base image =="
                         docker inspect ${FLUTTER_IMAGE_PULL}
 
-                        if [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
-                           [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
+                        if [ -d "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
+                           [ -d "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
                             echo "✅ Flutter engine artifacts present"
                         else
                             echo "❌ Flutter engine missing!"
@@ -584,84 +588,90 @@ pipeline {
                             flutter --version
                         '
                     """
+                    }
                 }
             }
         }
+
 
 
         stage('Setup Env') {
             steps {
                 // Dynamic paths inside container (workspace-dependent)
                 script {
+                    insideFlutterContainerJenkinsUser(
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
+                    // now WORKSPACE exists
+                    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
+                    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
 
-                // now WORKSPACE exists
-                env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
-                env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
-                
 
-                // Prepare ENV exports for child processes
-                /*
-                    # workspace owned home directory
-                    # Ephemeral workspace
-                    # Persistent caches
-                    # Flutter ephemeral build dirs
-                    # Rust / Android FFI
-                    # Toolchains
-                    # Scripts (repo relative)
-                    # "PATH=${env.PATH}" !!
-                */
+                    // Prepare ENV exports for child processes
+                    /*
+                        # workspace owned home directory
+                        # Ephemeral workspace
+                        # Persistent caches
+                        # Flutter ephemeral build dirs
+                        # Rust / Android FFI
+                        # Toolchains
+                        # Scripts (repo relative)
+                        # "PATH=${env.PATH}" !!
+                    */
 
-                containerEnv = [
+                    containerEnv = [
 
-                "HOME=${env.HOME}",
+                    "HOME=${env.HOME}",
 
-                "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
-                "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
+                    "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
+                    "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
 
-                "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
-                "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
+                    "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
+                    "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
 
-                "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
-                "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
+                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
+                    "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
-                "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+                    "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
 
-                "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
-                "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
-                "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
-                "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
+                    "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
+                    "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
+                    "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
+                    "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
 
-                "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
-                "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
+                    "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
+                    "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
 
-                "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
-                "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
+                    "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
+                    "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
 
-                "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
+                    "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
-                "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
-                "RUSTUP_HOME=${env.RUSTUP_HOME}",
-                "CARGO_HOME=${env.CARGO_HOME}",
-                "RUST_CARGO_DIR=${env.RUST_CARGO_DIR}",
+                    "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
+                    "RUSTUP_HOME=${env.RUSTUP_HOME}",
+                    "CARGO_HOME=${env.CARGO_HOME}",
+                    "RUST_CARGO_DIR=${env.RUST_CARGO_DIR}",
 
-                "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
-                "ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL=${env.ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL}",
+                    "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
+                    "ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL=${env.ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL}",
 
-                "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
-                "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
+                    "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
+                    "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
 
-                "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
-                "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
-                "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
+                    "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
+                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
+                    "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
 
-                "GRADLE_OPTS=${env.GRADLE_OPTS}",
+                    "GRADLE_OPTS=${env.GRADLE_OPTS}",
 
-                "GIT_REPO_URL=${env.GIT_REPO_URL}",
-                "GIT_BRANCH=${env.GIT_BRANCH}",
+                    "GIT_REPO_URL=${env.GIT_REPO_URL}",
+                    "GIT_BRANCH=${env.GIT_BRANCH}",
 
-                "PATH=${env.PATH}"
-                ]
+                    "PATH=${env.PATH}"
+                    ]
 
+                    }
                 }
             }
         }
@@ -671,7 +681,7 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 script {
-                    insideFlutterContainerRootUser(
+                    insideFlutterContainerJenkinstUser(
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
