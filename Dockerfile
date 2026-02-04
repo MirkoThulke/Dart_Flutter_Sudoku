@@ -297,6 +297,7 @@ RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
 RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
     "cmake;${CMAKE_MAIN}"
 
+
 # ============================================================
 # Stage: flutter
 # ============================================================
@@ -304,17 +305,17 @@ RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
 FROM android AS flutter
 
 
-# Download Flutter SDK tarball
+# Download Flutter SDK
 RUN set -eux; \
     cd /opt; \
     wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
-# Make Flutter git repo safe for root (system-wide)
+# Git safety
 RUN git config --system --add safe.directory /opt/flutter
 
-# Tell Flutter where Android SDK is
+# Configure Android SDK
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
 
@@ -324,23 +325,27 @@ RUN mkdir -p /home/jenkins \
     /home/jenkins/.config/flutter \
  && chown -R 2000:2000 /home/jenkins
 
-# Make Flutter folder writable by Jenkins user
+# Make Flutter writable for precache
 RUN chown -R 2000:2000 /opt/flutter
 
-# Switch to Jenkins UID before precache
 USER 2000
 
-# Pre-cache Flutter engine binaries
+# Precache Android engine
 RUN flutter precache --android --force
 
-
-# Hard guards (APK-relevant only) (fail fast if something is missing)
+# Hard guards
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
- # Final sanity check
+# Read-only diagnostics
 RUN flutter doctor -v
+
+# 🔒 Lock Flutter SDK
+USER root
+RUN chmod -R a-w /opt/flutter \
+ && chmod -R a+rX /opt/flutter
+
 
 # ============================================================
 # Stage: rust
@@ -418,11 +423,14 @@ RUN git config --system --add safe.directory /opt/flutter
 # Final sanity check (no downloads)
 RUN flutter doctor --verbose
 
-
 # Jenkins user Ownership
 RUN chown -R 2000:2000 ${FLUTTER_ROOT}
 RUN chown -R 2000:2000 ${RUST_HOME}
 RUN chown -R 2000:2000 ${ANDROID_ROOT}
+
+# Harding: make Flutter SDK read-only
+RUN chmod -R a-w ${FLUTTER_ROOT}
+RUN chmod -R a+rX ${FLUTTER_ROOT}
 
 
 # Create writable HOME for Jenkins user

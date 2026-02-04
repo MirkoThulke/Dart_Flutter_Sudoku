@@ -486,6 +486,9 @@ pipeline {
 
         SHELL = '/bin/bash'
 
+        FLUTTER_DISABLE_ANALYTICS   = 'true'
+        FLUTTER_SKIP_ANALYTICS      = 'true'
+
         // Static paths 
 
         // Flutter build container
@@ -539,6 +542,9 @@ pipeline {
                         echo "== Verifying base image =="
                         docker inspect ${FLUTTER_IMAGE_PULL}
 
+                        # Verify engine cache
+                        test -f ${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter.jar || (echo "Flutter SDK missing!" && exit 1)
+
                         echo "== Smoke test image =="
                         docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
                             set -e
@@ -580,6 +586,9 @@ pipeline {
                 containerEnv = [
 
                 "HOME=${env.HOME}",
+
+                "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
+                "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
 
                 "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
                 "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
@@ -699,7 +708,7 @@ pipeline {
                                 echo "Repo already cloned"
                                 cd "${REPO_CHECKOUT_DIR}"
                                 git fetch --all
-                                git reset --hard origin/main
+                                git reset --hard ${GIT_BRANCH}
                             fi
 
                             # Verify files
@@ -711,25 +720,6 @@ pipeline {
             }
         }
 
-
-        stage('Add GIT safe.directories') {
-            steps {
-                script {
-                    insideFlutterContainerRootUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-
-                        cd \${REPO_CHECKOUT_DIR}
-
-                        git config --system --add safe.directory \${FLUTTER_CACHE_DIR}
-                    """
-                    }
-                }
-            }
-        }
 
         stage('CI Self-Test') {
             steps {
@@ -806,7 +796,7 @@ pipeline {
                         echo "✅ Android SDK & NDK OK"
 
                         section "Flutter doctor"
-                        flutter doctor -v || true
+                        flutter doctor -v
 
                         echo "=============================="
                         echo "✅ CI SELF TEST PASSED"
@@ -961,6 +951,11 @@ pipeline {
 
                         # cd into Rust project
                         cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
+
+                        command -v cargo-ndk >/dev/null || {
+                        echo "❌ cargo-ndk missing"
+                        exit 1
+                        }
         
                         echo "🧹 Cleaning previous Rust build"
                         cargo clean
@@ -985,35 +980,7 @@ pipeline {
 
         stage('Flutter → Android Materialization') {
             steps {
-                        // do:
-                        // flutter pub get
-                        // flutter precache --android
-                        // ONE flutter build apk --debug
-
-                        // Precache downloads bits.
-                        // A debug build wires Gradle.
-                        // Wiring must happen ONCE.
-                script {
-
-
-                    insideFlutterContainerRootUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-
-                        echo "🔧 Precache Flutter engine as root"
-
-                        # Precache Android artifacts
-                        flutter precache --android --force
-
-                        echo "✅ Verifying Android engine artifacts"
-                        ls -lah "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/"
-                        find "\${FLUTTER_ROOT}/bin/cache/artifacts/engine" -name "flutter.jar"
-
-                        """
-                    }
+               script {
                     insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
@@ -1083,7 +1050,7 @@ pipeline {
                     flutter doctor -v
 
                     echo "Engine cache:"
-                    ls -lah \$FLUTTER_CACHE_DIR/bin/cache/artifacts/engine || true
+                    ls -lah \${FLUTTER_ROOT}/bin/cache/artifacts/engine || true
 
                     echo "JNI intermediates:"
                     find build -path "*jniLibs*" -maxdepth 6 || true
