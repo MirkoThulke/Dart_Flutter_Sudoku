@@ -376,7 +376,7 @@ def flutterClean(Map opts = [:]) {
             # Verify Flutter SDK is read-only
             # ----------------------------------------
             echo "🔒 Verifying Flutter SDK immutability"
-            if [ -w "$FLUTTER_ROOT" ]; then
+            if [ -w "\$FLUTTER_ROOT" ]; then
                 echo "❌ Flutter SDK is writable — ABORT"
                 exit 1
             else
@@ -413,8 +413,8 @@ def flutterClean(Map opts = [:]) {
             if [ "${veryDeep}" = "true" ]; then
                 echo "🧹 Performing very deep clean (Gradle wrapper & caches)"
                 rm -rf \
-                    "${GRADLE_USER_HOME:?}/caches" \
-                    "${GRADLE_USER_HOME:?}/wrapper" || true
+                    "\${GRADLE_USER_HOME:?}/caches" \
+                    "\${GRADLE_USER_HOME:?}/wrapper" || true
             fi
 
             # ----------------------------------------
@@ -422,7 +422,7 @@ def flutterClean(Map opts = [:]) {
             # ----------------------------------------
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
                 echo "🧹 Removing JNI libraries"
-                rm -rf "${ANDROID_JNI_LIBS_DIR:?}"/* || true
+                rm -rf "\${ANDROID_JNI_LIBS_DIR:?}"/* || true
             fi
 
             # ----------------------------------------
@@ -431,7 +431,7 @@ def flutterClean(Map opts = [:]) {
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
                 if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}" ]; then
                     echo "🦀 Cleaning Rust build artifacts"
-                    cd "${REPO_CHECKOUT_RUST_SUBDIR}"
+                    cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
                     cargo clean || true
                 fi
             fi
@@ -440,13 +440,13 @@ def flutterClean(Map opts = [:]) {
             # Fix ownership of workspace and cache
             # ----------------------------------------
             echo "🛠 Fixing ownership for Jenkins user"
-            chown -R 2000:2000 "${CONTAINER_WORKSPACE:?}" "${CONTAINER_CACHE:?}" || true
+            chown -R 2000:2000 "\${CONTAINER_WORKSPACE:?}" "\${CONTAINER_CACHE:?}" || true
 
             # ----------------------------------------
             # Final Flutter SDK immutability check
             # ----------------------------------------
             echo "🔒 Re-checking Flutter SDK immutability"
-            if [ -w "$FLUTTER_ROOT" ]; then
+            if [ -w "\$FLUTTER_ROOT" ]; then
                 echo "❌ Flutter SDK is writable — ABORT"
                 exit 1
             else
