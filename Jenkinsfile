@@ -637,7 +637,7 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 script {
-                    insideFlutterContainerJenkinstUser(
+                    insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
