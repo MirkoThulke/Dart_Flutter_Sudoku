@@ -366,74 +366,97 @@ def flutterClean(Map opts = [:]) {
     insideFlutterContainerRootUser(
         "${CONTAINER_WORKSPACE}",
         "${CONTAINER_CACHE}"
-        ) {
+    ) {
         sh """#!/usr/bin/env bash
             set -Eeuo pipefail
 
             echo "🧹 Flutter clean (deep=${deep}, veryDeep=${veryDeep})"
 
+            # ----------------------------------------
+            # Verify Flutter SDK is read-only
+            # ----------------------------------------
+            echo "🔒 Verifying Flutter SDK immutability"
+            if [ -w "$FLUTTER_ROOT" ]; then
+                echo "❌ Flutter SDK is writable — ABORT"
+                exit 1
+            else
+                echo "✅ Flutter SDK is read-only"
+            fi
+
             cd \${CONTAINER_WORKSPACE}
 
             # ----------------------------------------
-            # Always clean (SAFE)
+            # Always clean ephemeral build dirs (SAFE)
             # ----------------------------------------
+            echo "🧹 Cleaning ephemeral build directories"
             rm -rf \
-              ${FLUTTER_BUILD_DIRS_1} \
-              ${FLUTTER_BUILD_DIRS_2} \
-              ${FLUTTER_BUILD_DIRS_3} \
-              ${FLUTTER_BUILD_DIRS_4}
-
+                "${FLUTTER_BUILD_DIRS_1:?}" \
+                "${FLUTTER_BUILD_DIRS_2:?}" \
+                "${FLUTTER_BUILD_DIRS_3:?}" \
+                "${FLUTTER_BUILD_DIRS_4:?}" || true
 
             # ----------------------------------------
-            # Deep clean (dependencies)
+            # Deep clean caches (dependencies)
             # ----------------------------------------
             if [ "${deep}" = "true" ]; then
-              rm -rf \
-                ${GRADLE_USER_HOME}/daemon \
-                ${GRADLE_USER_HOME}/caches/modules-* \
-                ${PUB_CACHE}/hosted \
-                ${PUB_CACHE}/git
+                echo "🧹 Performing deep clean (Gradle & Pub caches)"
+                rm -rf \
+                    "${GRADLE_USER_HOME:?}/daemon" \
+                    "${GRADLE_USER_HOME:?}/caches/modules-*" \
+                    "${PUB_CACHE:?}/hosted" \
+                    "${PUB_CACHE:?}/git" || true
             fi
 
-
             # ----------------------------------------
-            # Very deep clean (Gradle reset) + cache nuking.
+            # Very deep clean (full Gradle reset)
             # ----------------------------------------
             if [ "${veryDeep}" = "true" ]; then
-              rm -rf \
-                ${GRADLE_USER_HOME}/caches \
-                ${GRADLE_USER_HOME}/wrapper
+                echo "🧹 Performing very deep clean (Gradle wrapper & caches)"
+                rm -rf \
+                    "${GRADLE_USER_HOME:?}/caches" \
+                    "${GRADLE_USER_HOME:?}/wrapper" || true
             fi
 
-
             # ----------------------------------------
-            # Only remove JNI libs in deep cleans
+            # Remove JNI libraries in deep cleans only
             # ----------------------------------------
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
-                rm -rf ${ANDROID_JNI_LIBS_DIR}/* || true
+                echo "🧹 Removing JNI libraries"
+                rm -rf "${ANDROID_JNI_LIBS_DIR:?}"/* || true
             fi
 
             # ----------------------------------------
-            # Only clean Rust when deep cleaning
+            # Clean Rust artifacts in deep cleans only
             # ----------------------------------------
             if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
                 if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}" ]; then
+                    echo "🦀 Cleaning Rust build artifacts"
                     cd "${REPO_CHECKOUT_RUST_SUBDIR}"
-                    cargo clean
+                    cargo clean || true
                 fi
             fi
 
+            # ----------------------------------------
+            # Fix ownership of workspace and cache
+            # ----------------------------------------
+            echo "🛠 Fixing ownership for Jenkins user"
+            chown -R 2000:2000 "${CONTAINER_WORKSPACE:?}" "${CONTAINER_CACHE:?}" || true
 
             # ----------------------------------------
-            # Ownership fix
+            # Final Flutter SDK immutability check
             # ----------------------------------------
-            chown -R 2000:2000 ${CONTAINER_WORKSPACE} ${CONTAINER_CACHE} || true
+            echo "🔒 Re-checking Flutter SDK immutability"
+            if [ -w "$FLUTTER_ROOT" ]; then
+                echo "❌ Flutter SDK is writable — ABORT"
+                exit 1
+            else
+                echo "✅ Flutter SDK is still read-only"
+            fi
 
             echo "✅ Flutter clean done"
         """
     }
 }
-
 
 
 
