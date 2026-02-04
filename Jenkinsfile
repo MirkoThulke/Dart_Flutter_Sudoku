@@ -565,8 +565,13 @@ pipeline {
                         echo "== Verifying base image =="
                         docker inspect ${FLUTTER_IMAGE_PULL}
 
-                        # Verify engine cache
-                        test -f ${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter.jar || (echo "Flutter SDK missing!" && exit 1)
+                        if [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
+                           [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
+                            echo "✅ Flutter engine artifacts present"
+                        else
+                            echo "❌ Flutter engine missing!"
+                            exit 1
+                        fi
 
                         echo "== Smoke test image =="
                         docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
