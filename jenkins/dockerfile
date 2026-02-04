@@ -44,4 +44,8 @@ RUN jenkins-plugin-cli --plugins \
     docker-workflow \
     ws-cleanup
 
+# Add Jenkins user to Docker group matching host socket GID
+RUN groupadd -g 1001 docker \
+    && usermod -aG docker jenkins
+
 USER jenkins
