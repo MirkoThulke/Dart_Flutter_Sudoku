@@ -902,19 +902,19 @@ pipeline {
                             set -Eeuo pipefail
                             cd "\${REPO_CHECKOUT_DIR}"
 
-                            // scripts directory (repo-relative)
+                            # scripts directory (repo-relative)
                             if [ ! -d scripts ]; then
                                 echo "❌ scripts/ directory not found in repository"
                                 exit 1
                             fi
 
-                            // Flutter mandatory file
+                            #  Flutter mandatory file
                             if [ ! -f pubspec.yaml ]; then
                                 echo "❌ pubspec.yaml missing"
                                 exit 1
                             fi
 
-                            // Optional but recommended
+                            #  Optional but recommended
                             if [ ! -d android ]; then
                                 echo "❌ android/ directory missing"
                                 exit 1
