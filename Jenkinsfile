@@ -676,45 +676,37 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
                     ) {
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
 
                         # Create the required  directories inside the container
 
                         cd \${WORKSPACE}
 
-                        mkdir -p \
-                            "\$CONTAINER_WORKSPACE" \
-                            "\$CONTAINER_CACHE/.gradle/caches" \
-                            "\$CONTAINER_CACHE/.gradle/wrapper" \
-                            "\$FLUTTER_CACHE_DIR" \
-                            "\$HOME/.android" \
-                            "\$HOME/.gradle" \
-                            "\$HOME/.cache" \
-                            "\$HOME/.config/flutter" \
-                            "\$XDG_CONFIG_HOME/flutter" \
-                            "\$XDG_CACHE_HOME"
+                            mkdir -p \
+                                "\$CONTAINER_WORKSPACE" \
+                                "\$CONTAINER_CACHE/.gradle/caches" \
+                                "\$CONTAINER_CACHE/.gradle/wrapper" \
+                                "\$FLUTTER_CACHE_DIR" \
+                                "\$HOME/.android" \
+                                "\$HOME/.gradle" \
+                                "\$HOME/.cache" \
+                                "\$HOME/.config/flutter" \
+                                "\$XDG_CONFIG_HOME/flutter" \
+                                "\$XDG_CACHE_HOME"
 
-                        # Set ownership and permissions (Jenkins user: 2000:2000) only once
-                        MARKER="\$CONTAINER_CACHE/.permissions_ok"
+                            # Only set permissions if we can (ignore errors)
+                            chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR" || true
 
-                        if [ ! -f "\$MARKER" ]; then
-                            chown -R 2000:2000 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
-                            chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR"
-                            touch "\$MARKER"
-                        fi
-
-
-                        # Optional: verify the directories
-                        echo "inside container:"
-                        ls -la "\${CONTAINER_WORKSPACE}"
-                        ls -la "\${CONTAINER_CACHE}"
-                        ls -la "\$HOME/.config"
-
-                    """
+                            # Optional: verify the directories
+                            echo "inside container:"
+                            ls -la "\${CONTAINER_WORKSPACE}" || true
+                            ls -la "\${CONTAINER_CACHE}" || true
+                            ls -la "\$HOME/.config" || true
+                        """
                     }
                 }
             }
