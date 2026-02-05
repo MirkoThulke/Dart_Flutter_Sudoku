@@ -698,8 +698,6 @@ pipeline {
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME"
 
-                            # Only set permissions if we can (ignore errors)
-                            chmod -R 770 "\$CONTAINER_WORKSPACE" "\$CONTAINER_CACHE" "\$HOME" "\$XDG_CONFIG_HOME" "\$XDG_CACHE_HOME" "\$FLUTTER_CACHE_DIR" || true
 
                             # Optional: verify the directories
                             echo "inside container:"
@@ -895,38 +893,40 @@ pipeline {
 
         stage('Validate Repo Structure') {
             steps {
-                script {                
+                script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+                            cd "\${REPO_CHECKOUT_DIR}"
 
-                        set -Eeuo pipefail
+                            // scripts directory (repo-relative)
+                            if [ ! -d scripts ]; then
+                                echo "❌ scripts/ directory not found in repository"
+                                exit 1
+                            fi
 
-                        cd \${REPO_CHECKOUT_DIR}
+                            // Flutter mandatory file
+                            if [ ! -f pubspec.yaml ]; then
+                                echo "❌ pubspec.yaml missing"
+                                exit 1
+                            fi
+
+                            // Optional but recommended
+                            if [ ! -d android ]; then
+                                echo "❌ android/ directory missing"
+                                exit 1
+                            fi
+
+                            echo "✅ Repository structure valid"
                         """
-                    
-                    // scripts directory (repo-relative)
-                    if (!fileExists('scripts')) {
-                        error "❌ scripts/ directory not found in repository"
-                    }
-
-                    // Flutter mandatory file
-                    if (!fileExists('pubspec.yaml')) {
-                        error "❌ pubspec.yaml missing"
-                    }
-
-                    // Optional but recommended
-                    if (!fileExists('android')) {
-                        error "❌ android/ directory missing"
-                    }
-
-                    echo "✅ Repository structure valid"
                     }
                 }
             }
         }
+
 
 
         stage('Verify Rust Source') {
