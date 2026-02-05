@@ -359,10 +359,19 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 }
 
 // Helper function : shared cleanup function (Groovy) + parametrize behavior
-def flutterClean(Map opts = [:]) {
-    boolean deep     = opts.get('deep', false)
-    boolean veryDeep = opts.get('veryDeep', false)
 
+// What it does : 
+// Removes build outputs only
+// Removes .dart_tool
+// Does NOT touch caches
+// Does NOT touch JNI or Rust
+// Does NOT need root
+
+// When to run : 
+// After Setup Environment
+// On every build
+
+def flutterCleanLight() {
     insideFlutterContainerJenkinsUser(
         "${CONTAINER_WORKSPACE}",
         "${CONTAINER_CACHE}"
@@ -370,93 +379,118 @@ def flutterClean(Map opts = [:]) {
         sh """#!/usr/bin/env bash
             set -Eeuo pipefail
 
-            echo "🧹 Flutter clean (deep=${deep}, veryDeep=${veryDeep})"
+            echo "🧹 Flutter LIGHT clean (ephemeral only)"
 
             # ----------------------------------------
-            # Verify Flutter SDK is read-only
+            # Verify Flutter SDK immutability
             # ----------------------------------------
             echo "🔒 Verifying Flutter SDK immutability"
-            if [ -w "$FLUTTER_ROOT" ]; then
+            if [ -w "\$FLUTTER_ROOT" ]; then
                 echo "❌ Flutter SDK is writable — ABORT"
                 exit 1
-            else
-                echo "✅ Flutter SDK is read-only"
             fi
 
-            cd \${CONTAINER_WORKSPACE}
+            cd "\$CONTAINER_WORKSPACE"
 
             # ----------------------------------------
-            # Always clean ephemeral build dirs (SAFE)
+            # Ephemeral build outputs (SAFE)
             # ----------------------------------------
-            echo "🧹 Cleaning ephemeral build directories"
+            echo "🧹 Removing Flutter / Android build outputs"
             rm -rf \
                 "\${FLUTTER_BUILD_DIRS_1:?}" \
                 "\${FLUTTER_BUILD_DIRS_2:?}" \
                 "\${FLUTTER_BUILD_DIRS_3:?}" \
-                "\${FLUTTER_BUILD_DIRS_4:?}" || true
+                "\${FLUTTER_BUILD_DIRS_4:?}" \
+                ".dart_tool" || true
 
-            # ----------------------------------------
-            # Deep clean caches (dependencies)
-            # ----------------------------------------
-            if [ "${deep}" = "true" ]; then
-                echo "🧹 Performing deep clean (Gradle & Pub caches)"
-                rm -rf \
-                    "\${GRADLE_USER_HOME:?}/daemon" \
-                    "\${GRADLE_USER_HOME:?}/caches/modules-*" \
-                    "\${PUB_CACHE:?}/hosted" \
-                    "\${PUB_CACHE:?}/git" || true
-            fi
-
-            # ----------------------------------------
-            # Very deep clean (full Gradle reset)
-            # ----------------------------------------
-            if [ "${veryDeep}" = "true" ]; then
-                echo "🧹 Performing very deep clean (Gradle wrapper & caches)"
-                rm -rf \
-                    "\${GRADLE_USER_HOME:?}/caches" \
-                    "\${GRADLE_USER_HOME:?}/wrapper" || true
-            fi
-
-            # ----------------------------------------
-            # Remove JNI libraries in deep cleans only
-            # ----------------------------------------
-            if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
-                echo "🧹 Removing JNI libraries"
-                rm -rf "\${ANDROID_JNI_LIBS_DIR:?}"/* || true
-            fi
-
-            # ----------------------------------------
-            # Clean Rust artifacts in deep cleans only
-            # ----------------------------------------
-            if [ "${deep}" = "true" ] || [ "${veryDeep}" = "true" ]; then
-                if [ -d "${REPO_CHECKOUT_RUST_SUBDIR}" ]; then
-                    echo "🦀 Cleaning Rust build artifacts"
-                    cd "${REPO_CHECKOUT_RUST_SUBDIR}"
-                    cargo clean || true
-                fi
-            fi
-
-            # ----------------------------------------
-            # Fix ownership of workspace and cache
-            # ----------------------------------------
-            echo "🛠 Fixing ownership for Jenkins user"
-            chown -R 2000:2000 "\${CONTAINER_WORKSPACE:?}" "\${CONTAINER_CACHE:?}" || true
-
-            # ----------------------------------------
-            # Final Flutter SDK immutability check
-            # ----------------------------------------
-            echo "🔒 Re-checking Flutter SDK immutability"
-            if [ -w "$FLUTTER_ROOT" ]; then
-                echo "❌ Flutter SDK is writable — ABORT"
-                exit 1
-            else
-                echo "✅ Flutter SDK is still read-only"
-            fi
-
-            echo "✅ Flutter clean done"
+            echo "✅ Flutter LIGHT clean done"
         """
     }
 }
+
+// flutterCleanDeep()
+
+// What it does : 
+// Everything LIGHT does
+// Gradle caches (partial)
+// Pub cache
+// JNI libs
+// Rust artifacts
+// What it deliberately does NOT do
+// Delete Gradle wrapper
+// Delete entire .gradle
+// Touch Flutter SDK
+// Change permissions
+
+// When to run : 
+// Parameter-gated
+// Manual / troubleshooting
+// Never by default
+
+def flutterCleanDeep() {
+    insideFlutterContainerJenkinsUser(
+        "${CONTAINER_WORKSPACE}",
+        "${CONTAINER_CACHE}"
+    ) {
+        sh """#!/usr/bin/env bash
+            set -Eeuo pipefail
+
+            echo "🧹 Flutter DEEP clean (dependency caches)"
+
+            # ----------------------------------------
+            # Verify Flutter SDK immutability
+            # ----------------------------------------
+            echo "🔒 Verifying Flutter SDK immutability"
+            if [ -w "\$FLUTTER_ROOT" ]; then
+                echo "❌ Flutter SDK is writable — ABORT"
+                exit 1
+            fi
+
+            cd "\$CONTAINER_WORKSPACE"
+
+            # ----------------------------------------
+            # Ephemeral outputs (same as LIGHT)
+            # ----------------------------------------
+            echo "🧹 Removing build outputs"
+            rm -rf \
+                "\${FLUTTER_BUILD_DIRS_1:?}" \
+                "\${FLUTTER_BUILD_DIRS_2:?}" \
+                "\${FLUTTER_BUILD_DIRS_3:?}" \
+                "\${FLUTTER_BUILD_DIRS_4:?}" \
+                ".dart_tool" || true
+
+            # ----------------------------------------
+            # Gradle + Pub caches (PARTIAL, SAFE)
+            # ----------------------------------------
+            echo "🧹 Cleaning Gradle & Pub caches"
+            rm -rf \
+                "\${GRADLE_USER_HOME:?}/daemon" \
+                "\${GRADLE_USER_HOME:?}/caches/modules-*" \
+                "\${PUB_CACHE:?}/hosted" \
+                "\${PUB_CACHE:?}/git" || true
+
+            # ----------------------------------------
+            # JNI libraries
+            # ----------------------------------------
+            if [ -d "\$ANDROID_JNI_LIBS_DIR" ]; then
+                echo "🧹 Removing JNI libraries"
+                rm -rf "\$ANDROID_JNI_LIBS_DIR"/* || true
+            fi
+
+            # ----------------------------------------
+            # Rust artifacts
+            # ----------------------------------------
+            if [ -d "\$REPO_CHECKOUT_RUST_SUBDIR" ]; then
+                echo "🦀 Cleaning Rust artifacts"
+                cd "\$REPO_CHECKOUT_RUST_SUBDIR"
+                cargo clean || true
+            fi
+
+            echo "✅ Flutter DEEP clean done"
+        """
+    }
+}
+
 
 
 
@@ -465,8 +499,7 @@ pipeline {
     agent { label 'any' }
 
     parameters {
-        booleanParam(name: 'DEEP_CLEAN_LIGHT', defaultValue: false, description: 'DEEP CLEAN LIGHT for release / deployement ?')
-        booleanParam(name: 'DEEP_CLEAN_FULL', defaultValue: false, description: 'DEEP CLEAN FULL for complete clean of all caches. RUNTIME high!!')
+        booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
         booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
 
         choice(
@@ -552,10 +585,16 @@ pipeline {
 
     stages {
 
+        // Phase 1 – Container & Infra validation (fail-fast)
+
+        stage('Workspace Sanity Clean') {
+            steps {
+                cleanWs()
+            }
+        }
 
 
-
-        stage('Setup Env') {
+        stage('Define project paths') {
             steps {
                 // Dynamic paths inside container (workspace-dependent)
                 script {
@@ -633,7 +672,6 @@ pipeline {
         }
 
 
-
         stage('Setup Environment') {
             steps {
                 script {
@@ -682,78 +720,6 @@ pipeline {
             }
         }
 
-
-
-        stage('Prepare Flutter Image') {
-            steps {
-                script {
-                    insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
-                    ) {
-                    sh """#!/usr/bin/env bash
-                        set -Eeuo pipefail
-
-                        # docker pull ${FLUTTER_IMAGE_PULL}
-
-                        echo "== Verifying base image =="
-                        docker inspect ${FLUTTER_IMAGE_PULL}
-
-                        if [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk" ] && \
-                           [ -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product" ]; then
-                            echo "✅ Flutter engine artifacts present"
-                        else
-                            echo "❌ Flutter engine missing!"
-                            exit 1
-                        fi
-
-                        echo "== Smoke test image =="
-                        docker run --rm ${FLUTTER_IMAGE} /bin/bash -c '
-                            set -e
-                            echo "PATH=\$PATH"
-                            command -v java
-                            command -v flutter
-                            command -v cargo
-                            command -v sdkmanager
-                            flutter --version
-                        '
-                    """
-                    }
-                }
-            }
-        }
-
-
-        stage('Checkout in Container') {
-            steps {
-                script {
-                    insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-
-                            cd \${WORKSPACE}
-
-                            # Clone repo inside container
-                            if [ ! -d "${REPO_CHECKOUT_DIR}/.git" ]; then
-                                git clone --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${REPO_CHECKOUT_DIR}"
-                            else
-                                echo "Repo already cloned"
-                                cd "${REPO_CHECKOUT_DIR}"
-                                git fetch --all
-                                git reset --hard ${GIT_BRANCH}
-                            fi
-
-                            # Verify files
-                            ls -la "${REPO_CHECKOUT_DIR}"
-                            ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
-                        """
-                    }
-                }
-            }
-        }
 
         stage('CI Self-Test') {
             steps {
@@ -867,7 +833,6 @@ pipeline {
         }
 
 
-
         stage('Verify Container Layout') {
 
             steps {
@@ -901,39 +866,76 @@ pipeline {
             }
         }
 
- 
-        stage('Clean Environment Flutter') {
-            // use Root agent to have permissions to delete all files
+
+        // Phase 2 – Source control
+
+        stage('Checkout in Container') {
             steps {
                 script {
-                    flutterClean()
+                    insideFlutterContainerJenkinsUser(
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
+                    ) {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+
+                            cd \${WORKSPACE}
+
+                            # Clone repo inside container
+                            if [ ! -d "${REPO_CHECKOUT_DIR}/.git" ]; then
+                                git clone --branch "${GIT_BRANCH}" "${GIT_REPO_URL}" "${REPO_CHECKOUT_DIR}"
+                            else
+                                echo "Repo already cloned"
+                                cd "${REPO_CHECKOUT_DIR}"
+                                git fetch --all
+                                git reset --hard ${GIT_BRANCH}
+                            fi
+
+                            # Verify files
+                            ls -la "${REPO_CHECKOUT_DIR}"
+                            ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
+                        """
+                    }
                 }
             }
         }
 
 
-        stage('Deep Clean LIGHT (For Deployment)') {
-            when { expression { params.DEEP_CLEAN_LIGHT == true } }
-            // use Root agent to have permissions to delete all files
-
+        stage('Validate Repo Structure') {
             steps {
-                script {
-                    flutterClean(deep: true)
+                script {                
+                    insideFlutterContainerJenkinsUser(
+                    "${CONTAINER_WORKSPACE}",
+                    "${CONTAINER_CACHE}"
+                    ) {
+                        sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+                        cd \${REPO_CHECKOUT_DIR}
+                        """
+                    
+                    // scripts directory (repo-relative)
+                    if (!fileExists('scripts')) {
+                        error "❌ scripts/ directory not found in repository"
+                    }
+
+                    // Flutter mandatory file
+                    if (!fileExists('pubspec.yaml')) {
+                        error "❌ pubspec.yaml missing"
+                    }
+
+                    // Optional but recommended
+                    if (!fileExists('android')) {
+                        error "❌ android/ directory missing"
+                    }
+
+                    echo "✅ Repository structure valid"
+                    }
                 }
-            
             }
         }
 
-
-        stage('Deep Clean FULL (Optional)') {
-            when { expression { params.DEEP_CLEAN_FULL == true } }
-            // use Root agent to have permissions to delete all files
-            steps {
-                script {
-                    flutterClean(deep: true, veryDeep: true)
-                }
-            }
-        }
 
         stage('Verify Rust Source') {
             steps {
@@ -970,6 +972,30 @@ pipeline {
             }
         }
 
+
+        // Phase 3 – Cleaning (safe + deterministic)
+
+        stage('Clean Environment Flutter') {
+            steps {
+                script {
+                    flutterCleanLight()
+                }
+            }
+        }
+
+
+        stage('Deep Clean (optional)') {
+            when { expression { params.DEEP_CLEAN == true } }
+            steps {
+                script {
+                    flutterCleanDeep()
+                }
+            
+            }
+        }
+
+
+        // Phase 4 – Build graph
 
         stage('Build Rust (Android FFI)') {
             steps {
@@ -1009,7 +1035,6 @@ pipeline {
                 }
             }
         }
-
 
 
         stage('Flutter → Android Materialization') {
@@ -1062,6 +1087,8 @@ pipeline {
         }
 
 
+        // Phase 5 – Diagnostics
+
         stage('Flutter Deep Diagnostics') {
           steps {
             script {
@@ -1099,43 +1126,7 @@ pipeline {
         }
 
 
-
-        stage('Validate Repo Structure') {
-            steps {
-                script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
-
-                        set -Eeuo pipefail
-
-                        cd \${REPO_CHECKOUT_DIR}
-                        """
-                    
-                    // scripts directory (repo-relative)
-                    if (!fileExists('scripts')) {
-                        error "❌ scripts/ directory not found in repository"
-                    }
-
-                    // Flutter mandatory file
-                    if (!fileExists('pubspec.yaml')) {
-                        error "❌ pubspec.yaml missing"
-                    }
-
-                    // Optional but recommended
-                    if (!fileExists('android')) {
-                        error "❌ android/ directory missing"
-                    }
-
-                    echo "✅ Repository structure valid"
-                    }
-                }
-            }
-        }
-
-
+        // Phase 6 – Final artifacts
 
         stage('Build APK/AAB') {
             steps {
@@ -1192,7 +1183,7 @@ pipeline {
             }
         }
 
-
+        // Phase 7 – Validation & extras
 
         stage('Run Integration Tests') {
             steps {
