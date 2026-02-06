@@ -498,7 +498,7 @@ def flutterCleanDeep() {
 
 pipeline {
 
-    agent { label 'any' }
+    agent any
 
     parameters {
         booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
