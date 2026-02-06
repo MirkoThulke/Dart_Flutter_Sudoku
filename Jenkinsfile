@@ -632,6 +632,7 @@ pipeline {
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
                     "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+                    "FLUTTER_ENGINE_CACHE_DIR=${env.CONTAINER_CACHE}/flutter/engine",
 
                     "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
                     "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
@@ -693,6 +694,7 @@ pipeline {
                                 "\$CONTAINER_CACHE/.gradle/caches" \
                                 "\$CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
+                                "\$FLUTTER_ENGINE_CACHE_DIR" \
                                 "\$$HOME" \
                                 "\$$HOME/.android" \
                                 "\$$HOME/.gradle" \
@@ -714,6 +716,8 @@ pipeline {
                             stat "\$HOME"
                             test -w "\$HOME"
                             test ! -w "\$FLUTTER_ROOT"
+
+                            test -w "\$FLUTTER_ENGINE_CACHE_DIR"
                         """
                     }
                 }
@@ -794,6 +798,11 @@ pipeline {
                         check test -d "\${ANDROID_NDK_HOME}"
                         check test -d "\${ANDROID_NDK_TOOLCHAIN_DIR}"
                         echo "✅ Android SDK & NDK OK"
+
+                        echo "Engine cache location:"
+                        echo "\$FLUTTER_ENGINE_CACHE_DIR"
+                        ls -la "\$FLUTTER_ENGINE_CACHE_DIR"
+                        test ! -w "\$FLUTTER_ROOT"
 
                         section "Flutter doctor"
                         flutter doctor -v
