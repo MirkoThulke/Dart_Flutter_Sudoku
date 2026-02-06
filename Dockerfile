@@ -319,18 +319,19 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
 
-# Create writable HOME and Flutter cache for Jenkins user
-RUN mkdir -p /home/jenkins \
-    /home/jenkins/.pub-cache \
-    /home/jenkins/.config/flutter \
+# Jenkins HOME + Flutter runtime caches
+RUN mkdir -p \
+      /home/jenkins/.pub-cache \
+      /home/jenkins/.config/flutter \
+      /home/jenkins/.cache/flutter \
  && chown -R 2000:2000 /home/jenkins
 
-# Make Flutter writable for precache
-RUN chown -R 2000:2000 /opt/flutter
+# Temporarily allow SDK writes (but keep root ownership!)
+RUN chmod -R u+w /opt/flutter
 
 USER 2000
 
-# Precache Android engine
+# Precache Android engines
 RUN flutter precache --android --force
 
 # Hard guards
@@ -341,10 +342,11 @@ RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
 # Read-only diagnostics
 RUN flutter doctor -v
 
-# 🔒 Lock Flutter SDK
+# 🔒 Lock Flutter SDK permanently
 USER root
-RUN chmod -R a-w /opt/flutter \
- && chmod -R a+rX /opt/flutter
+RUN chown -R root:root /opt/flutter \
+ && chmod -R a=rX /opt/flutter \
+ && chmod -R a-w /opt/flutter
 
 
 # ============================================================
@@ -424,13 +426,15 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN flutter doctor --verbose
 
 # Jenkins user Ownership
-RUN chown -R 2000:2000 ${FLUTTER_ROOT}
 RUN chown -R 2000:2000 ${RUST_HOME}
 RUN chown -R 2000:2000 ${ANDROID_ROOT}
 
+# Flutter SDK must be ROOT-owned and read-only
+RUN chown -R root:root ${FLUTTER_ROOT}
+
 # Harding: make Flutter SDK read-only
+RUN chmod -R a=rX ${FLUTTER_ROOT}
 RUN chmod -R a-w ${FLUTTER_ROOT}
-RUN chmod -R a+rX ${FLUTTER_ROOT}
 
 
 # Create writable HOME for Jenkins user

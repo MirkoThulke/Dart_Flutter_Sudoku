@@ -499,8 +499,9 @@ pipeline {
     agent { label 'any' }
 
     parameters {
+        booleanParam(name: 'GRADLE_DEBUG', defaultValue: true, description: 'GRADLE_DEBUG for debugging Gradle issues')
+        //booleanParam(name: 'RUN_STATIC_ANALYSIS', defaultValue: true, description: 'Run static code analysis for Flutter, Android, and Rust')
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
-        booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
 
         choice(
         name: 'BUILD_MODE',
