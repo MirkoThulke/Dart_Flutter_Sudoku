@@ -465,9 +465,11 @@ def flutterCleanDeep() {
             echo "🧹 Cleaning Gradle & Pub caches"
             rm -rf \
                 "\${GRADLE_USER_HOME:?}/daemon" \
-                "\${GRADLE_USER_HOME:?}/caches/modules-*" \
+                "\${GRADLE_USER_HOME:?}/caches/modules-2" \
+                "\${GRADLE_USER_HOME:?}/caches/transforms-*" \
                 "\${PUB_CACHE:?}/hosted" \
                 "\${PUB_CACHE:?}/git" || true
+
 
             # ----------------------------------------
             # JNI libraries
@@ -499,8 +501,9 @@ pipeline {
     agent { label 'any' }
 
     parameters {
-        booleanParam(name: 'GRADLE_DEBUG', defaultValue: true, description: 'GRADLE_DEBUG for debugging Gradle issues')
-        //booleanParam(name: 'RUN_STATIC_ANALYSIS', defaultValue: true, description: 'Run static code analysis for Flutter, Android, and Rust')
+        booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
+        booleanParam(name: 'RUN_STATIC_ANALYSIS', defaultValue: false, description: 'Run static code analysis for Flutter, Android, and Rust')
+        booleanParam(name: 'RUN_HEAVY_STATIC', defaultValue: false, description: 'Run heavy static analysis for Android and Rust')
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
 
         choice(
@@ -556,8 +559,6 @@ pipeline {
         HOST_CACHE         = '/home/mirko/jenkins_host_cache'
         HOST_WORKSPACE     = '/home/mirko/jenkins_host_workspace'
 
-        // GIT Home inside container
-        HOME               = '/home/jenkins'
 
         // Flutter / Rust toolchains inside container
         FLUTTER_ROOT       = '/opt/flutter'
@@ -619,7 +620,7 @@ pipeline {
 
                     containerEnv = [
 
-                    "HOME=${env.HOME}",
+                    "HOME=${env.CONTAINER_WORKSPACE}/.home",
 
                     "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
                     "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
@@ -692,12 +693,12 @@ pipeline {
                                 "\$CONTAINER_CACHE/.gradle/caches" \
                                 "\$CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
-                                "\$HOME/.android" \
-                                "\$HOME/.gradle" \
-                                "\$HOME/.cache" \
-                                "\$HOME/.config/flutter" \
+                                "\$$HOME" \
+                                "\$$HOME/.android" \
+                                "\$$HOME/.gradle" \
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME"
+
 
 
                             # Optional: verify the directories
@@ -705,6 +706,14 @@ pipeline {
                             ls -la "\${CONTAINER_WORKSPACE}" || true
                             ls -la "\${CONTAINER_CACHE}" || true
                             ls -la "\$HOME/.config" || true
+
+                            # Guard against misconfiguration: ensure HOME is not accidentally set to a host path
+                            test "\$HOME" != "/home/jenkins"
+
+                            echo "HOME=\$HOME"
+                            stat "\$HOME"
+                            test -w "\$HOME"
+                            test ! -w "\$FLUTTER_ROOT"
                         """
                     }
                 }
@@ -960,6 +969,78 @@ pipeline {
                             exit 1
                         fi
                         """
+                    }
+                }
+            }
+        }
+
+
+        stage('Static Analysis (FAST)') {
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser(
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
+                    ) {
+                        parallel(
+                            "Flutter": {
+                                sh '''
+                                    set -Eeuo pipefail
+                                    cd ${REPO_CHECKOUT_DIR}
+
+                                    echo "🧪 Flutter FAST analysis"
+                                    flutter pub get
+                                    dart format --output=none --set-exit-if-changed .
+                                    flutter analyze --fatal-infos --fatal-warnings
+                                '''
+                            },
+                            "Rust": {
+                                sh '''
+                                    set -Eeuo pipefail
+                                    cd ${REPO_CHECKOUT_RUST_SUBDIR}
+
+                                    echo "🦀 Rust FAST analysis"
+                                    cargo fmt -- --check
+                                    cargo check
+                                '''
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        stage('Static Analysis (HEAVY)') {
+            when {
+                expression { params.RUN_HEAVY_STATIC }
+            }
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser(
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
+                    ) {
+                        parallel(
+                            "Android": {
+                                sh '''
+                                    set -Eeuo pipefail
+                                    cd ${REPO_CHECKOUT_DIR}/android
+
+                                    echo "🤖 Android HEAVY analysis"
+                                    ./gradlew lint
+                                '''
+                            },
+                            "Rust": {
+                                sh '''
+                                    set -Eeuo pipefail
+                                    cd ${REPO_CHECKOUT_RUST_SUBDIR}
+
+                                    echo "🦀 Rust HEAVY analysis"
+                                    cargo clippy -- -D warnings
+                                    cargo audit || true
+                                '''
+                            }
+                        )
                     }
                 }
             }
