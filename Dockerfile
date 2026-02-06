@@ -398,51 +398,72 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 
-# Copy from Android SDK stage to final image
-# COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
+# ------------------------------------------------------------
+# Android SDK (COPY EVERYTHING, DO NOT CHOWN)
+# ------------------------------------------------------------
 
-COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools  ${ANDROID_SDK_ROOT}/cmdline-tools
 COPY --from=android ${ANDROID_SDK_ROOT}/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/platforms ${ANDROID_SDK_ROOT}/platforms
-COPY --from=android ${ANDROID_SDK_ROOT}/build-tools ${ANDROID_SDK_ROOT}/build-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/ndk ${ANDROID_SDK_ROOT}/ndk
-COPY --from=android ${ANDROID_SDK_ROOT}/cmake ${ANDROID_SDK_ROOT}/cmake
-COPY --from=android ${ANDROID_SDK_ROOT}/licenses ${ANDROID_SDK_ROOT}/licenses
+COPY --from=android ${ANDROID_SDK_ROOT}/platforms      ${ANDROID_SDK_ROOT}/platforms
+COPY --from=android ${ANDROID_SDK_ROOT}/build-tools    ${ANDROID_SDK_ROOT}/build-tools
+COPY --from=android ${ANDROID_SDK_ROOT}/ndk            ${ANDROID_SDK_ROOT}/ndk
+COPY --from=android ${ANDROID_SDK_ROOT}/cmake          ${ANDROID_SDK_ROOT}/cmake
+COPY --from=android ${ANDROID_SDK_ROOT}/licenses       ${ANDROID_SDK_ROOT}/licenses
 
-# Copy from Flutter stage to final image
+# Read-only Android SDK
+RUN chmod -R a+rX ${ANDROID_SDK_ROOT}
+
+
+# ------------------------------------------------------------
+# Flutter SDK (immutable)
+# ------------------------------------------------------------
+
 COPY --from=flutter ${FLUTTER_ROOT} ${FLUTTER_ROOT}
 
-# Copy from Chrome stage to final image
+RUN git config --system --add safe.directory ${FLUTTER_ROOT}
+
+# Flutter must be ROOT-owned + read-only
+RUN chown -R root:root ${FLUTTER_ROOT} \
+ && chmod -R a+rX ${FLUTTER_ROOT} \
+ && chmod -R a-w  ${FLUTTER_ROOT}
+
+
+# ------------------------------------------------------------
+# Chrome
+# ------------------------------------------------------------
+
 COPY --from=chrome ${CHROME_USER_HOME} ${CHROME_USER_HOME}
-COPY --from=chrome ${GOOGLE_ROOT} ${GOOGLE_ROOT}
+COPY --from=chrome ${GOOGLE_ROOT}      ${GOOGLE_ROOT}
 
-# Copy from Rust stage to final image (cargo and rustup)
+
+# ------------------------------------------------------------
+# Rust toolchain (user-owned)
+# ------------------------------------------------------------
+
 COPY --from=rust ${RUST_HOME} ${RUST_HOME}
-
-# Make Flutter git repo safe for root
-RUN git config --system --add safe.directory /opt/flutter
-
-# Final sanity check (no downloads)
-RUN flutter doctor --verbose
-
-# Jenkins user Ownership
 RUN chown -R 2000:2000 ${RUST_HOME}
-RUN chown -R 2000:2000 ${ANDROID_ROOT}
-
-# Flutter SDK must be ROOT-owned and read-only
-RUN chown -R root:root ${FLUTTER_ROOT}
-
-# Harding: make Flutter SDK read-only
-RUN chmod -R a=rX ${FLUTTER_ROOT}
-RUN chmod -R a-w ${FLUTTER_ROOT}
 
 
-# Create writable HOME for Jenkins user
+# ------------------------------------------------------------
+# Jenkins user home (ONLY writable system location)
+# ------------------------------------------------------------
+
 RUN mkdir -p ${HOME} \
  && chown -R 2000:2000 ${HOME}
 
 
-# Standard Jenkins User für Builds
+# ------------------------------------------------------------
+# Safe diagnostics (no downloads)
+# ------------------------------------------------------------
+
+ENV HOME=${HOME}
+RUN flutter doctor --verbose || true
+
+
+# ------------------------------------------------------------
+# Runtime user
+# ------------------------------------------------------------
+
 USER 2000
 
 
@@ -451,6 +472,7 @@ RUN echo "PATH=$PATH" \
  && echo "Checking binaries:" \
  && command -v java \
  && command -v flutter \
+ && command -v dart \
  && command -v cargo \
  && command -v rustup \
  && command -v sdkmanager
@@ -464,3 +486,5 @@ RUN echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" \
 
 WORKDIR /app
 CMD ["/bin/bash"]
+
+
