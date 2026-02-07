@@ -985,6 +985,9 @@ pipeline {
 
 
         stage('Static Analysis (FAST)') {
+            when {
+                expression { params.RUN_FAST_STATIC}
+            }
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
