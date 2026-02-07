@@ -544,6 +544,35 @@ pipeline {
         //  - never lives in container FS
         //  - always lives in Jenkins workspace
 
+
+        // environment versus containerEnv:
+        /* Scope
+
+        "environment" is visible to:
+            Groovy pipeline code (env.VAR)
+            sh steps outside Docker
+            Docker arguments (docker.image(...).inside(...))
+        Used by Jenkins to:
+            Expand strings
+            Configure agents
+            Construct Docker commands
+        Characteristics:
+            Static (cannot reference other env vars reliably)
+            Evaluated once
+            Exists outside containers
+            Exported automatically to steps unless shadowed
+
+        "containerEnv" is visible to:
+        Visible only:
+            inside the Docker container
+            inside sh steps executed in that container
+        Invisible to:
+            Jenkins DSL logic
+            Docker arguments
+        */
+
+anything outside inside(...)
+
         SHELL = '/bin/bash'
 
         FLUTTER_DISABLE_ANALYTICS   = 'true'
@@ -629,6 +658,7 @@ pipeline {
                     "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
 
                     "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
+                    "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
                     "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
@@ -699,7 +729,8 @@ pipeline {
                                 "\$$HOME/.android" \
                                 "\$$HOME/.gradle" \
                                 "\$XDG_CONFIG_HOME/flutter" \
-                                "\$XDG_CACHE_HOME"
+                                "\$XDG_CACHE_HOME" \
+                                "\$FLUTTER_GRADLE_USER_HOME"
 
 
 
@@ -718,6 +749,7 @@ pipeline {
                             test ! -w "\$FLUTTER_ROOT"
 
                             test -w "\$FLUTTER_ENGINE_CACHE_DIR"
+                            test -w "\$FLUTTER_GRADLE_USER_HOME"
                         """
                     }
                 }
@@ -768,12 +800,12 @@ pipeline {
                         require_env FLUTTER_CACHE_DIR
                         require_env CONTAINER_WORKSPACE
                         require_env GRADLE_USER_HOME
+                        require_env FLUTTER_GRADLE_USER_HOME
                         require_env RUST_CARGO_DIR
                         require_env RUSTUP_HOME
                         require_env CARGO_HOME
                         require_env ANDROID_SDK_ROOT
                         require_env ANDROID_NDK_HOME
-                        require_env GRADLE_USER_HOME
                         require_env PUB_CACHE
                         require_env WORKSPACE
                         require_env CONTAINER_CACHE
