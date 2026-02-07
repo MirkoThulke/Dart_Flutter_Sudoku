@@ -993,25 +993,25 @@ pipeline {
                     ) {
                         parallel(
                             "Flutter": {
-                                sh '''
-                                    set -Eeuo pipefail
-                                    cd ${REPO_CHECKOUT_DIR}
+                                sh """#!/usr/bin/env bash
+                                set -Eeuo pipefail
+                                    cd "\${REPO_CHECKOUT_DIR}"
 
                                     echo "🧪 Flutter FAST analysis"
                                     flutter pub get
                                     dart format --output=none --set-exit-if-changed .
                                     flutter analyze --fatal-infos --fatal-warnings
-                                '''
+                                """
                             },
                             "Rust": {
-                                sh '''
+                                sh """#!/usr/bin/env bash
                                     set -Eeuo pipefail
-                                    cd ${REPO_CHECKOUT_RUST_SUBDIR}
+                                    cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
 
                                     echo "🦀 Rust FAST analysis"
                                     cargo fmt -- --check
                                     cargo check
-                                '''
+                                """
                             }
                         )
                     }
@@ -1031,23 +1031,23 @@ pipeline {
                     ) {
                         parallel(
                             "Android": {
-                                sh '''
+                                sh """#!/usr/bin/env bash
                                     set -Eeuo pipefail
-                                    cd ${REPO_CHECKOUT_DIR}/android
+                                    cd "\${REPO_CHECKOUT_DIR}/android"
 
                                     echo "🤖 Android HEAVY analysis"
                                     ./gradlew lint
-                                '''
+                                """
                             },
                             "Rust": {
-                                sh '''
+                                sh """#!/usr/bin/env bash
                                     set -Eeuo pipefail
-                                    cd ${REPO_CHECKOUT_RUST_SUBDIR}
+                                    cd "\${REPO_CHECKOUT_RUST_SUBDIR}"
 
                                     echo "🦀 Rust HEAVY analysis"
                                     cargo clippy -- -D warnings
                                     cargo audit || true
-                                '''
+                                """
                             }
                         )
                     }

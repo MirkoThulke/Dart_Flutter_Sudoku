@@ -1,0 +1,26 @@
+@startuml
+title Jenkins Pipeline
+
+start
+
+'--------------------------------------------------
+Prepare HOST directories (persistent) :
+
+Please create folloowing directory structure on the WSL2 host 
+
+
+sudo mkdir -p /home/mirko/jenkins_host_workspace
+sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
+sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
+sudo mkdir -p /home/mirko/jenkins_host_cache/pub
+sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
+sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
+sudo chmod -R 770 /home/mirko/jenkins_host_cache
+
+
+'--------------------------------------------------'
+
+stop
+
+@enduml
