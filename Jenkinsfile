@@ -1172,12 +1172,23 @@ pipeline {
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
+                        # Ensure Gradle wrapper is executable
+                        cd android
+                        chmod +x gradlew
+                        ./gradlew -v || true
+
+                        # Flutter environment
+
+                        cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
+
                         # explicitly force Gradle’s user home at invocation time, not just via env.
                         export HOME="$HOME"
                         export GRADLE_USER_HOME="$GRADLE_USER_HOME"
                         export ANDROID_HOME="$ANDROID_SDK_ROOT"
                         export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
                         export GRADLE_USER_HOME="$CONTAINER_CACHE/.gradle"
+                        export PUB_CACHE="$PUB_CACHE"
+                        export PATH="$PATH"
 
                         # Gradle configuration for CI environment (disable daemons, parallelism, and VFS watching for stability in CI)
                         export ORG_GRADLE_PROJECT_org_gradle_daemon=false
@@ -1229,22 +1240,17 @@ pipeline {
                         grep "com.android.tools.build:gradle" -R build.gradle* || true
 
 
+                        cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
+
                         if [ "${gradleDebugOn}" = "true" ]; then
                             export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
                             export ORG_GRADLE_PROJECT_org_gradle_debug=true
-                            flutter build apk \
-                                --debug \
-                                --ci \
-                                --no-shrink \
-                                --verbose \
-                                --gradle-user-home "$GRADLE_USER_HOME"
-                        else
-                            flutter build apk \
-                                --debug \
-                                --ci \
-                                --no-shrink \
-                                --gradle-user-home "$GRADLE_USER_HOME"
                         fi
+                        
+                        flutter build apk \
+                            --debug \
+                            --ci \
+                            --no-shrink
 
 
                         # Verify AFTER build
