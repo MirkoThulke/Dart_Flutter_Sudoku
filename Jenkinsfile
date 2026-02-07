@@ -657,7 +657,12 @@ pipeline {
                     "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
                     "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
 
-                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
+                     // User Flutter Root, because Flutter is currently not able to use a custom gradle user home, 
+                     // but always expects it to be under the Flutter SDK directory. 
+                     // This is a problem because the Flutter SDK is read-only in our container, 
+                     // so we point it to a writable location inside the container cache.
+                    "GRADLE_USER_HOME=${env.FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle",
+                    
                     "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
@@ -730,7 +735,9 @@ pipeline {
                                 "\$HOME/.gradle" \
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME" \
-                                "\$FLUTTER_GRADLE_USER_HOME"
+                                "\$FLUTTER_GRADLE_USER_HOME" \
+                                "\$GRADLE_USER_HOME"
+
 
 
 
