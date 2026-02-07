@@ -725,9 +725,9 @@ pipeline {
                                 "\$CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
                                 "\$FLUTTER_ENGINE_CACHE_DIR" \
-                                "\$$HOME" \
-                                "\$$HOME/.android" \
-                                "\$$HOME/.gradle" \
+                                "\$HOME" \
+                                "\$HOME/.android" \
+                                "\$HOME/.gradle" \
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME" \
                                 "\$FLUTTER_GRADLE_USER_HOME"
@@ -1160,7 +1160,10 @@ pipeline {
                script {
                     insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${CONTAINER_CACHE}",
+                    "-e HOME=${CONTAINER_WORKSPACE}/.home " +
+                    "-e GRADLE_USER_HOME=${CONTAINER_CACHE}/.gradle " +
+                    "-e PUB_CACHE=${CONTAINER_CACHE}/.pub-cache"
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
 
