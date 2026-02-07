@@ -429,6 +429,10 @@ RUN chown -R root:root ${FLUTTER_ROOT}
 RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache
 
+# Gradle wrapper needs to be writable for Android builds (downloads Gradle distributions)
+RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle
+
 # Lock everything
 RUN chmod -R a=rX ${FLUTTER_ROOT} \
  && chmod -R a-w  ${FLUTTER_ROOT} \
