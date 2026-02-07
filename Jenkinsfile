@@ -1177,6 +1177,13 @@ pipeline {
                         export GRADLE_USER_HOME="$GRADLE_USER_HOME"
                         export ANDROID_HOME="$ANDROID_SDK_ROOT"
                         export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+                        export GRADLE_USER_HOME="$CONTAINER_CACHE/.gradle"
+
+                        # Gradle configuration for CI environment (disable daemons, parallelism, and VFS watching for stability in CI)
+                        export ORG_GRADLE_PROJECT_org_gradle_daemon=false
+                        export ORG_GRADLE_PROJECT_org_gradle_parallel=false
+                        export ORG_GRADLE_PROJECT_org_gradle_workers_max=1
+                        export ORG_GRADLE_PROJECT_org_gradle_vfs_watch=false
 
                         echo "HOME=$HOME"
                         echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
@@ -1198,31 +1205,45 @@ pipeline {
                         # Build debug APK (wires Gradle)
 
                         echo "=== ANDROID / GRADLE SANITY ==="
-                        id
-                        whoami
+
+                        # Java tools must exist
+                        java -version
+                        javac -version || true
+
                         echo "HOME=$HOME"
                         echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
                         echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-                        ls -ld "$GRADLE_USER_HOME"
-                        ls -ld "$ANDROID_SDK_ROOT"
-                        ls -ld "$FLUTTER_ROOT"
+
+                        # Safe to ignore errors
+                        ls -ld "$GRADLE_USER_HOME"  || true
+                        ls -ld "$ANDROID_SDK_ROOT" || true
+                        ls -ld "$FLUTTER_ROOT"      || true
+                        ls -la "$GRADLE_USER_HOME"  || true
+
+                        # Gradle CLI / Wrapper check
+                        gradle -v || ./android/gradlew -v || true
+
+                        echo "=== GRADLE WRAPPER ==="
+                        cd android
+                        grep distributionUrl gradle/wrapper/gradle-wrapper.properties || true
+                        grep "com.android.tools.build:gradle" -R build.gradle* || true
+
 
                         if [ "${gradleDebugOn}" = "true" ]; then
-                           export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
-                           export ORG_GRADLE_PROJECT_org_gradle_debug=true
-
-                           flutter build apk \
-                             --debug \
-                             --ci \
-                             --no-shrink \
-                             --verbose \
-                             --gradle-user-home "$GRADLE_USER_HOME"
+                            export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
+                            export ORG_GRADLE_PROJECT_org_gradle_debug=true
+                            flutter build apk \
+                                --debug \
+                                --ci \
+                                --no-shrink \
+                                --verbose \
+                                --gradle-user-home "$GRADLE_USER_HOME"
                         else
-                           flutter build apk \
-                             --debug \
-                             --ci \
-                             --no-shrink \
-                             --gradle-user-home "$GRADLE_USER_HOME"
+                            flutter build apk \
+                                --debug \
+                                --ci \
+                                --no-shrink \
+                                --gradle-user-home "$GRADLE_USER_HOME"
                         fi
 
 
