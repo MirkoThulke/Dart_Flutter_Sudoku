@@ -1160,10 +1160,7 @@ pipeline {
                script {
                     insideFlutterContainerJenkinsUser(
                     "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}",
-                    "-e HOME=${CONTAINER_WORKSPACE}/.home " +
-                    "-e GRADLE_USER_HOME=${CONTAINER_CACHE}/.gradle " +
-                    "-e PUB_CACHE=${CONTAINER_CACHE}/.pub-cache"
+                    "${CONTAINER_CACHE}"
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
 
@@ -1173,6 +1170,14 @@ pipeline {
                         echo "📦 Flutter pub get and build APK"
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
+
+                        echo "HOME=$HOME"
+                        echo "GRADLE_USER_HOME=$GRADLE_USER_HOME"
+                        echo "PUB_CACHE=$PUB_CACHE"
+
+                        test -w "$HOME"
+                        test -w "$GRADLE_USER_HOME"
+                        test ! -w "$FLUTTER_ROOT"
 
                         echo "FLUTTER_ROOT=$FLUTTER_ROOT"
                         which flutter
