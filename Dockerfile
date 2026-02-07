@@ -415,17 +415,25 @@ RUN chmod -R a+rX ${ANDROID_SDK_ROOT}
 
 
 # ------------------------------------------------------------
-# Flutter SDK (immutable)
+# Flutter SDK (immutable, except cache)
 # ------------------------------------------------------------
 
 COPY --from=flutter ${FLUTTER_ROOT} ${FLUTTER_ROOT}
 
 RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 
-# Flutter must be ROOT-owned + read-only
-RUN chown -R root:root ${FLUTTER_ROOT} \
- && chmod -R a+rX ${FLUTTER_ROOT} \
- && chmod -R a-w  ${FLUTTER_ROOT}
+# Root owns the SDK
+RUN chown -R root:root ${FLUTTER_ROOT}
+
+# Jenkins owns ONLY the cache
+RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache
+
+# Lock everything
+RUN chmod -R a=rX ${FLUTTER_ROOT} \
+ && chmod -R a-w  ${FLUTTER_ROOT} \
+ && chmod -R u+w  ${FLUTTER_ROOT}/bin/cache
+
 
 
 # ------------------------------------------------------------
