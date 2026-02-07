@@ -569,9 +569,9 @@ pipeline {
         Invisible to:
             Jenkins DSL logic
             Docker arguments
+            anything outside inside(...)
         */
 
-anything outside inside(...)
 
         SHELL = '/bin/bash'
 
