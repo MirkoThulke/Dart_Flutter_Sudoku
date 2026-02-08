@@ -662,7 +662,7 @@ pipeline {
                     // GRADLE_USER_HOME and the Java user.home property.
                     // This is a problem because the Flutter SDK is read-only in our container, 
                     // so we point it to a writable location inside the container cache.
-                    "c=${env.CONTAINER_CACHE}/.gradle",
+                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                     "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
