@@ -429,14 +429,10 @@ RUN chown -R root:root ${FLUTTER_ROOT}
 RUN chmod -R a=rX ${FLUTTER_ROOT} \
  && chmod -R a-w  ${FLUTTER_ROOT}
 
-# Jenkins-owned writable caches (AFTER lock)
+# Jenkins-owned writable cache
 RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
  && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
-
-RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
- && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
 
 
 # ------------------------------------------------------------

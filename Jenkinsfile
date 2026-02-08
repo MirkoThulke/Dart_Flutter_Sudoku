@@ -657,12 +657,12 @@ pipeline {
                     "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
                     "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
 
-                     // User Flutter Root, because Flutter is currently not able to use a custom gradle user home, 
-                     // but always expects it to be under the Flutter SDK directory. 
-                     // This is a problem because the Flutter SDK is read-only in our container, 
-                     // so we point it to a writable location inside the container cache.
-                    "GRADLE_USER_HOME=${env.FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle",
-                    
+                    // Force Gradle writes outside the Flutter SDK.
+                    // Flutter invokes Gradle via Java, so we must override both
+                    // GRADLE_USER_HOME and the Java user.home property.
+                    // This is a problem because the Flutter SDK is read-only in our container, 
+                    // so we point it to a writable location inside the container cache.
+                    "c=${env.CONTAINER_CACHE}/.gradle",
                     "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
 
@@ -697,6 +697,8 @@ pipeline {
                     "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
+                    "_JAVA_OPTIONS=-Duser.home=${env.CONTAINER_WORKSPACE}/.home",
+
 
                     "GIT_REPO_URL=${env.GIT_REPO_URL}",
                     "GIT_BRANCH=${env.GIT_BRANCH}",
@@ -738,6 +740,7 @@ pipeline {
                                 "\$GRADLE_USER_HOME"
 
 
+                            chmod -R u+rwX "$GRADLE_USER_HOME"
 
 
                             # Optional: verify the directories
@@ -841,6 +844,10 @@ pipeline {
                         echo "\$FLUTTER_ENGINE_CACHE_DIR"
                         ls -la "\$FLUTTER_ENGINE_CACHE_DIR"
                         test ! -w "\$FLUTTER_ROOT"
+
+                        # Gradle user home should be writable and point to the cache
+                        echo "GRADLE_USER_HOME=\$GRADLE_USER_HOME"
+                        env | grep -E 'GRADLE|JAVA'
 
                         section "Flutter doctor"
                         flutter doctor -v
