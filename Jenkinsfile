@@ -502,7 +502,7 @@ pipeline {
 
     parameters {
         booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
-        booleanParam(name: 'RUN_STATIC_ANALYSIS', defaultValue: false, description: 'Run static code analysis for Flutter, Android, and Rust')
+        booleanParam(name: 'RUN_FAST_STATIC', defaultValue: false, description: 'Run static code analysis for Flutter, Android, and Rust')
         booleanParam(name: 'RUN_HEAVY_STATIC', defaultValue: false, description: 'Run heavy static analysis for Android and Rust')
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
 
@@ -679,6 +679,9 @@ pipeline {
 
                     "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
                     "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
+                    "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/run_integration_test.sh",
+                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_PlantUML_PDF.ps1",
+                    "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -692,10 +695,6 @@ pipeline {
 
                     "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
                     "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
-
-                    "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/run_integration_test.sh",
-                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/scripts/generate_PlantUML_PDF.ps1",
-                    "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/scripts",
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
 
@@ -1191,9 +1190,9 @@ pipeline {
                         # explicitly force Gradle’s user home at invocation time, not just via env.
                         export HOME="$HOME"
                         export GRADLE_USER_HOME="$GRADLE_USER_HOME"
+                        export FLUTTER_GRADLE_USER_HOME="$FLUTTER_GRADLE_USER_HOME"
                         export ANDROID_HOME="$ANDROID_SDK_ROOT"
                         export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
-                        export GRADLE_USER_HOME="$CONTAINER_CACHE/.gradle"
                         export PUB_CACHE="$PUB_CACHE"
                         export PATH="$PATH"
 
