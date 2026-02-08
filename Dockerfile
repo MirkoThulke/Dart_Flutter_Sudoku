@@ -422,22 +422,21 @@ COPY --from=flutter ${FLUTTER_ROOT} ${FLUTTER_ROOT}
 
 RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 
-# Root owns the SDK
+# Root owns SDK
 RUN chown -R root:root ${FLUTTER_ROOT}
 
-# Jenkins owns ONLY the cache
-RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache
-
-# Gradle wrapper needs to be writable for Android builds (downloads Gradle distributions)
-RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
-
-# Lock everything
+# Global read-only lock
 RUN chmod -R a=rX ${FLUTTER_ROOT} \
- && chmod -R a-w  ${FLUTTER_ROOT} \
- && chmod -R u+w  ${FLUTTER_ROOT}/bin/cache
+ && chmod -R a-w  ${FLUTTER_ROOT}
 
+# Jenkins-owned writable caches (AFTER lock)
+RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
+ && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
+
+RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
+ && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
 
 
 # ------------------------------------------------------------
