@@ -15,6 +15,9 @@ pluginManagement {
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
+        maven {
+            url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android")
+        }
         google()
         mavenCentral()
         gradlePluginPortal()
@@ -31,6 +34,9 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
+        maven {
+            url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android")
+        }
         google()
         mavenCentral()
     }
