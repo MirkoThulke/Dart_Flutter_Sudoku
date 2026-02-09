@@ -439,6 +439,11 @@ RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
  && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
 
+# Gradle build output for flutter_tools (required, hard-coded by Gradle)
+RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
+ && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build
+
 
 # ------------------------------------------------------------
 # Chrome
