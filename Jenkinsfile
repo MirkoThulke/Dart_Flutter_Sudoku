@@ -1245,7 +1245,7 @@ pipeline {
                         ls -la "$GRADLE_USER_HOME"  || true
 
                         # Gradle CLI / Wrapper check
-                        gradle -v || ./android/gradlew -v || true
+                        ./android/gradlew -v || true
 
                         echo "=== GRADLE WRAPPER ==="
                         cd android
