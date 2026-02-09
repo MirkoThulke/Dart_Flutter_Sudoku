@@ -850,7 +850,7 @@ pipeline {
                         env | grep -E 'GRADLE|JAVA'
 
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
-                        ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/android"
+                        ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
                         section "Flutter doctor"
                         flutter doctor -v
@@ -1189,7 +1189,7 @@ pipeline {
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
-                        ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine/android"
+                        ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
                         # Ensure Gradle wrapper is executable
                         cd android
