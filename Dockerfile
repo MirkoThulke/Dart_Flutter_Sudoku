@@ -434,6 +434,11 @@ RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
  && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
 
+# 🔓 REQUIRED: Flutter internal Gradle state (hardcoded path)
+RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
+ && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
+
 
 # ------------------------------------------------------------
 # Chrome
