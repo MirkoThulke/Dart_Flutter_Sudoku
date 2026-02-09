@@ -1183,8 +1183,16 @@ pipeline {
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
+                        require_env() {
+                            var="\$1"
+                            val="\${!var:-}"
+                            [ -n "\$val" ] || fail "Missing ENV variable: \$var"
+                        }
+
                         echo "📦 Flutter pub get and build APK"
 
+                        require_env FLUTTER_ROOT
+                        require_env REPO_CHECKOUT_DIR
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 

@@ -1,23 +1,15 @@
 pluginManagement {
-    def flutterSdkPath = {
-        def props = new Properties()
-        def file = new File(rootDir.parentFile, "local.properties")
-        if (file.exists()) {
-            file.withInputStream { props.load(it) }
-        }
-        return props.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_ROOT")
-    }()
-
+    // Use FLUTTER_ROOT directly
+    def flutterSdkPath = System.getenv("FLUTTER_ROOT")
     if (flutterSdkPath == null) {
-        throw new GradleException("Flutter SDK not found. Set flutter.sdk or FLUTTER_ROOT")
+        throw new GradleException("Flutter SDK not found. Set FLUTTER_ROOT in the environment")
     }
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
-        maven {
-            url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android")
-        }
+        // Flutter engine artifacts
+        maven { url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android") }
         google()
         mavenCentral()
         gradlePluginPortal()
@@ -34,9 +26,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
-        maven {
-            url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android")
-        }
+        maven { url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android") }
         google()
         mavenCentral()
     }
