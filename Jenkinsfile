@@ -1199,6 +1199,9 @@ pipeline {
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
+                        # BOM hardening
+                        sed -i '1s/^\xEF\xBB\xBF//' android/settings.gradle || true
+
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
                         ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
