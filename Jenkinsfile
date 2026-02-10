@@ -1182,6 +1182,11 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
+                    
+                        sh '''#!/usr/bin/env bash
+                            set -Eeuo pipefail
+                            sed -i $'1s/^\xEF\xBB\xBF//' android/settings.gradle || true
+                        '''
 
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
@@ -1199,8 +1204,6 @@ pipeline {
 
                         cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
-                        # BOM hardening
-                        sed -i $'1s/^\xEF\xBB\xBF//' android/settings.gradle || true
 
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
                         ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
