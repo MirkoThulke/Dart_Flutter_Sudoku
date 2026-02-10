@@ -1182,12 +1182,7 @@ pipeline {
                     "${CONTAINER_CACHE}"
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
-                    
-                        sh '''#!/usr/bin/env bash
-                            set -Eeuo pipefail
-                            sed -i $'1s/^\xEF\xBB\xBF//' android/settings.gradle || true
-                        '''
-
+                        
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
 
