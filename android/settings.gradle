@@ -1,14 +1,18 @@
-pluginManagement {
-    // Use FLUTTER_ROOT directly
-    def flutterSdkPath = System.getenv("FLUTTER_ROOT")
-    if (flutterSdkPath == null) {
-        throw new GradleException("Flutter SDK not found. Set FLUTTER_ROOT in the environment")
-    }
+// ===============================
+// GLOBAL (top-level) variable
+// ===============================
+def flutterSdkPath = System.getenv("FLUTTER_ROOT")
+if (flutterSdkPath == null) {
+    throw new GradleException("FLUTTER_ROOT is not set")
+}
 
+// ===============================
+// Plugin management
+// ===============================
+pluginManagement {
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
-        // Flutter engine artifacts
         maven { url = uri("$flutterSdkPath/bin/cache/artifacts/engine/android") }
         google()
         mavenCentral()
@@ -23,6 +27,9 @@ pluginManagement {
     }
 }
 
+// ===============================
+// Dependency resolution
+// ===============================
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
