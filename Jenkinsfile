@@ -692,9 +692,9 @@ pipeline {
 
                     "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
                     "ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL=${env.ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL}",
-                    
+
                     "FLUTTER_SDK=${env.FLUTTER_ROOT}",
-                    "FLUTTER_ENGINE_MAVEN=${FLUTTER_SDK}/bin/cache/artifacts/engine/android",
+                    "FLUTTER_ENGINE_MAVEN=${env.FLUTTER_SDK}/bin/cache/artifacts/engine/android",
 
                     "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
                     "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
