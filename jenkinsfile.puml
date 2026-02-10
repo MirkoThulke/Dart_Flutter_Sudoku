@@ -8,7 +8,9 @@ Prepare HOST directories (persistent) :
 
 Please create folloowing directory structure on the WSL2 host 
 
-
+cd ~
+sudo rm -rf /home/mirko/jenkins_host_*
+cd ~/sudoku/jenkins
 sudo mkdir -p /home/mirko/jenkins_host_workspace
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
 sudo chmod -R 770 /home/mirko/jenkins_host_workspace
@@ -17,7 +19,8 @@ sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
 sudo chmod -R 770 /home/mirko/jenkins_host_cache
-
+docker compose down
+docker compose up -d --build
 
 '--------------------------------------------------'
 
