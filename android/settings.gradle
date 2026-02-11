@@ -1,19 +1,23 @@
 pluginManagement {
-    // Flutter SDK path (read-only)
+    // Read environment variables dynamically
     def FLUTTER_SDK = System.getenv("FLUTTER_ROOT")
     if (!FLUTTER_SDK) {
         throw new GradleException("FLUTTER_ROOT is not set")
     }
 
-    // Maven path for Flutter engine artifacts (optional override)
-    // But during CI builds, Gradle resolves into GRADLE_USER_HOME anyway
-    def FLUTTER_ENGINE_MAVEN = System.getenv("FLUTTER_ENGINE_MAVEN") 
-            ?: "${FLUTTER_SDK}/bin/cache/artifacts/engine/android"
+    // Flutter engine Maven repo — use writable container cache
+    def CONTAINER_CACHE = System.getenv("CONTAINER_CACHE")
+    if (!CONTAINER_CACHE) {
+        throw new GradleException("CONTAINER_CACHE is not set")
+    }
+
+    def FLUTTER_ENGINE_MAVEN = System.getenv("FLUTTER_ENGINE_MAVEN")
+            ?: "${CONTAINER_CACHE}/flutter-engine"
 
     includeBuild("${FLUTTER_SDK}/packages/flutter_tools/gradle")
 
     repositories {
-        // Use FLUTTER_ENGINE_MAVEN as read-only fallback (SDK cache)
+        // Use dynamic engine path
         maven { url = uri(FLUTTER_ENGINE_MAVEN) }
         google()
         mavenCentral()
@@ -31,9 +35,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
-        // Gradle will primarily resolve engine artifacts into GRADLE_USER_HOME
-        // but keep this as a fallback for local development
-        maven { url = uri(System.getenv("FLUTTER_ENGINE_MAVEN") ?: "${FLUTTER_SDK}/bin/cache/artifacts/engine/android") }
+        maven { url = uri(System.getenv("FLUTTER_ENGINE_MAVEN") ?: "${System.getenv('GRADLE_USER_HOME')}/flutter-engine") }
         google()
         mavenCentral()
     }

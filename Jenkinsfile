@@ -691,12 +691,11 @@ pipeline {
                     // This is a problem because the Flutter SDK is read-only in our container, 
                     // so we point it to a writable location inside the container cache.
 
-                    //"FLUTTER_SDK=${env.FLUTTER_ROOT}",
                     "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
-
                     "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                     "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+                    "FLUTTER_ENGINE_MAVEN=${env.CONTAINER_CACHE}/flutter-engine"
 
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
