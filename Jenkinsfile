@@ -657,17 +657,6 @@ pipeline {
                     "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
                     "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
 
-                    // Force Gradle writes outside the Flutter SDK.
-                    // Flutter invokes Gradle via Java, so we must override both
-                    // GRADLE_USER_HOME and the Java user.home property.
-                    // This is a problem because the Flutter SDK is read-only in our container, 
-                    // so we point it to a writable location inside the container cache.
-                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
-                    "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
-                    "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
-
-                    "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
-                    "FLUTTER_ENGINE_CACHE_DIR=${env.CONTAINER_CACHE}/flutter/engine",
 
                     "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
                     "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
@@ -693,11 +682,22 @@ pipeline {
                     "ANDROID_SDK_ROOT=${env.ANDROID_SDK_ROOT}",
                     "ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL=${env.ANDROID_SDK_MANAGER_DISABLE_SDK_INSTALL}",
 
-                    "FLUTTER_SDK=${env.FLUTTER_ROOT}",
-                    "FLUTTER_ENGINE_MAVEN=${env.FLUTTER_SDK}/bin/cache/artifacts/engine/android",
-
                     "ANDROID_NDK_HOME=${env.ANDROID_NDK_HOME}",
                     "ANDROID_NDK_TOOLCHAIN_DIR=${env.ANDROID_NDK_TOOLCHAIN_DIR}",
+
+                    // Force Gradle writes outside the Flutter SDK.
+                    // Flutter invokes Gradle via Java, so we must override both
+                    // GRADLE_USER_HOME and the Java user.home property.
+                    // This is a problem because the Flutter SDK is read-only in our container, 
+                    // so we point it to a writable location inside the container cache.
+
+                    //"FLUTTER_SDK=${env.FLUTTER_ROOT}",
+                    "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
+
+                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
+                    "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
+                    "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
                     "_JAVA_OPTIONS=-Duser.home=${env.CONTAINER_WORKSPACE}/.home",
@@ -733,7 +733,6 @@ pipeline {
                                 "\$CONTAINER_CACHE/.gradle/caches" \
                                 "\$CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
-                                "\$FLUTTER_ENGINE_CACHE_DIR" \
                                 "\$HOME" \
                                 "\$HOME/.android" \
                                 "\$HOME/.gradle" \
@@ -741,6 +740,7 @@ pipeline {
                                 "\$XDG_CACHE_HOME" \
                                 "\$FLUTTER_GRADLE_USER_HOME" \
                                 "\$GRADLE_USER_HOME"
+
 
 
                             chmod -R u+rwX "$GRADLE_USER_HOME"
@@ -760,7 +760,8 @@ pipeline {
                             test -w "\$HOME"
                             test ! -w "\$FLUTTER_ROOT"
 
-                            test -w "\$FLUTTER_ENGINE_CACHE_DIR"
+                            test -w "\$GRADLE_USER_HOME"
+                            test -w "\$FLUTTER_CACHE_DIR"
                             test -w "\$FLUTTER_GRADLE_USER_HOME"
                         """
                     }
@@ -811,6 +812,7 @@ pipeline {
                         require_env FLUTTER_ROOT
                         require_env FLUTTER_CACHE_DIR
                         require_env CONTAINER_WORKSPACE
+                        require_env CONTAINER_CACHE
                         require_env GRADLE_USER_HOME
                         require_env FLUTTER_GRADLE_USER_HOME
                         require_env RUST_CARGO_DIR
@@ -820,7 +822,7 @@ pipeline {
                         require_env ANDROID_NDK_HOME
                         require_env PUB_CACHE
                         require_env WORKSPACE
-                        require_env CONTAINER_CACHE
+
 
                         section "Workspace & cache mounts"
                         check test -d "\${CONTAINER_WORKSPACE}"
@@ -843,10 +845,6 @@ pipeline {
                         check test -d "\${ANDROID_NDK_TOOLCHAIN_DIR}"
                         echo "✅ Android SDK & NDK OK"
 
-                        echo "Engine cache location:"
-                        echo "\$FLUTTER_ENGINE_CACHE_DIR"
-                        ls -la "\$FLUTTER_ENGINE_CACHE_DIR"
-                        test ! -w "\$FLUTTER_ROOT"
 
                         # Gradle user home should be writable and point to the cache
                         echo "GRADLE_USER_HOME=\$GRADLE_USER_HOME"
@@ -1183,18 +1181,6 @@ pipeline {
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
                         
-                        sh '''
-                        set -euo pipefail
-
-                        ENGINE_HASH=$(flutter --version | sed -n 's/.*Engine • hash \\([a-f0-9]\\+\\).*/\\1/p')
-
-                        for abi in arm64_v8a_debug armeabi_v7a_debug x86_64_debug; do
-                          test -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/android/io/flutter/$abi/1.0.0-$ENGINE_HASH" \
-                            || { echo "❌ Missing engine Maven artifact: $abi"; exit 1; }
-                        done
-
-                        echo "✅ Flutter engine Maven artifacts OK"
-                        '''
 
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
@@ -1304,6 +1290,19 @@ pipeline {
                         echo "✅ Flutter build complete"
 
                         """
+
+                        sh '''
+                        set -euo pipefail
+
+                        ENGINE_HASH=$(flutter --version | sed -n 's/.*Engine • hash \\([a-f0-9]\\+\\).*/\\1/p')
+
+                        for abi in arm64_v8a_debug armeabi_v7a_debug x86_64_debug; do
+                          test -d "$FLUTTER_ROOT/bin/cache/artifacts/engine/android/io/flutter/$abi/1.0.0-$ENGINE_HASH" \
+                            || { echo "❌ Missing engine Maven artifact: $abi"; exit 1; }
+                        done
+
+                        echo "✅ Flutter engine Maven artifacts OK"
+                        '''
                     }
 
                 }
@@ -1400,6 +1399,7 @@ pipeline {
 
                             """
                         }
+
 
                         archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: false
                     }
