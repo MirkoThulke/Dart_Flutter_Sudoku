@@ -738,7 +738,8 @@ pipeline {
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME" \
                                 "\$FLUTTER_GRADLE_USER_HOME" \
-                                "\$GRADLE_USER_HOME"
+                                "\$GRADLE_USER_HOME" \
+                                "\$FLUTTER_ENGINE_MAVEN"
 
 
 
