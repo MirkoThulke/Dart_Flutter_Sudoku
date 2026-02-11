@@ -336,17 +336,10 @@ USER 2000
 # ✅ Precache (this NEEDS write access)
 RUN flutter precache --android --force
 
-# Force engine Maven artifacts to exist
-RUN flutter build apk --debug --ci --no-shrink || true
-
 # Hard guards
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
-
-RUN test -d /opt/flutter/bin/cache/artifacts/engine/android/io/flutter/arm64_v8a_debug \
- && test -d /opt/flutter/bin/cache/artifacts/engine/android/io/flutter/armeabi_v7a_debug \
- && test -d /opt/flutter/bin/cache/artifacts/engine/android/io/flutter/x86_64_debug
 
 RUN flutter doctor -v
 
