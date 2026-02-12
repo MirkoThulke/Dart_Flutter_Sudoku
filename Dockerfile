@@ -429,9 +429,9 @@ RUN chown -R root:root ${FLUTTER_ROOT}
 RUN chmod -R a=rX ${FLUTTER_ROOT} \
  && chmod -R a-w  ${FLUTTER_ROOT}
 
-# Jenkins-owned writable cache
-RUN mkdir -p ${FLUTTER_ROOT}/bin/cache \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
+# Keep the precached artifacts
+# Ensure Flutter cache is writable for Jenkins
+RUN chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
  && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
 
 # 🔓 REQUIRED: Flutter internal Gradle state (hardcoded path)
