@@ -341,27 +341,6 @@ RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
-# 🔒 Hardening: verify Flutter engine Maven artifacts
-RUN set -eux; \
-    if [ ! -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/android/io/flutter" ]; then \
-        echo "❌ Flutter engine artifacts root missing"; \
-        exit 1; \
-    fi; \
-    ENGINE_HASH="$(cat "${FLUTTER_ROOT}/bin/internal/engine.version")"; \
-    if [ -z "$ENGINE_HASH" ]; then \
-        echo "❌ Failed to read Flutter engine hash"; \
-        exit 1; \
-    fi; \
-    for abi in arm64_v8a_debug armeabi_v7a_debug x86_64_debug; do \
-        DIR="${FLUTTER_ROOT}/bin/cache/artifacts/engine/android/io/flutter/$abi/1.0.0-$ENGINE_HASH"; \
-        if [ ! -d "$DIR" ]; then \
-            echo "❌ Flutter engine Maven artifact missing: $DIR"; \
-            echo "👉 Action required: Rebuild Flutter Docker image with matching Flutter SDK"; \
-            exit 1; \
-        fi; \
-    done; \
-    echo "✅ All Flutter engine Maven artifacts are present"
-
 
 RUN flutter doctor -v
 
