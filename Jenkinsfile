@@ -44,6 +44,7 @@
 //
 //  ------------------------------------------------------------
 
+
 //  ------------------------------------------------------------
 //  RUN THE JENKINS CONTAINER — STEP 4/4
 //  ------------------------------------------------------------
@@ -65,6 +66,11 @@
 //  - Build containers receive source code via bind mount
 //  ------------------------------------------------------------
 //  ------------------------------------------------------------
+
+//  ------------------------------------------------------------
+//  RUN THE FLUTTER CONTAINER — DEBUGGING ONLY
+//  ------------------------------------------------------------
+// docker run -it --rm   -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
 
 
 //  ------------------------------------------------------------
