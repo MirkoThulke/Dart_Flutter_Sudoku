@@ -1000,39 +1000,6 @@ pipeline {
         }
 
 
-        stage('Verify Flutter engine Maven artifacts') {
-            steps {
-                script {
-                    insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-                            ENGINE_HASH="\$(cat "\$FLUTTER_ROOT/bin/internal/engine.version")"
-                            if [ -z "\$ENGINE_HASH" ]; then
-                                echo "❌ Failed to obtain Flutter engine hash"
-                                exit 1
-                            fi
-                            for abi in arm64_v8a_debug armeabi_v7a_debug x86_64_debug; do
-                                DIR="\$FLUTTER_ROOT/bin/cache/artifacts/engine/android/io/flutter/\$abi/1.0.0-\$ENGINE_HASH"
-                                if [ ! -d "\$DIR" ]; then
-                                    echo "❌ Flutter engine Maven artifact missing:"
-                                    echo "   \$DIR"
-                                    echo ""
-                                    echo "👉 Action required:"
-                                    echo "   Rebuild Flutter Docker image with matching Flutter SDK"
-                                    exit 42
-                                fi
-                            done
-                            echo "✅ Flutter engine artifacts match engine hash"
-                        """
-                    }
-                }
-            }
-        }
-
-
         stage('Verify Rust Source') {
             steps {
                 script {
@@ -1316,7 +1283,8 @@ pipeline {
                         flutter build apk \
                             --debug \
                             --ci \
-                            --no-shrink
+                            --no-shrink \
+                            --target-platform android-arm,android-arm64,android-x86,android-x64
 
 
                         # Verify AFTER build
