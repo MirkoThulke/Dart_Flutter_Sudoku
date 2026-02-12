@@ -1005,7 +1005,7 @@ pipeline {
                         sh '''
                         set -Eeuo pipefail
 
-                        ENGINE_HASH=$(flutter --version | sed -n 's/.*Engine • hash \([a-f0-9]\+\).*/\1/p')
+                        ENGINE_HASH=$(flutter --version --machine | jq -r '.engineRevision')
 
                         for abi in arm64_v8a_debug armeabi_v7a_debug x86_64_debug; do
                         DIR="$FLUTTER_ROOT/bin/cache/artifacts/engine/android/io/flutter/$abi/1.0.0-$ENGINE_HASH"
@@ -1020,7 +1020,6 @@ pipeline {
                         done
 
                         echo "✅ Flutter engine artifacts match engine hash"
-
                        '''
                     }
                 }
