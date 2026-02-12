@@ -342,13 +342,11 @@ RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
 # 🔒 Hardening: verify Flutter engine Maven artifacts
-
-if [ ! -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/android/io/flutter" ]; then
-    echo "❌ Flutter engine artifacts root missing"
-    exit 1
-fi
-
 RUN set -eux; \
+    if [ ! -d "${FLUTTER_ROOT}/bin/cache/artifacts/engine/android/io/flutter" ]; then \
+        echo "❌ Flutter engine artifacts root missing"; \
+        exit 1; \
+    fi; \
     ENGINE_HASH="$(cat "${FLUTTER_ROOT}/bin/internal/engine.version")"; \
     if [ -z "$ENGINE_HASH" ]; then \
         echo "❌ Failed to read Flutter engine hash"; \
@@ -363,6 +361,7 @@ RUN set -eux; \
         fi; \
     done; \
     echo "✅ All Flutter engine Maven artifacts are present"
+
 
 RUN flutter doctor -v
 
