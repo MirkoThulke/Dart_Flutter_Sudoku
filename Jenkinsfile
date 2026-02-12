@@ -695,7 +695,6 @@ pipeline {
                     "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
                     "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
                     "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
-                    "FLUTTER_ENGINE_MAVEN=${env.CONTAINER_CACHE}/flutter-engine",
 
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
@@ -738,8 +737,7 @@ pipeline {
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME" \
                                 "\$FLUTTER_GRADLE_USER_HOME" \
-                                "\$GRADLE_USER_HOME" \
-                                "\$FLUTTER_ENGINE_MAVEN"
+                                "\$GRADLE_USER_HOME"
 
 
 
