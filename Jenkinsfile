@@ -1003,7 +1003,7 @@ pipeline {
                     ) {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
-                            ENGINE_HASH=\$(flutter --version --machine | sed -n 's/.*"engineRevision":"\\([^"]*\\)".*/\\1/p')
+                            ENGINE_HASH="\$(cat "\$FLUTTER_ROOT/bin/internal/engine.version")"
                             if [ -z "\$ENGINE_HASH" ]; then
                                 echo "❌ Failed to obtain Flutter engine hash"
                                 exit 1
