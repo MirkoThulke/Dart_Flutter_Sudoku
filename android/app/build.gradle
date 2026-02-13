@@ -5,16 +5,18 @@ plugins {
 }
 
 
+apply from: "${rootDir}/versions.gradle"
+
 android {
     namespace "com.mtulli.sudoku"
 
-    compileSdk 34
-    ndkVersion "26.1.10909125"
+    compileSdkVersion compileSdkVersion_ext
+    ndkVersion ndkMain_ext
 
     defaultConfig {
         applicationId "com.mtulli.sudoku"
-        minSdk 21
-        targetSdk 34
+        minSdkVersion minSdkVersion_ext
+        targetSdkVersion targetSdkVersion_ext
         versionCode flutter.versionCode.toInteger()
         versionName flutter.versionName
     }
