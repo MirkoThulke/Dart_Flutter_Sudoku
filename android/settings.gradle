@@ -4,18 +4,11 @@ pluginManagement {
         throw new GradleException("FLUTTER_ROOT is not set")
     }
 
-    // Flutter's Gradle plugin (read-only)
     includeBuild("$flutterSdk/packages/flutter_tools/gradle")
 
     repositories {
         google()
         mavenCentral()
-
-        // Flutter engine Maven repo (READ-ONLY, SDK-managed)
-        maven {
-            url = uri("$flutterSdk/bin/cache/artifacts/engine/android")
-        }
-
         gradlePluginPortal()
     }
 
@@ -32,8 +25,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-
-        // Fallback: Flutter hosted engine artifacts
         maven {
             url = uri("https://storage.googleapis.com/download.flutter.io")
         }
