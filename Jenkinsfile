@@ -1284,7 +1284,7 @@ pipeline {
                             --debug \
                             --ci \
                             --no-shrink \
-                            --target-platform android-arm,android-arm64,android-x86,android-x64
+                            --target-platform android-arm,android-arm64,android-x64
 
 
                         # Verify AFTER build
