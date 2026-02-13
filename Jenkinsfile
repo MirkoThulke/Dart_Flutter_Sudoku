@@ -704,7 +704,6 @@ pipeline {
 
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
-                    "_JAVA_OPTIONS=-Duser.home=${env.CONTAINER_WORKSPACE}/.home",
 
 
                     "GIT_REPO_URL=${env.GIT_REPO_URL}",
