@@ -4,18 +4,17 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-apply from: "${rootDir}/versions.gradle"
 
 android {
     namespace "com.mtulli.sudoku"
 
-    compileSdkVersion compileSdkVersion_ext
-    ndkVersion ndkMain_ext
+    compileSdk 34
+    ndkVersion "26.1.10909125"
 
     defaultConfig {
         applicationId "com.mtulli.sudoku"
-        minSdkVersion minSdkVersion_ext
-        targetSdkVersion targetSdkVersion_ext
+        minSdk 21
+        targetSdk 34
         versionCode flutter.versionCode.toInteger()
         versionName flutter.versionName
     }
