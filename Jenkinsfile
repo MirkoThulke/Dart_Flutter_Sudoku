@@ -856,6 +856,9 @@ pipeline {
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
                         ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
+                        # Check if flutter can write to its cache directory
+                        touch "\${FLUTTER_ROOT}/bin/cache/testfile"
+
                         section "Flutter doctor"
                         flutter doctor -v
 

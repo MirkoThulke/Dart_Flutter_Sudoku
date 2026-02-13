@@ -427,23 +427,27 @@ RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 RUN chown -R root:root ${FLUTTER_ROOT}
 
 # Global read-only lock
-RUN chmod -R a=rX ${FLUTTER_ROOT} \
- && chmod -R a-w  ${FLUTTER_ROOT}
+RUN chown -R root:root ${FLUTTER_ROOT} \
+ && chmod -R a=rX ${FLUTTER_ROOT}
 
-# Keep the precached artifacts
-# Ensure Flutter cache is writable for Jenkins
+# Engine + Dart cache
 RUN chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
  && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
 
-# 🔓 REQUIRED: Flutter internal Gradle state (hardcoded path)
+# Flutter Gradle plugin state
 RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
  && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
 
-# Gradle build output for flutter_tools (required, hard-coded by Gradle)
+# Flutter Gradle plugin build output
 RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
  && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
  && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build
+
+# Dart tool metadata (IMPORTANT)
+RUN mkdir -p ${FLUTTER_ROOT}/.dart_tool \
+ && chown -R 2000:2000 ${FLUTTER_ROOT}/.dart_tool \
+ && chmod -R u+rwX ${FLUTTER_ROOT}/.dart_tool
 
 
 # ------------------------------------------------------------
