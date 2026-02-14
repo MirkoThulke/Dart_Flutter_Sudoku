@@ -10,10 +10,5 @@ ext {
     targetSdkVersion_ext = 34
     minSdkVersion_ext = 24
 
-    // New: centralized Kotlin / AGP versions
-    // Align with buildscript dependencies in build.gradle and plugin versions in settings.gradle !!
-    kotlinVersion_ext = "1.9.22"
-    agpVersion_ext = "8.4.2"
-    
 }
 
