@@ -21,6 +21,16 @@ android {
         versionName flutter.versionName
     }
 
+    // ✅ ADD THIS BLOCK
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
     buildTypes {
         release {
             minifyEnabled true
@@ -43,5 +53,3 @@ android {
         jniLibs.useLegacyPackaging = false
     }
 }
-
-dependencies {}
