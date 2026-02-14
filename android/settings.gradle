@@ -25,13 +25,12 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS) // <- important
     repositories {
         google()
-        mavenCentral()
-        gradlePluginPortal()  // <-- This is required for Kotlin plugins
-        maven {
-            url = uri("https://storage.googleapis.com/download.flutter.io")
-        }
+        mavenCentral() // <-- required to fetch Kotlin
+        gradlePluginPortal()
+        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
     }
 }
 
