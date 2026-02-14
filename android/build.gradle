@@ -16,3 +16,17 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+buildscript {
+    ext.kotlin_version = "1.9.22"
+    repositories {
+        google()
+        mavenCentral()  // <-- needed for kotlin-stdlib
+        gradlePluginPortal()
+        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$agpVersion_ext"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion_ext"
+    }
+}
