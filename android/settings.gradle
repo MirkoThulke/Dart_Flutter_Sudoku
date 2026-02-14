@@ -28,6 +28,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()  // <-- This is required for Kotlin plugins
         maven {
             url = uri("https://storage.googleapis.com/download.flutter.io")
         }
