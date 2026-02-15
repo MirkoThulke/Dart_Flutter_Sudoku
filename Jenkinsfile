@@ -494,6 +494,15 @@ def flutterCleanDeep() {
                 cargo clean || true
             fi
 
+            # ----------------------------------------
+            # Gradle artifacts
+            # ----------------------------------------
+            if [ -d "\$REPO_CHECKOUT_ANDROID_SUBDIR" ]; then
+                echo "🦀 Cleaning Gradle artifacts"
+                cd "\$REPO_CHECKOUT_ANDROID_SUBDIR"
+                gradlew clean || true
+            fi
+
             echo "✅ Flutter DEEP clean done"
         """
     }
@@ -674,6 +683,7 @@ pipeline {
 
                     "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
                     "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
+                    "REPO_CHECKOUT_ANDROID_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/android",
                     "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/run_integration_test.sh",
                     "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_PlantUML_PDF.ps1",
                     "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
@@ -1087,7 +1097,7 @@ pipeline {
                             "Android": {
                                 sh """#!/usr/bin/env bash
                                     set -Eeuo pipefail
-                                    cd "\${REPO_CHECKOUT_DIR}/android"
+                                    cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"
 
                                     echo "🤖 Android HEAVY analysis"
                                     ./gradlew lint
@@ -1205,7 +1215,7 @@ pipeline {
                         ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
                         # Ensure Gradle wrapper is executable
-                        cd android
+                        cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"
                         chmod +x gradlew
                         ./gradlew -v || true
 
@@ -1237,6 +1247,7 @@ pipeline {
                         test ! -w "$FLUTTER_ROOT"
 
                         echo "FLUTTER_ROOT=$FLUTTER_ROOT"
+                        cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
                         which flutter
                         flutter --version
 
@@ -1264,10 +1275,12 @@ pipeline {
                         ls -la "$GRADLE_USER_HOME"  || true
 
                         # Gradle CLI / Wrapper check
-                        ./android/gradlew -v || true
+                        cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"   # Project root containing pubspec.yaml
+                        gradlew -v || true
+
 
                         echo "=== GRADLE WRAPPER ==="
-                        cd android
+                        cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"
                         grep distributionUrl gradle/wrapper/gradle-wrapper.properties || true
                         grep "com.android.tools.build:gradle" -R build.gradle* || true
 
