@@ -18,6 +18,7 @@ pluginManagement {
 
     // use hardcoded versions to avoid issues with version resolution in the plugin management block
     // Align version with versions.gradle !!
+    // Align with app build.gradle plugins versions !!!
     plugins {
         id "com.android.application" version "8.4.2"
         id "com.android.library" version "8.4.2"

@@ -10,5 +10,15 @@ ext {
     targetSdkVersion_ext = 34
     minSdkVersion_ext = 24
 
+    // Kotlin & JVM
+    kotlin_version = "1.9.22"    // For dependencies
+
+    jvm_target = "17"
+    java_version = JavaVersion.VERSION_17
+
+    // Flutter
+    flutter_versionCode = 1
+    flutter_versionName = "1.0.1"
+
 }
 

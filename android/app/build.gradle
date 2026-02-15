@@ -1,9 +1,8 @@
 plugins {
     id "com.android.application"
-    id "org.jetbrains.kotlin.android"
+    id "org.jetbrains.kotlin.android" version "1.9.22"  // Plugin version must stay here
     id "dev.flutter.flutter-gradle-plugin"
 }
-
 
 apply from: "${rootDir}/versions.gradle"
 
@@ -17,18 +16,17 @@ android {
         applicationId "com.mtulli.sudoku"
         minSdkVersion minSdkVersion_ext
         targetSdkVersion targetSdkVersion_ext
-        versionCode flutter.versionCode.toInteger()
-        versionName flutter.versionName
+        versionCode flutter_versionCode.toInteger()
+        versionName flutter_versionName
     }
 
-    // ✅ ADD THIS BLOCK
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility java_version
+        targetCompatibility java_version
     }
 
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = jvm_target
     }
 
     buildTypes {
@@ -52,4 +50,9 @@ android {
     packagingOptions {
         jniLibs.useLegacyPackaging = false
     }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    // Add other dependencies here
 }

@@ -1278,6 +1278,9 @@ pipeline {
                             export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
                             export ORG_GRADLE_PROJECT_org_gradle_debug=true
                         fi
+
+                        # The Flutter Gradle plugin should be resolved and functional, otherwise the build will fail with a clear error.
+                        ls "$FLUTTER_ROOT/packages/flutter_tools/gradle/flutter.gradle"
                         
                         flutter build apk \
                             --debug \
