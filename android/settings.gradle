@@ -1,12 +1,11 @@
-def localProperties = new Properties()
-file("local.properties").withInputStream { localProperties.load(it) }
-def flutterSdk = localProperties.getProperty("flutter.sdk")
-if (flutterSdk == null) {
-    throw new GradleException("flutter.sdk not set in local.properties")
-}
-
-
 pluginManagement {
+
+    def localProperties = new Properties()
+    file("local.properties").withInputStream { localProperties.load(it) }
+    def flutterSdk = localProperties.getProperty("flutter.sdk")
+    if (flutterSdk == null) {
+        throw new GradleException("flutter.sdk not set in local.properties")
+    }
 
     includeBuild("$flutterSdk/packages/flutter_tools/gradle")
 
@@ -27,6 +26,14 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    
+    def localProperties = new Properties()
+    file("local.properties").withInputStream { localProperties.load(it) }
+    def flutterSdk = localProperties.getProperty("flutter.sdk")
+    if (flutterSdk == null) {
+        throw new GradleException("flutter.sdk not set in local.properties")
+    }
+    
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
