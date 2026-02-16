@@ -1,13 +1,18 @@
 pluginManagement {
 
+    // ------------------------------------------------------------
+    // Load Flutter SDK path once
+    // ------------------------------------------------------------
+
     def localProperties = new Properties()
     file("local.properties").withInputStream { localProperties.load(it) }
+
     def flutterSdk = localProperties.getProperty("flutter.sdk")
     if (flutterSdk == null) {
         throw new GradleException("flutter.sdk not set in local.properties")
     }
 
-    includeBuild("$flutterSdk/packages/flutter_tools/gradle")
+    includeBuild("${flutterSdk}/packages/flutter_tools/gradle")
 
     repositories {
         google()
@@ -15,9 +20,6 @@ pluginManagement {
         gradlePluginPortal()
     }
 
-    // use hardcoded versions to avoid issues with version resolution in the plugin management block
-    // Align version with versions.gradle !!
-    // Align with app build.gradle plugins versions !!!
     plugins {
         id "com.android.application" version "8.4.2"
         id "com.android.library" version "8.4.2"
@@ -25,24 +27,22 @@ pluginManagement {
     }
 }
 
+// ------------------------------------------------------------
+// Dependency Resolution
+// ------------------------------------------------------------
+
 dependencyResolutionManagement {
-    
-    def localProperties = new Properties()
-    file("local.properties").withInputStream { localProperties.load(it) }
-    def flutterSdk = localProperties.getProperty("flutter.sdk")
-    if (flutterSdk == null) {
-        throw new GradleException("flutter.sdk not set in local.properties")
-    }
-    
+
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+
     repositories {
         google()
-        mavenCentral() // <-- required to fetch Kotlin
+        mavenCentral()
         gradlePluginPortal()
         maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
-        maven { url = uri("${flutterSdk}/bin/cache/artifacts/engine") }
     }
 }
 
 rootProject.name = "android"
 include(":app")
+

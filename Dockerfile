@@ -158,6 +158,76 @@
 #   rust	            base	                Needs system packages + ENV
 # ============================================================
 
+# ============================================================
+# 1️⃣ Immutable Toolchain Layer (Inside Image)
+# /opt/flutter
+# /opt/android-sdk
+# /usr/lib/jvm
+# 
+# ✔ Installed at image build time
+# ✔ Owned by root
+# ✔ Never writable in CI
+# ✔ flutter precache writes here during image build
+# 
+# This is your TOOLCHAIN.
+# 
+# 
+# 2️⃣ Persistent Host Cache (Mounted Volume)
+# 
+# /home/mirko/jenkins_host_cache
+# 
+# Mounted as:
+# ${CONTAINER_CACHE}
+# 
+# Contains:
+# .pub-cache
+# .gradle
+# 
+# ✔ Writable
+# ✔ Survives builds
+# ✔ Must be owned by UID 2000
+# ✔ Speeds up CI
+# 
+# This is your PERFORMANCE layer.
+# 
+# 
+# 3️⃣ Ephemeral Workspace (Mounted)
+# 
+# ${CONTAINER_WORKSPACE}
+# 
+# Contains:
+# repo checkout
+# build outputs
+# .dart_tool
+# android/build
+# 
+# ✔ Cleaned per build
+# ✔ Writable
+# ✔ Does NOT contain SDK
+# 
+# This is your BUILD layer.
+#
+#
+#                 ┌────────────────────────┐
+#                 │      Docker Image      │
+#                 │                        │
+#                 │  /opt/flutter          │
+#                 │  /opt/android-sdk      │
+#                 │                        │
+#                 │  (immutable toolchain) │
+#                 └───────────┬────────────┘
+#                             │
+#         ┌───────────────────┼───────────────────┐
+#         │                   │                   │
+#         ▼                   ▼                   ▼
+#  Host Cache          Workspace Mount      Jenkins Agent
+#  (persistent)        (ephemeral)          (orchestrates)
+# 
+#  .pub-cache          git_checkout
+#  .gradle             build/
+#                      .dart_tool
+# ============================================================
+
 FROM ubuntu:22.04 AS env
 
 
@@ -194,10 +264,6 @@ ENV GOOGLE_ROOT=/opt/google
 
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk-amd64
 
-# JENKINS
-ENV HOME=/home/jenkins
-ENV XDG_CONFIG_HOME=/home/jenkins/.config
-ENV XDG_CACHE_HOME=/home/jenkins/.cache
 
 #OTHER OPTOIONS
 ENV FLUTTER_SUPPRESS_ANALYTICS=true
@@ -318,14 +384,6 @@ RUN git config --system --add safe.directory /opt/flutter
 # Configure Android SDK
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
-
-# Prepare Jenkins HOME
-RUN mkdir -p \
-    /home/jenkins \
-    /home/jenkins/.pub-cache \
-    /home/jenkins/.config/flutter \
-    /home/jenkins/.cache/flutter \
- && chown -R 2000:2000 /home/jenkins
 
 # 🔓 Make Flutter writable BEFORE precache
 RUN chown -R 2000:2000 /opt/flutter \
@@ -464,22 +522,6 @@ COPY --from=chrome ${GOOGLE_ROOT}      ${GOOGLE_ROOT}
 
 COPY --from=rust ${RUST_HOME} ${RUST_HOME}
 RUN chown -R 2000:2000 ${RUST_HOME}
-
-
-# ------------------------------------------------------------
-# Jenkins user home (ONLY writable system location)
-# ------------------------------------------------------------
-
-RUN mkdir -p ${HOME} \
- && chown -R 2000:2000 ${HOME}
-
-
-# ------------------------------------------------------------
-# Safe diagnostics (no downloads)
-# ------------------------------------------------------------
-
-ENV HOME=${HOME}
-RUN flutter doctor --verbose || true
 
 
 # ------------------------------------------------------------
