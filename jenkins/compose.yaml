@@ -26,12 +26,6 @@ services:
       TZ: Europe/Paris
       JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
 
-      # Force deterministic cache locations
-      HOME: /var/jenkins_home
-      PUB_CACHE: /var/jenkins_home/.pub-cache
-      GRADLE_USER_HOME: /var/jenkins_home/.gradle
-      CARGO_HOME: /var/jenkins_home/.cargo
-
     restart: unless-stopped
 
     ports:
@@ -46,3 +40,7 @@ services:
 
     networks:
       - jenkins_net
+
+networks:
+  jenkins_net:
+    driver: bridge

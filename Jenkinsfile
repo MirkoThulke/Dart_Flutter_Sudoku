@@ -339,7 +339,7 @@ List<String> containerEnv = []
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
-        "--user 2000:2000 " +
+        "--user ${JENKINS_UID}:${JENKINS_GID} " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
@@ -590,6 +590,10 @@ pipeline {
 
         SHELL = '/bin/bash'
 
+        // User IDs for Jenkins user inside container (must match container configuration)
+        JENKINS_UID = '2000'
+        JENKINS_GID = '2000'
+
         FLUTTER_DISABLE_ANALYTICS   = 'true'
         FLUTTER_SKIP_ANALYTICS      = 'true'
 
@@ -727,6 +731,14 @@ pipeline {
         }
 
 
+        stage('Prepare Host Directories') {
+            steps {
+                echo "🛠 Preparing host directories for Jenkins container..."
+                sh './scripts/jenkins_setup_host_dirs.sh'
+            }
+        }
+
+
         stage('Setup Environment') {
             steps {
                 script {
@@ -752,11 +764,10 @@ pipeline {
                                 "\$XDG_CONFIG_HOME/flutter" \
                                 "\$XDG_CACHE_HOME" \
                                 "\$FLUTTER_GRADLE_USER_HOME" \
-                                "\$GRADLE_USER_HOME"
+                                "\$GRADLE_USER_HOME" \
+                                "\$PUB_CACHE"
 
-
-
-                            chmod -R u+rwX "$GRADLE_USER_HOME"
+                            chmod u+rwX "$PUB_CACHE" "$GRADLE_USER_HOME" || true
 
 
                             # Optional: verify the directories
