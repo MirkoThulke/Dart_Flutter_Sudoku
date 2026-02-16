@@ -367,52 +367,79 @@ RUN retry ${SDKMANAGER} --sdk_root=${ANDROID_SDK_ROOT} \
 # ============================================================
 # Stage: flutter
 # ============================================================
-
 FROM android AS flutter
 
-
+# -----------------------------
 # Download Flutter SDK
+# -----------------------------
 RUN set -eux; \
     cd /opt; \
     wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     tar xf flutter_linux_${FLUTTER_VERSION}-stable.tar.xz; \
     rm flutter_linux_${FLUTTER_VERSION}-stable.tar.xz
 
-# Git safety
+# -----------------------------
+# Git safety for Flutter SDK
+# -----------------------------
 RUN git config --system --add safe.directory /opt/flutter
 
-# Configure Android SDK
+# -----------------------------
+# Configure Android SDK in Flutter
+# -----------------------------
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
+# -----------------------------
+# Setup writable HOME for Flutter
+# This is important because Flutter writes to ~/.config/flutter
+# and Gradle plugin cache during precache/builds.
+# -----------------------------
+ENV HOME=/tmp/flutter_home
+ENV XDG_CONFIG_HOME=$HOME/.config
+ENV FLUTTER_CACHE_DIR=$HOME/flutter
 
-# ⚠ Important: Ensure the bin/cache directory exists and writable
-# Make Flutter writable for precache
+RUN mkdir -p $HOME $XDG_CONFIG_HOME $FLUTTER_CACHE_DIR \
+    && chown -R 2000:2000 $HOME
+
+# -----------------------------
+# Make Flutter SDK writable for precache
+# Keep bin/cache writable separately
+# -----------------------------
 RUN chown -R 2000:2000 /opt/flutter \
- && chmod -R u+rwX /opt/flutter
+    && chmod -R u+rwX /opt/flutter \
+    && mkdir -p /opt/flutter/bin/cache \
+    && chown -R 2000:2000 /opt/flutter/bin/cache \
+    && chmod -R u+rwX /opt/flutter/bin/cache
 
-RUN mkdir -p /opt/flutter/bin/cache \
- && chown -R 2000:2000 /opt/flutter/bin/cache \
- && chmod -R u+rwX /opt/flutter/bin/cache
-
-
+# -----------------------------
+# Run precache as non-root user
+# -----------------------------
 USER 2000
 
-
-# ✅ Precache (this NEEDS write access)
 RUN flutter precache --android --force
 
-# Hard guards
+# -----------------------------
+# Hard guards: ensure all expected Android engines are cached
+# -----------------------------
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
-
+# -----------------------------
+# Check Flutter installation
+# -----------------------------
 RUN flutter doctor -v
 
-# 🔒 NOW lock Flutter SDK
+# -----------------------------
+# Lock Flutter SDK after precache
+# -----------------------------
 USER root
 RUN chmod -R a-w /opt/flutter \
- && chmod -R a+rX /opt/flutter
+    && chmod -R a+rX /opt/flutter
+
+# -----------------------------
+# Optional cleanup: remove temporary Flutter home to reduce image size
+# -----------------------------
+RUN rm -rf $HOME
 
 
 # ============================================================
