@@ -732,14 +732,6 @@ pipeline {
         }
 
 
-        stage('Prepare Host Directories') {
-            steps {
-                echo "🛠 Preparing host directories for Jenkins container..."
-                sh './scripts/jenkins_setup_host_dirs.sh'
-            }
-        }
-
-
         stage('Setup Environment') {
             steps {
                 script {

@@ -391,6 +391,10 @@ RUN chown -R 2000:2000 /opt/flutter \
 
 USER 2000
 
+# ⚠ Important: Ensure the bin/cache directory exists and writable
+RUN mkdir -p /opt/flutter/bin/cache \
+ && chmod -R u+rwX /opt/flutter/bin/cache
+ 
 # ✅ Precache (this NEEDS write access)
 RUN flutter precache --android --force
 
