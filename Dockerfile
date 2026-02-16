@@ -385,16 +385,18 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
 
-# 🔓 Make Flutter writable BEFORE precache
+# Make Flutter writable for precache
 RUN chown -R 2000:2000 /opt/flutter \
- && chmod -R u+rwX /opt/flutter
+ && chmod -R u+rwX /opt/flutter \
+ && mkdir -p /opt/flutter/bin/cache \
+ && chmod -R u+rwX /opt/flutter/bin/cache
 
 USER 2000
 
 # ⚠ Important: Ensure the bin/cache directory exists and writable
 RUN mkdir -p /opt/flutter/bin/cache \
  && chmod -R u+rwX /opt/flutter/bin/cache
- 
+
 # ✅ Precache (this NEEDS write access)
 RUN flutter precache --android --force
 

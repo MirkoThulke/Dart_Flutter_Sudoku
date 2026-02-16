@@ -1,18 +1,41 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "UID is: $JENKINS_UID"
-echo "GID is: $JENKINS_GID"
+# --------------------
+# Run with sudo ./jenkins_setup_host_dirs.sh
+# --------------------
+
+JENKINS_UID=2000
+JENKINS_GID=2000
+
+HOST_WORKSPACE="/home/mirko/jenkins_host_workspace"
+HOST_CACHE="/home/mirko/jenkins_host_cache"
 
 echo "HOST_WORKSPACE is: ${HOST_WORKSPACE}"
 echo "HOST_CACHE is: ${HOST_CACHE}"
 
-echo "📁 Creating host mount directories"
-mkdir -p "${HOST_WORKSPACE}"
-mkdir -p "${HOST_CACHE}"
+# -------------------------
+# Terminal prompt fallback
+# -------------------------
+read -p "Do you want to delete existing host directories? [y/N]: " choice
+# Default is "No" if user just presses ENTER
+if [[ "${choice,,}" == "y" ]]; then   # convert to lowercase for safety
+    echo "🗑 Deleting host directories..."
+    sudo rm -rf /home/mirko/jenkins_host_*
+else
+    echo "Skipping deletion."
+fi
 
-echo "🔧 Setting ownership and permissions"
-chown -R ${JENKINS_UID}:${JENKINS_GID} "${HOST_WORKSPACE}" "${HOST_CACHE}"
-chmod -R 770 "${HOST_WORKSPACE}" "${HOST_CACHE}"
+
+
+# -------------------------
+# Create directories
+# -------------------------
+echo "📁 Creating host mount directories"
+mkdir -p "${HOST_WORKSPACE}" "${HOST_CACHE}"
+
+# Set ownership and permissions safely
+sudo chown -R ${JENKINS_UID}:${JENKINS_GID} "${HOST_WORKSPACE}" "${HOST_CACHE}" || true
+chmod -R 770 "${HOST_WORKSPACE}" "${HOST_CACHE}" 2>/dev/null || true
 
 echo "✅ Host directories ready"
