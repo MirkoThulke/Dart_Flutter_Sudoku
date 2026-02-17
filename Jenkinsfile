@@ -853,8 +853,6 @@ pipeline {
                         check command -v dart
                         check command -v cargo
 
-                        flutter --version | head -n 1
-                        cargo --version
 
                         section "Android SDK / NDK sanity"
                         check test -d "\${ANDROID_SDK_ROOT}"
@@ -870,8 +868,26 @@ pipeline {
                         # Flutter engine artifacts should be writable in the cache, but not in the SDK
                         ls -l "\${FLUTTER_ROOT}/bin/cache/artifacts/engine"
 
-                        section "Flutter doctor"
-                        flutter doctor -v
+                        echo "Cargo version:"
+                        cargo --version
+
+                        echo "Flutter version:"
+                        flutter --version
+
+                        echo "Android SDK check:"
+                        ls -d "\${ANDROID_SDK_ROOT}/platforms/*" || true
+
+                        echo "Verify Flutter SDK is read-only:"
+                        test ! -w "\${FLUTTER_ROOT}" && echo "SDK locked (OK)" || (echo "SDK writable (ERROR)" && exit 1)
+
+                        echo "Ensuring no Flutter SDK writes possible:"
+                        if touch "\${FLUTTER_ROOT}/should_fail" 2>/dev/null; then
+                            echo "ERROR: Flutter SDK is writable!"
+                            exit 1
+                        else
+                            echo "Write blocked (OK)"
+                        fi
+
 
                         echo "=============================="
                         echo "✅ CI SELF TEST PASSED"
@@ -1337,11 +1353,16 @@ pipeline {
 
                     cd \${WORKSPACE}
 
-                    echo "Flutter version:"
+
+                    echo "Flutter environment diagnostics:"
                     flutter --version
 
-                    echo "Flutter doctor:"
-                    flutter doctor -v
+                    echo "Dart version:"
+                    dart --version
+
+                    echo "Gradle version:"
+                    gradle --version || true
+
 
                     echo "Engine cache:"
                     ls -lah \${FLUTTER_ROOT}/bin/cache/artifacts/engine || true
