@@ -396,12 +396,9 @@ ENV XDG_CONFIG_HOME=$HOME/.config
 ENV FLUTTER_CACHE_DIR=$HOME/flutter
 
 RUN mkdir -p $HOME $XDG_CONFIG_HOME $FLUTTER_CACHE_DIR \
-    && chown -R 2000:2000 $HOME
+    && chown -R 2000:2000 $HOME \
+    && chown -R 2000:2000 /opt/flutter
 
-# -----------------------------
-# Prepare SDK ownership
-# -----------------------------
-RUN chown -R 2000:2000 /opt/flutter
 
 
 # -----------------------------
@@ -412,21 +409,17 @@ USER 2000
 
 RUN flutter precache --android --force
 RUN flutter --version
-RUN flutter doctor -v
 
 # -----------------------------
 # Create writable flutter_tools state
 # -----------------------------
 USER root
 
-RUN mkdir -p /opt/flutter/packages/flutter_tools/.dart_tool \
- && chown -R 2000:2000 /opt/flutter/packages/flutter_tools/.dart_tool
 
 # -----------------------------
 # Lock SDK except tool state
 # -----------------------------
 RUN chmod -R a-w /opt/flutter \
- && chmod -R u+w /opt/flutter/packages/flutter_tools/.dart_tool \
  && chmod -R a+rX /opt/flutter
 
 # -----------------------------
