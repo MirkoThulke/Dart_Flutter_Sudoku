@@ -389,9 +389,7 @@ RUN git config --system --add safe.directory /opt/flutter
 RUN flutter config --android-sdk ${ANDROID_SDK_ROOT} --no-analytics
 
 # -----------------------------
-# Setup writable HOME for Flutter
-# This is important because Flutter writes to ~/.config/flutter
-# and Gradle plugin cache during precache/builds.
+# Writable HOME for precache only
 # -----------------------------
 ENV HOME=/tmp/flutter_home
 ENV XDG_CONFIG_HOME=$HOME/.config
@@ -401,45 +399,48 @@ RUN mkdir -p $HOME $XDG_CONFIG_HOME $FLUTTER_CACHE_DIR \
     && chown -R 2000:2000 $HOME
 
 # -----------------------------
-# Make Flutter SDK writable for precache
-# Keep bin/cache writable separately
+# Prepare SDK ownership
 # -----------------------------
-RUN chown -R 2000:2000 /opt/flutter \
-    && chmod -R u+rwX /opt/flutter \
-    && mkdir -p /opt/flutter/bin/cache \
-    && chown -R 2000:2000 /opt/flutter/bin/cache \
-    && chmod -R u+rwX /opt/flutter/bin/cache
+RUN chown -R 2000:2000 /opt/flutter
+
 
 # -----------------------------
 # Run precache as non-root user
+# perform flutter checks and downloads engines + Dart SDK for Android targets
 # -----------------------------
 USER 2000
 
 RUN flutter precache --android --force
+RUN flutter --version
+RUN flutter doctor -v
 
 # -----------------------------
-# Hard guards: ensure all expected Android engines are cached
+# Create writable flutter_tools state
+# -----------------------------
+USER root
+
+RUN mkdir -p /opt/flutter/packages/flutter_tools/.dart_tool \
+ && chown -R 2000:2000 /opt/flutter/packages/flutter_tools/.dart_tool
+
+# -----------------------------
+# Lock SDK except tool state
+# -----------------------------
+RUN chmod -R a-w /opt/flutter \
+ && chmod -R u+w /opt/flutter/packages/flutter_tools/.dart_tool \
+ && chmod -R a+rX /opt/flutter
+
+# -----------------------------
+# Verify engines exist
 # -----------------------------
 RUN test -d /opt/flutter/bin/cache/artifacts/engine/android-arm \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-arm64 \
  && test -d /opt/flutter/bin/cache/artifacts/engine/android-x64
 
 # -----------------------------
-# Check Flutter installation
+# Remove temp HOME
 # -----------------------------
-RUN flutter doctor -v
+RUN rm -rf /tmp/flutter_home
 
-# -----------------------------
-# Lock Flutter SDK after precache
-# -----------------------------
-USER root
-RUN chmod -R a-w /opt/flutter \
-    && chmod -R a+rX /opt/flutter
-
-# -----------------------------
-# Optional cleanup: remove temporary Flutter home to reduce image size
-# -----------------------------
-RUN rm -rf $HOME
 
 
 # ============================================================
