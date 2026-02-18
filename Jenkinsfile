@@ -340,7 +340,7 @@ List<String> containerEnv = []
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
 def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
-        "--user ${JENKINS_UID}:${JENKINS_GID} " +
+        "--user jenkins " +
         "-v ${env.HOST_CACHE}:${containerCache} " +
         "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
     ) {
@@ -590,10 +590,6 @@ pipeline {
 
 
         SHELL = '/bin/bash'
-
-        // User IDs for Jenkins user inside container (must match container configuration)
-        JENKINS_UID = '2000'
-        JENKINS_GID = '2000'
 
         FLUTTER_DISABLE_ANALYTICS   = 'true'
         FLUTTER_SKIP_ANALYTICS      = 'true'

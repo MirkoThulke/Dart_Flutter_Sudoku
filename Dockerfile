@@ -277,6 +277,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
+
 # PATH additions : 
 # ${JAVA_HOME}/bin
 # ${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin
@@ -287,7 +288,11 @@ ENV CHROME_FLAGS="--no-sandbox --disable-dev-shm-usage --disable-gpu --headless"
 
 ENV PATH="${JAVA_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${FLUTTER_ROOT}/bin:${FLUTTER_ROOT}/bin/cache/dart-sdk/bin:${CARGO_HOME}/bin:${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin:${PATH}"
 
+# Create a non-root user for running builds (important for Flutter and Android SDK permissions)
+RUN groupadd -g 2000 jenkins \
+ && useradd -m -u 2000 -g 2000 -s /bin/bash jenkins
 
+ 
 # ============================================================
 # Stage: base
 # ============================================================
