@@ -966,7 +966,7 @@ pipeline {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
 
-                            cd \${WORKSPACE}
+                            cd \${CONTAINER_WORKSPACE}
 
                             # Clone repo inside container
                             if [ ! -d "${REPO_CHECKOUT_DIR}/.git" ]; then
@@ -1037,7 +1037,7 @@ pipeline {
                         set -Eeuo pipefail
                         
                         # Ensure we are in the workspace
-                        cd "\${WORKSPACE}"
+                        cd "\${CONTAINER_WORKSPACE}"
 
                         echo "=== Root filesystem ==="
                         ls -la /

@@ -482,6 +482,9 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub \
 
 FROM base AS final
 
+# ------------------------------------------------------------
+# Minimal runtime dependencies
+# ------------------------------------------------------------
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       curl unzip git xz-utils zip ca-certificates \
@@ -491,19 +494,12 @@ RUN apt-get update \
 
 
 # ------------------------------------------------------------
-# Android SDK (COPY EVERYTHING, DO NOT CHOWN)
+# Android SDK (fully read-only)
 # ------------------------------------------------------------
+COPY --from=android ${ANDROID_SDK_ROOT} ${ANDROID_SDK_ROOT}
 
-COPY --from=android ${ANDROID_SDK_ROOT}/cmdline-tools  ${ANDROID_SDK_ROOT}/cmdline-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/platform-tools ${ANDROID_SDK_ROOT}/platform-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/platforms      ${ANDROID_SDK_ROOT}/platforms
-COPY --from=android ${ANDROID_SDK_ROOT}/build-tools    ${ANDROID_SDK_ROOT}/build-tools
-COPY --from=android ${ANDROID_SDK_ROOT}/ndk            ${ANDROID_SDK_ROOT}/ndk
-COPY --from=android ${ANDROID_SDK_ROOT}/cmake          ${ANDROID_SDK_ROOT}/cmake
-COPY --from=android ${ANDROID_SDK_ROOT}/licenses       ${ANDROID_SDK_ROOT}/licenses
-
-# Read-only Android SDK
-RUN chmod -R a+rX ${ANDROID_SDK_ROOT}
+# Lock Android SDK
+RUN chmod -R a=rX ${ANDROID_SDK_ROOT}
 
 
 # ------------------------------------------------------------
@@ -514,31 +510,29 @@ COPY --from=flutter ${FLUTTER_ROOT} ${FLUTTER_ROOT}
 
 RUN git config --system --add safe.directory ${FLUTTER_ROOT}
 
-# Root owns SDK
-RUN chown -R root:root ${FLUTTER_ROOT}
-
-# Global read-only lock
+# Make root owner and globally read-only
 RUN chown -R root:root ${FLUTTER_ROOT} \
  && chmod -R a=rX ${FLUTTER_ROOT}
 
-# Engine + Dart cache
+
+# ------------------------------------------------------------
+# Writable exceptions (ONLY what Flutter needs)
+# ------------------------------------------------------------
+
+# 1️⃣ Engine + Dart cache
 RUN chown -R 2000:2000 ${FLUTTER_ROOT}/bin/cache \
  && chmod -R u+rwX ${FLUTTER_ROOT}/bin/cache
 
-# Flutter Gradle plugin state
+# 2️⃣ Flutter Gradle plugin state
 RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle \
- && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/.gradle
-
-# Flutter Gradle plugin build output
-RUN mkdir -p ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
- && chmod -R u+rwX ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build
-
-# Dart tool metadata (IMPORTANT)
-RUN mkdir -p ${FLUTTER_ROOT}/.dart_tool \
- && chown -R 2000:2000 ${FLUTTER_ROOT}/.dart_tool \
- && chmod -R u+rwX ${FLUTTER_ROOT}/.dart_tool
+             ${FLUTTER_ROOT}/packages/flutter_tools/gradle/build \
+             ${FLUTTER_ROOT}/packages/flutter_tools/.dart_tool \
+ && chown -R 2000:2000 \
+        ${FLUTTER_ROOT}/packages/flutter_tools/gradle \
+        ${FLUTTER_ROOT}/packages/flutter_tools/.dart_tool \
+ && chmod -R u+rwX \
+        ${FLUTTER_ROOT}/packages/flutter_tools/gradle \
+        ${FLUTTER_ROOT}/packages/flutter_tools/.dart_tool
 
 
 # ------------------------------------------------------------
@@ -583,5 +577,3 @@ RUN echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" \
 
 WORKDIR /app
 CMD ["/bin/bash"]
-
-
