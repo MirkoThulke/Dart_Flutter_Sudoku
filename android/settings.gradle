@@ -1,15 +1,25 @@
 pluginManagement {
 
-    // ------------------------------------------------------------
-    // Load Flutter SDK path once
-    // ------------------------------------------------------------
+    // -----------------------------------------
+    // Resolve Flutter SDK safely
+    // -----------------------------------------
 
-    def localProperties = new Properties()
-    file("local.properties").withInputStream { localProperties.load(it) }
+    def flutterSdk = System.getenv("FLUTTER_HOME")
 
-    def flutterSdk = localProperties.getProperty("flutter.sdk")
     if (flutterSdk == null) {
-        throw new GradleException("flutter.sdk not set in local.properties")
+        def localProperties = new Properties()
+        def localFile = file("local.properties")
+
+        if (localFile.exists()) {
+            localFile.withInputStream { localProperties.load(it) }
+            flutterSdk = localProperties.getProperty("flutter.sdk")
+        }
+    }
+
+    if (flutterSdk == null) {
+        throw new GradleException(
+            "Flutter SDK not found. Define FLUTTER_HOME or flutter.sdk in local.properties"
+        )
     }
 
     includeBuild("${flutterSdk}/packages/flutter_tools/gradle")
@@ -26,6 +36,7 @@ pluginManagement {
         id "org.jetbrains.kotlin.android" version "1.9.22"
     }
 }
+
 
 // ------------------------------------------------------------
 // Dependency Resolution
