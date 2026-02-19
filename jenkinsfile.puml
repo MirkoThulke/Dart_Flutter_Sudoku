@@ -1,36 +1,200 @@
 @startuml
-title Jenkins Pipeline
+title Jenkins + Docker + Flutter CI Architecture
 
 start
 
-'--------------------------------------------------
-Prepare HOST directories (persistent) :
+' ============================================================
+' HOST PREPARATION (WSL2)
+' ============================================================
 
-Please create following directory structure on the WSL2 host 
+note
+Run once on WSL2 host:
+
+    sudo ./jenkins_setup_host_dirs.sh
+
+Or manually:
+end note
+
+note
+Prepare persistent host directories:
 
 cd ~
 sudo rm -rf /home/mirko/jenkins_host_*
-cd ~/sudoku/jenkins
+
 sudo mkdir -p /home/mirko/jenkins_host_workspace
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
 sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+
 sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
 sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
 sudo chmod -R 770 /home/mirko/jenkins_host_cache
+end note
+
+note
+Restart infrastructure:
+
 docker compose down
 docker compose up -d --build
+end note
 
 
-In Flutter Android:
-- Flutter builds Dart
-- Gradle builds Android
-- Kotlin runs native layer
-- Maven supplies dependencies
+' ============================================================
+' FLUTTER ANDROID BUILD STACK
+' ============================================================
 
-'--------------------------------------------------'
+note
+Flutter Android build flow:
+
+• Flutter → compiles Dart
+• Gradle → builds Android APK/AAB
+• Kotlin → native Android layer
+• Maven → dependency resolution
+end note
+
+
+' ============================================================
+' DOCKER CLEANUP REFERENCE
+' ============================================================
+
+note
+------------------------------------------------------------
+DOCKER CLEANUP REFERENCE
+------------------------------------------------------------
+end note
+
+
+note
+docker builder prune
+
+Removes:
+• BuildKit layer cache
+• Intermediate build layers
+
+Keeps:
+• Images
+• Containers
+• Volumes
+• Networks
+end note
+
+
+note
+docker builder prune --all -f
+
+Removes:
+• ALL build cache (all builders)
+
+Keeps:
+• Images
+• Containers
+• Volumes
+• Networks
+end note
+
+
+note
+docker image prune -f
+
+Removes:
+• Dangling (untagged) images
+
+Keeps:
+• Tagged images
+• Containers
+• Volumes
+end note
+
+
+note
+docker image prune -a -f
+
+Removes:
+• ALL unused images
+
+Keeps:
+• Images used by containers
+• Volumes
+end note
+
+
+note
+docker system prune -f
+
+Removes:
+• Stopped containers
+• Unused networks
+• Dangling images
+• Build cache
+
+Keeps:
+• Named volumes
+• Images used by containers
+end note
+
+
+note
+docker system prune -a -f
+
+Removes:
+• Stopped containers
+• ALL unused images
+• Unused networks
+• Build cache
+
+Keeps:
+• Named volumes
+end note
+
+
+note
+docker system prune -a --volumes -f
+
+⚠ DANGEROUS
+
+Removes:
+• Stopped containers
+• ALL unused images
+• Unused networks
+• ALL unused volumes
+• Build cache
+
+WARNING:
+Deletes persisted data in volumes
+end note
+
+
+note
+docker buildx prune --all --force
+
+Removes:
+• All buildx cache storage
+• Multi-platform builder cache
+
+Keeps:
+• Images
+• Containers
+• Volumes
+end note
+
+
+note
+FULL FACTORY RESET
+
+docker system prune -af --volumes
+
+Removes:
+• ALL stopped containers
+• ALL unused images
+• ALL unused networks
+• ALL unused volumes
+• ALL build cache
+
+Keeps:
+• Running containers only
+end note
+
 
 stop
-
 @enduml

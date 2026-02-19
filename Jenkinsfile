@@ -501,7 +501,7 @@ def flutterCleanDeep() {
             if [ -d "\$REPO_CHECKOUT_ANDROID_SUBDIR" ]; then
                 echo "🦀 Cleaning Gradle artifacts"
                 cd "\$REPO_CHECKOUT_ANDROID_SUBDIR"
-                gradlew clean || true
+                ./gradlew -v || true
             fi
 
             echo "✅ Flutter DEEP clean done"
