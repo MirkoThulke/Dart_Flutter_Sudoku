@@ -1,7 +1,7 @@
 plugins {
+    id "dev.flutter.flutter-gradle-plugin"
     id "com.android.application"
     id "org.jetbrains.kotlin.android" version "1.9.22"  // Plugin version must stay here
-    id "dev.flutter.flutter-gradle-plugin"
 }
 
 apply from: "${rootDir}/versions.gradle"
