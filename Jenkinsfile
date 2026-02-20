@@ -1292,7 +1292,7 @@ pipeline {
 
                         # Gradle CLI / Wrapper check
                         cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"   # Project root containing pubspec.yaml
-                        gradlew -v || true
+                        ./gradlew -v || true
 
 
                         echo "=== GRADLE WRAPPER ==="
