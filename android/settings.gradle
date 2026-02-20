@@ -4,7 +4,7 @@ pluginManagement {
     // Resolve Flutter SDK safely
     // -----------------------------------------
 
-    def flutterSdk = System.getenv("FLUTTER_HOME")
+    def flutterSdk = System.getenv("FLUTTER_ROOT")
 
     if (flutterSdk == null) {
         def localProperties = new Properties()
@@ -18,7 +18,7 @@ pluginManagement {
 
     if (flutterSdk == null) {
         throw new GradleException(
-            "Flutter SDK not found. Define FLUTTER_HOME or flutter.sdk in local.properties"
+            "Flutter SDK not found. Define FLUTTER_ROOT or flutter.sdk in local.properties"
         )
     }
 
@@ -44,7 +44,7 @@ pluginManagement {
 
 dependencyResolutionManagement {
 
-    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
 
     repositories {
         google()
