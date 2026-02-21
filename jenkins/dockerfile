@@ -48,9 +48,10 @@ RUN jenkins-plugin-cli --plugins \
 # prefered CI solution would be bash and not powershell.
 # here powershell is used for training purposes to show how to use a powershell script under linux and windows. 
 # In a real CI environment, it would be better to use bash scripts for linux and powershell for windows agents.
+# Install PowerShell (Debian 12 - bookworm)
 RUN apt-get update && \
-    apt-get install -y wget apt-transport-https software-properties-common gnupg && \
-    wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb && \
+    apt-get install -y wget gnupg apt-transport-https ca-certificates software-properties-common && \
+    wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
     dpkg -i packages-microsoft-prod.deb && \
     rm packages-microsoft-prod.deb && \
     apt-get update && \
