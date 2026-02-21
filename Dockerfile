@@ -221,7 +221,7 @@ FROM ubuntu:22.04 AS env
 
 # Align with android/app/build.gradle.kts version settings !!!
 # VERSIONS
-ENV JAVA_VERSION=11
+ENV JAVA_VERSION=17
 
 # check for updates on https://developer.android.com/studio#command-line-tools-only
 ENV ANDROID_SDK_TOOLS_VERSION=13114758
