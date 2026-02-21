@@ -1457,27 +1457,27 @@ pipeline {
         }
 
         stage('Generate Diagrams & PDF') {
-
+        
             steps {
-                script {                
+                script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                        "${CONTAINER_WORKSPACE}",
+                        "${CONTAINER_CACHE}"
                     ) {
-                        sh """#!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
 
                         set -Eeuo pipefail
-
-                        cd \${REPO_CHECKOUT_DIR}
-
-                        pwsh "\${PLANTUML_SCRIPT}"
-
-                        """
+        
+                        cd "\${REPO_CHECKOUT_DIR}"
+        
+                        echo "Running PlantUML generator..."
+        
+                        ./scripts/generate_plantuml.sh
+                    """
                     }
                 }
             }
         }
-    }
 
     post {
         always {
