@@ -111,14 +111,13 @@
       "noDebug": true
     },
     // --------- Generate PlantUML PDF ----------
-    {
-      "name": "sudoku (Generate PlantUML PDF)",
-      "request": "launch",
-      "type": "dart",
-      "program": "${workspaceFolder}/integration_test/driver.dart",
-      "preLaunchTask": "Generate PlantUML PDF",
-      "noDebug": true
-    }
+   {
+     "name": "Generate PlantUML PDF",
+     "type": "node-terminal",
+     "request": "launch",
+     "command": "exit 0",
+     "preLaunchTask": "Generate PlantUML PDF"
+   }
   ]
 }
 
