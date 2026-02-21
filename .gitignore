@@ -134,3 +134,8 @@ integration_test/test_report.json
 # Keep Jenkins init Groovy scripts
 !init.groovy.d/
 !init.groovy.d/*.groovy
+
+# =========================================
+# Temporary flutter template to align with fresh flutter create output, can be removed after migration
+# =========================================
+temp_app/*
