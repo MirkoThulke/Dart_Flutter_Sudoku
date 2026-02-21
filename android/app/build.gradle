@@ -1,32 +1,24 @@
-plugins {
-    id "com.android.application"
-    id "org.jetbrains.kotlin.android"
-    id "dev.flutter.flutter-gradle-plugin"
-}
-
-apply from: "${rootDir}/versions.gradle"
-
 android {
     namespace "com.mtulli.sudoku"
 
-    compileSdkVersion compileSdkVersion_ext
-    ndkVersion ndkMain_ext
+    compileSdk 34
+    ndkVersion "28.2.13676358"
 
     defaultConfig {
         applicationId "com.mtulli.sudoku"
-        minSdkVersion minSdkVersion_ext
-        targetSdkVersion targetSdkVersion_ext
-        versionCode flutter_versionCode.toInteger()
-        versionName flutter_versionName
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.1"
     }
 
     compileOptions {
-        sourceCompatibility java_version
-        targetCompatibility java_version
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = jvm_target
+        jvmTarget = "17"
     }
 
     buildTypes {
@@ -52,7 +44,3 @@ android {
     }
 }
 
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    // Add other dependencies here
-}

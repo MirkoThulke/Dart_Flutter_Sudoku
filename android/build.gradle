@@ -4,15 +4,7 @@ plugins {
     id "org.jetbrains.kotlin.android" apply false
 }
 
-rootProject.buildDir = "../build"
-
-apply from: "${rootDir}/versions.gradle"
-
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-    project.evaluationDependsOn(":app")
-}
-
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
