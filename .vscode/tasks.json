@@ -168,17 +168,7 @@
     {
       "label": "Generate PlantUML PDF",
       "type": "shell",
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-File",
-        "${workspaceFolder}/scripts/generate_PlantUML_PDF.ps1"
-      ],
-      "options": {
-        "env": {
-          "PLANTUML_HOME": "/home/mirko/tools/plantuml"
-        }
-      },
+      "command": "${workspaceFolder}/scripts/generate_plantuml_pdf.sh",
       "problemMatcher": []
     }
   ]
