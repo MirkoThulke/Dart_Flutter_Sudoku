@@ -163,6 +163,26 @@
       },
       "problemMatcher": [],
       "group": "test"
+    },
+    // --------- Generate PlantUML PDF ----------
+    {
+      "label": "Generate PlantUML PDF",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/generate_PlantUML_PDF.ps1"
+      ],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
     }
   ]
 }

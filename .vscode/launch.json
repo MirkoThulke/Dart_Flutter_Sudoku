@@ -109,6 +109,15 @@
       "program": "${workspaceFolder}/integration_test/driver.dart",
       "preLaunchTask": "integration-test-ci-chrome-headless",
       "noDebug": true
+    },
+    // --------- Generate PlantUML PDF ----------
+    {
+      "name": "sudoku (Generate PlantUML PDF)",
+      "request": "launch",
+      "type": "dart",
+      "program": "${workspaceFolder}/integration_test/driver.dart",
+      "preLaunchTask": "Generate PlantUML PDF",
+      "noDebug": true
     }
   ]
 }

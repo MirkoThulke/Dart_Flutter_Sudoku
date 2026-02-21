@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.mtulli.sudoku"
-    compileSdk = 34
+    // Align version with dockerfile internal version !!!
+    compileSdk = 36
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -21,11 +22,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.temp_app"
+        applicationId = "com.mtulli.sudoku"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
+
+        // Align version with dockerfile internal version !!!
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.1"
     }
