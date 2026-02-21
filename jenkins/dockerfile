@@ -44,6 +44,17 @@ RUN jenkins-plugin-cli --plugins \
     docker-workflow \
     ws-cleanup
 
+# Install PowerShell 
+# prefered CI solution would be bash and not powershell.
+# here powershell is used for training purposes to show how to use a powershell script under linux and windows. 
+# In a real CI environment, it would be better to use bash scripts for linux and powershell for windows agents.
+RUN apt-get update && \
+    apt-get install -y powershell
+
+# Install plugins for PlantUML and Graphviz
+RUN apt-get update && \
+    apt-get install -y plantuml graphviz
+
 # Add Jenkins user to Docker group matching host socket GID
 RUN groupadd -g 1001 docker \
     && usermod -aG docker jenkins
