@@ -1349,7 +1349,7 @@ pipeline {
 
                     set -Eeuo pipefail
 
-                    cd \${WORKSPACE}
+                    cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
 
 
                     echo "Flutter environment diagnostics:"

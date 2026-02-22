@@ -19,6 +19,11 @@ if ! command -v dot >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v magick >/dev/null 2>&1 && ! command -v convert >/dev/null 2>&1; then
+  echo "ERROR: ImageMagick not found (magick/convert)."
+  exit 1
+fi
+
 # -------------------------------
 # Output folder
 # -------------------------------
@@ -51,5 +56,28 @@ for FILE in "${PUML_FILES[@]}"; do
   plantuml -tpdf -o "$OUT_FOLDER_FULL" "$FILE"
 done
 
+
+# -------------------------------
+# Create combined PDF from all PNGs
+# -------------------------------
+
+echo "Creating combined PDF..."
+
+mapfile -t PNG_FILES < <(find "$OUT_FOLDER_FULL" -type f -name "*.png" | sort)
+
+if [ ${#PNG_FILES[@]} -eq 0 ]; then
+  echo "No PNG files found for PDF merge."
+  exit 0
+fi
+
+COMBINED_PDF="$OUT_FOLDER_FULL/all_diagrams.pdf"
+
+if command -v magick >/dev/null 2>&1; then
+  magick "${PNG_FILES[@]}" "$COMBINED_PDF"
+else
+  convert "${PNG_FILES[@]}" "$COMBINED_PDF"
+fi
+
 echo "All diagrams generated in: $OUT_FOLDER_FULL"
-echo "PNG files and individual PDFs are ready."
+echo "Combined PDF created:"
+echo "$COMBINED_PDF"
