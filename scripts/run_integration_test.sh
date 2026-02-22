@@ -16,9 +16,17 @@ set -euo pipefail
 # Ensure no fatal crashes in startup test
 # -----------------------------------------------------------
 
-
-
 echo "🚀 Running Flutter Android integration readiness check"
+
+
+# Find the APK path (assuming it was built by the CI pipeline)
+APK_PATH=$(ls build/app/outputs/flutter-apk/app-*-debug.apk 2>/dev/null | head -n1)
+
+if [ -z "$APK_PATH" ]; then
+  echo "❌ No APK found to install."
+  exit 1
+fi
+
 
 BASE_DIR=$(pwd)
 REPORT_DIR="$BASE_DIR/integration_test_reports"
@@ -39,29 +47,26 @@ fi
 # -----------------------------------------------------------
 # 1️⃣ Flutter environment diagnostics
 # -----------------------------------------------------------
-echo "🧪 flutter doctor -v"
 flutter doctor -v
-
-echo "📡 Checking Android toolchain..."
-flutter doctor --android-licenses || true
-
 echo "📱 Connected Android devices:"
 adb devices || true
 
 if ! adb devices | grep -q "device$"; then
   echo "❌ No Android device/emulator detected."
   echo "You MUST start an emulator inside the Docker container:"
-  echo "  $ANDROID_HOME/emulator/emulator -avd test_avd -no-snapshot -noaudio -no-window &"
+  echo "  $ANDROID_SDK_ROOT -avd test_avd -no-snapshot -noaudio -no-window &"
   exit 1
 fi
+
 
 # -----------------------------------------------------------
 # 2️⃣ Build checks
 # -----------------------------------------------------------
 
 echo "📝 Build artifacts ready:"
-ls -lh build/app/outputs/**/*.aab || true
-ls -lh build/app/outputs/**/*.apk || true
+find build/app/outputs -name "*.apk" -print || echo "⚠️ No APKs found in build/app/outputs"
+find build/app/outputs -name "*.aab" -print || echo "⚠️ No AABs found in build/app/outputs"
+
 
 # -----------------------------------------------------------
 # 3️⃣ Run Integration Tests on Android
@@ -72,11 +77,17 @@ ANDROID_STATUS=1
 
 # Install but do not build again (assumes APK/AAB already built)
 
-DEVICE_ID=$(adb devices | awk 'NR==2{print $1}')
+DEVICE_ID=$(adb devices | awk '$2=="device"{print $1; exit}')
+
+if [ -z "$DEVICE_ID" ]; then
+  echo "❌ No ready Android device found."
+  exit 1
+fi
 
 echo "📲 Installing APK on device $DEVICE_ID"
 adb install -r "$APK_PATH"
 echo "🚗 Running integration tests on device $DEVICE_ID"
+
 
 
 flutter drive \
