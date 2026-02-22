@@ -693,8 +693,8 @@ pipeline {
                     "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_plantuml_pdf.sh",
                     "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
 
-                    "REPO_APK_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/build/app/outputs/flutter-apk",
-                    "REPO_ABB_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/build/app/outputs/bundle/release",
+                    "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
+                    "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -1412,10 +1412,8 @@ pipeline {
                                 echo "🚀 Building release APK/AAB"
 
                                 cd \${REPO_CHECKOUT_DIR}
-
-
-                                echo "Using APK path: \$REPO_APK_SUBDIR"
-                                echo "Using AAB path: \$REPO_ABB_SUBDIR"
+                                echo "Using APK path: \$REPO_APK_SUBDIR_REL"
+                                echo "Using AAB path: \$REPO_ABB_SUBDIR_REL"
 
                                 if [ "${gradleDebugOn}" = "true" ]; then
                                     export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
@@ -1437,7 +1435,7 @@ pipeline {
 
                                 else
 
-                                echo "Using APK path: \$REPO_APK_SUBDIR"
+                                    echo "Using APK path: \$REPO_APK_SUBDIR_REL"
 
                                     flutter build apk \
                                         --release \
@@ -1455,17 +1453,20 @@ pipeline {
                                 mkdir -p build_outputs
 
                                 # Copy APKs
-                                if compgen -G "\$REPO_APK_SUBDIR/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR"/*.apk build_outputs/
+
+                                cd \${REPO_CHECKOUT_DIR}
+
+                                if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk build_outputs/
                                 else
-                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR"
+                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                 # Copy AABs
-                                if compgen -G "\$REPO_ABB_SUBDIR/*.aab" > /dev/null; then
-                                    cp "\$REPO_ABB_SUBDIR"/*.aab build_outputs/
+                                if compgen -G "\$REPO_ABB_SUBDIR_REL/*.aab" > /dev/null; then
+                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab build_outputs/
                                 else
-                                    echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR"
+                                    echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR_REL"
                                 fi
 
                                  echo "✅ APKs copied to build_outputs/"
@@ -1480,18 +1481,18 @@ pipeline {
 
                                 cd \${REPO_CHECKOUT_DIR}
 
-                                ls "\${REPO_APK_SUBDIR}/*.apk" > /dev/null 2>&1 || {
-                                    echo "Error: No APKs found in \${REPO_APK_SUBDIR}"
+                                ls "\${REPO_APK_SUBDIR_REL}/*.apk" > /dev/null 2>&1 || {
+                                    echo "Error: No APKs found in \${REPO_APK_SUBDIR_REL}"
                                     exit 1
                                 }
 
                                 mkdir -p build_outputs
 
                                 # Copy APKs
-                                if compgen -G "\$REPO_APK_SUBDIR/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR"/*.apk build_outputs/
+                                if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk build_outputs/
                                 else
-                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR"
+                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                  echo "✅ APKs copied to build_outputs/"
