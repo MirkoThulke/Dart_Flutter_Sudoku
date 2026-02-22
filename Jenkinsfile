@@ -695,6 +695,7 @@ pipeline {
 
                     "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
                     "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
+                    "ARTIFACTS_DIR=${env.CONTAINER_WORKSPACE}/artifacts",
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -1435,8 +1436,6 @@ pipeline {
 
                                 else
 
-                                    echo "Using APK path: \$REPO_APK_SUBDIR_REL"
-
                                     flutter build apk \
                                         --release \
                                         --ci \
@@ -1450,59 +1449,63 @@ pipeline {
                                         --target-platform \$TARGET_PLATFORMS
                                 fi
 
-                                mkdir -p build_outputs
+                                mkdir -p "\$ARTIFACTS_DIR"
 
                                 # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk build_outputs/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$ARTIFACTS_DIR"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                 # Copy AABs
                                 if compgen -G "\$REPO_ABB_SUBDIR_REL/*.aab" > /dev/null; then
-                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab build_outputs/
+                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$ARTIFACTS_DIR"/
                                 else
                                     echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR_REL"
                                 fi
 
-                                 echo "✅ APKs copied to build_outputs/"
-                                 ls -la build_outputs/
+                                 echo "✅ APKs and AABs copied to \$ARTIFACTS_DIR/"
+                                 ls -la "\$ARTIFACTS_DIR"
 
                             """
                         } else {
                             sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
-                                
-                                echo "📦 Reusing previously built debug APK"
+
+                                cd \${REPO_CHECKOUT_DIR}
+                                echo "Using APK path: \$REPO_APK_SUBDIR_REL"
+
+
+                                flutter build apk \
+                                    --debug \
+                                    --ci \
+                                    --no-shrink \
+                                    --target-platform \$TARGET_PLATFORMS
+
+                                mkdir -p "\$ARTIFACTS_DIR"
+
+                                # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
-                                ls "\${REPO_APK_SUBDIR_REL}/*.apk" > /dev/null 2>&1 || {
-                                    echo "Error: No APKs found in \${REPO_APK_SUBDIR_REL}"
-                                    exit 1
-                                }
-
-                                mkdir -p build_outputs
-
-                                # Copy APKs
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk build_outputs/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$ARTIFACTS_DIR"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
-                                 echo "✅ APKs copied to build_outputs/"
-                                 ls -la build_outputs/
+                                echo "✅ APKs and AABs copied to \$ARTIFACTS_DIR/"
+                                ls -la "\$ARTIFACTS_DIR"
 
                             """
                         }
 
 
-                        archiveArtifacts artifacts: 'build_outputs/**', fingerprint: true, allowEmptyArchive: false
+                        archiveArtifacts artifacts: "${ARTIFACTS_DIR}/**", fingerprint: true, allowEmptyArchive: false
                     }
                 }
             }
