@@ -20,9 +20,13 @@ echo "🚀 Running Flutter Android integration readiness check"
 
 
 # Find the APK path (assuming it was built by the CI pipeline)
-BUILD_MODE="${BUILD_MODE:-debug}"
+BUILD_MODE="${BUILD_MODE:-debug}"     # debug | release
+TEST_MODE="${TEST_MODE:-emulator}"    # device | emulator
+DEVICE_ID="${DEVICE_ID:-}"            # Optional: specify a device ID for ADB 
+
 
 echo "🔧 Integration test mode: $BUILD_MODE"
+echo "🧪 TEST_MODE: $TEST_MODE"
 
 if [ "$BUILD_MODE" = "release" ]; then
   APK_GLOB="build/app/outputs/flutter-apk/app-*-release.apk"
@@ -58,14 +62,21 @@ fi
 # 1️⃣ Flutter environment diagnostics
 # -----------------------------------------------------------
 flutter doctor -v
-echo "📱 Connected Android devices:"
-adb devices || true
 
-if ! adb devices | grep -q "device$"; then
-  echo "❌ No Android device/emulator detected."
-  echo "You MUST start an emulator inside the Docker container:"
-  echo "  $ANDROID_SDK_ROOT -avd test_avd -no-snapshot -noaudio -no-window &"
-  exit 1
+
+# -----------------------------------------------------------
+# Android device/emulator check
+# -----------------------------------------------------------
+if [ "$TEST_MODE" = "device" ]; then
+  echo "📱 Connected Android devices:"
+  adb devices || true
+
+  if ! adb devices | grep -q "device$"; then
+    echo "❌ No Android device/emulator detected."
+    echo "You MUST start an emulator inside the Docker container:"
+    echo "  $ANDROID_SDK_ROOT -avd test_avd -no-snapshot -noaudio -no-window &"
+    exit 1
+  fi
 fi
 
 
@@ -82,51 +93,96 @@ else
   find build/app/outputs -name "*.aab" -print || echo "⚠️ No AABs found in build/app/outputs"
 fi
 
-
-
 # -----------------------------------------------------------
-# 3️⃣ Run Integration Tests on Android
+# 3️ Run Integration Tests
 # -----------------------------------------------------------
 echo "🧪 Running Flutter integration tests on Android..."
 
-ANDROID_STATUS=1
-
 # Install but do not build again (assumes APK/AAB already built)
 
-DEVICE_ID=$(adb devices | awk '$2=="device"{print $1; exit}')
+if [ "$TEST_MODE" = "device" ]; then
 
-if [ -z "$DEVICE_ID" ]; then
-  echo "❌ No ready Android device found."
-  exit 1
+  # -----------------------------------------------------------
+  # Run Integration Tests on Android DEVICE
+  # -----------------------------------------------------------
+
+  DEVICE_ID=$(adb devices | awk '$2=="device"{print $1; exit}')
+
+  if [ -n "$DEVICE_ID" ]; then
+    TARGET_DEVICE="$DEVICE_ID"
+  else
+    TARGET_DEVICE=$(adb devices | awk '$2=="device"{print $1; exit}')
+  fi
+
+  if [ -z "$TARGET_DEVICE" ]; then
+    echo "❌ No connected Android device found."
+    exit 1
+  fi
+
+
+  echo "📲 Installing APK on device $DEVICE_ID"
+  adb -s "$TARGET_DEVICE" install -r "$APK_PATH"
+  echo "🚗 Running integration tests on device $DEVICE_ID"
+
+
+else
+
+  # -----------------------------------------------------------
+  # Run Integration Tests on Android EMULATOR
+  # -----------------------------------------------------------
+
+  # Start Emulator (Headless)
+  "$ANDROID_SDK_ROOT/emulator/emulator" \
+    -avd ci_avd \
+    -no-window \
+    -no-audio \
+    -no-snapshot \
+    -gpu swiftshader_indirect &
+
+
+  # Wait Until Fully Booted (Critical)
+  adb wait-for-device
+
+  echo "⏳ Waiting for Android boot to complete..."
+  until adb shell getprop sys.boot_completed 2>/dev/null | grep -m 1 "1"; do
+    sleep 2
+  done
+
+  echo "✅ Emulator booted"
+
+  # Get Emulator Device ID
+  DEVICE_ID=$(adb devices | awk '$2=="device"{print $1; exit}')
+
+  # Disable animations for CI stability
+  adb -s "$TARGET_DEVICE" shell settings put global window_animation_scale 0
+  adb -s "$TARGET_DEVICE" shell settings put global transition_animation_scale 0
+  adb -s "$TARGET_DEVICE" shell settings put global animator_duration_scale 0
+
+  # Install Your Prebuilt APK
+  adb -s "$TARGET_DEVICE" install -r "$APK_PATH"
+
 fi
 
-echo "📲 Installing APK on device $DEVICE_ID"
-adb install -r "$APK_PATH"
-echo "🚗 Running integration tests on device $DEVICE_ID"
 
-
-
+# Run flutter drive
 flutter drive \
   --driver=integration_test/driver.dart \
   --target=integration_test/basic_app_flow_test.dart \
-  -d "$DEVICE_ID" \
+  -d "$TARGET_DEVICE" \
   --no-build \
   1> "$ANDROID_RESULT" \
   2> "$ANDROID_LOG" || ANDROID_STATUS=$?
 
 if [ $ANDROID_STATUS -eq 0 ]; then
   echo "✅ Android integration tests passed"
-
   #checksum check to guarantee integrity of the APK used during tests
   sha256sum "$APK_PATH" > "$REPORT_DIR/apk.sha256" 
-
 else
   echo "❌ Android integration tests failed (exit $ANDROID_STATUS)"
-  
   echo "📄 First 40 lines of log:"
   head -n 40 "$ANDROID_LOG"
-
 fi
+
 
 # -----------------------------------------------------------
 # 4️⃣ Final evaluation
