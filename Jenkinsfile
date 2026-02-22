@@ -1341,9 +1341,11 @@ pipeline {
                 "${CONTAINER_WORKSPACE}",
                 "${CONTAINER_CACHE}"
                 ) {
-                sh """#!/usr/bin/env bash
 
-                # read-only diagnostics !
+                sh """#!/usr/bin/env bash
+                set -Eeuo pipefail
+
+                    # read-only diagnostics !
 
                     set -Eeuo pipefail
 
@@ -1351,14 +1353,20 @@ pipeline {
 
 
                     echo "Flutter environment diagnostics:"
-                    flutter --version
+                    flutter --version || true
 
                     echo "Dart version:"
-                    dart --version
+                    dart --version || true
 
-                    echo "Gradle version:"
-                    gradle --version || true
+                    echo 'Gradle wrapper version:'
+                    ./android/gradlew -v
 
+                    echo 'Java version:'
+                    java -version || true
+
+                    echo "Android SDK location:"
+                    echo \$ANDROID_SDK_ROOT
+                    ls -lah \$ANDROID_SDK_ROOT || true
 
                     echo "Engine cache:"
                     ls -lah \${FLUTTER_ROOT}/bin/cache/artifacts/engine || true
@@ -1389,7 +1397,7 @@ pipeline {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
 
                         if (params.BUILD_MODE == 'release') {
-                            sh """
+                            sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
 
                                 echo "🚀 Building release APK/AAB"
@@ -1412,14 +1420,14 @@ pipeline {
                                 cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
                             """
                         } else {
-                            sh """
+                            sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
                                 
                                 echo "📦 Reusing previously built debug APK"
 
                                 cd \${REPO_CHECKOUT_DIR}
 
-                                test -f android/app/build/outputs/apk/debug/*.apk
+                                ls android/app/build/outputs/apk/debug/*.apk > /dev/null
 
                                 mkdir -p build_outputs
                                 cp android/app/build/outputs/apk/debug/*.apk build_outputs/
@@ -1443,14 +1451,13 @@ pipeline {
                     "${CONTAINER_WORKSPACE}",
                     "${CONTAINER_CACHE}"
                     ) {
-                    sh """#!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
 
-                        set -Eeuo pipefail
+                            cd \${REPO_CHECKOUT_DIR}
 
-                        cd \${REPO_CHECKOUT_DIR}
-
-                        \${INTEGRATION_TEST_SCRIPT}
-                    """
+                            \${INTEGRATION_TEST_SCRIPT}
+                        """
                     }
                 }
             }
@@ -1464,16 +1471,16 @@ pipeline {
                         "${CONTAINER_WORKSPACE}",
                         "${CONTAINER_CACHE}"
                     ) {
-                    sh """#!/usr/bin/env bash
+                        sh """#!/usr/bin/env bash
 
-                        set -Eeuo pipefail
+                            set -Eeuo pipefail
         
-                        cd "\${REPO_CHECKOUT_DIR}"
+                            cd "\${REPO_CHECKOUT_DIR}"
         
-                        echo "Running PlantUML generator..."
+                            echo "Running PlantUML generator..."
         
-                        ./scripts/generate_plantuml.sh
-                    """
+                            ./scripts/generate_plantuml.sh
+                        """
                     }
                 }
             }
