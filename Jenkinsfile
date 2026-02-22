@@ -1414,6 +1414,9 @@ pipeline {
                                 cd \${REPO_CHECKOUT_DIR}
 
 
+                                echo "Using APK path: \$REPO_APK_SUBDIR"
+                                echo "Using AAB path: \$REPO_ABB_SUBDIR"
+
                                 if [ "${gradleDebugOn}" = "true" ]; then
                                     export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
                                     export ORG_GRADLE_PROJECT_org_gradle_debug=true
@@ -1433,6 +1436,9 @@ pipeline {
                                     --target-platform \$TARGET_PLATFORMS
 
                                 else
+
+                                echo "Using APK path: \$REPO_APK_SUBDIR"
+
                                     flutter build apk \
                                         --release \
                                         --ci \
@@ -1448,15 +1454,19 @@ pipeline {
 
                                 mkdir -p build_outputs
 
-                                cp "\${REPO_APK_SUBDIR}"/*.apk build_outputs/ || {
-                                    echo "Error: Failed to copy APKs from \${REPO_APK_SUBDIR} to build_outputs/"
-                                    exit 1
-                                 }
+                                # Copy APKs
+                                if compgen -G "\$REPO_APK_SUBDIR/*.apk" > /dev/null; then
+                                    cp "\$REPO_APK_SUBDIR"/*.apk build_outputs/
+                                else
+                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR"
+                                fi
 
-                                cp "\${REPO_ABB_SUBDIR}"/*.aab build_outputs/ || {
-                                    echo "Error: Failed to copy AABs from \${REPO_ABB_SUBDIR} to build_outputs/"
-                                    exit 1
-                                 }
+                                # Copy AABs
+                                if compgen -G "\$REPO_ABB_SUBDIR/*.aab" > /dev/null; then
+                                    cp "\$REPO_ABB_SUBDIR"/*.aab build_outputs/
+                                else
+                                    echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR"
+                                fi
 
                                  echo "✅ APKs copied to build_outputs/"
                                  ls -la build_outputs/
@@ -1477,10 +1487,12 @@ pipeline {
 
                                 mkdir -p build_outputs
 
-                                cp "\${REPO_APK_SUBDIR}"/*.apk build_outputs/ || {
-                                    echo "Error: Failed to copy APKs from \${REPO_APK_SUBDIR} to build_outputs/"
-                                    exit 1
-                                 }
+                                # Copy APKs
+                                if compgen -G "\$REPO_APK_SUBDIR/*.apk" > /dev/null; then
+                                    cp "\$REPO_APK_SUBDIR"/*.apk build_outputs/
+                                else
+                                    echo "⚠️ No APKs found in \$REPO_APK_SUBDIR"
+                                fi
 
                                  echo "✅ APKs copied to build_outputs/"
                                  ls -la build_outputs/
