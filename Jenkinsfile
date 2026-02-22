@@ -695,7 +695,8 @@ pipeline {
 
                     "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
                     "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
-                    "ARTIFACTS_DIR=${env.CONTAINER_WORKSPACE}/artifacts",
+                    "ARTIFACTS_DIR=${env.HOST_WORKSPACE}/artifacts",
+                    "ARTIFACTS_DIR_REL=jenkins_container_workspace/artifacts",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
@@ -1506,15 +1507,21 @@ pipeline {
                         }
                     }
 
-                    // ARTIFACTS_DIR_JENKINS_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
-                    // /home/mirko/jenkins_host_workspace
-                    sh 'ls -la'
-                    sh 'ls -laR'
-                    sh 'find artifacts -type f -ls'
-                    //archiveArtifacts artifacts: 'artifacts/**',
-                    //    fingerprint: true,
-                    //    allowEmptyArchive: false
+                    // ARTIFACTS_DIR_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
 
+                    // 1️⃣ Environment debug
+                    sh """
+                        echo "Container UID: \$(id -u)"
+                        echo "Container GID: \$(id -g)"
+                        ls -laR $HOST_WORKSPACE
+                        touch $HOST_WORKSPACE/test_write.txt
+                    """
+                    
+                    // 2️⃣ Archive artifacts using expanded variable
+                    archiveArtifacts artifacts: "${ARTIFACTS_DIR_REL}/**",
+                                     fingerprint: true,
+                                     allowEmptyArchive: false
+                    
                 }
             }
         }
