@@ -1506,8 +1506,16 @@ pipeline {
                             """
                         }
 
+                        sh """
+                            echo "Jenkins workspace is: $WORKSPACE"
+                            echo "Listing workspace root:"
+                            ls -la .
+                            echo "Listing artifacts dir:"
+                            ls -la jenkins_container_workspace/artifacts || true
+                        """
+
                         // ARTIFACTS_DIR_JENKINS_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
-                        archiveArtifacts artifacts: "${ARTIFACTS_DIR_JENKINS_REL}/**", fingerprint: true, allowEmptyArchive: false
+                        archiveArtifacts artifacts: "jenkins_container_workspace/artifacts/**", fingerprint: true, allowEmptyArchive: false
                     }
                 }
             }
