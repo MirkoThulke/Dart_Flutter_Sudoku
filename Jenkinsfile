@@ -1529,8 +1529,11 @@ pipeline {
                             set -Eeuo pipefail
 
                             cd \${REPO_CHECKOUT_DIR}
-
-                            \${INTEGRATION_TEST_SCRIPT}
+                            
+                            withEnv(["BUILD_MODE=${params.BUILD_MODE}"]) {
+                                sh "\${INTEGRATION_TEST_SCRIPT}"
+                            }
+                            
                         """
                     }
                 }

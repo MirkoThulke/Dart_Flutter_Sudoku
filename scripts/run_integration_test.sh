@@ -20,7 +20,17 @@ echo "🚀 Running Flutter Android integration readiness check"
 
 
 # Find the APK path (assuming it was built by the CI pipeline)
-APK_PATH=$(ls build/app/outputs/flutter-apk/app-*-debug.apk 2>/dev/null | head -n1)
+BUILD_MODE="${BUILD_MODE:-debug}"
+
+echo "🔧 Integration test mode: $BUILD_MODE"
+
+if [ "$BUILD_MODE" = "release" ]; then
+  APK_GLOB="build/app/outputs/flutter-apk/app-*-release.apk"
+else
+  APK_GLOB="build/app/outputs/flutter-apk/app-*-debug.apk"
+fi
+
+APK_PATH=$(ls $APK_GLOB 2>/dev/null | head -n1)
 
 if [ -z "$APK_PATH" ]; then
   echo "❌ No APK found to install."
@@ -64,8 +74,14 @@ fi
 # -----------------------------------------------------------
 
 echo "📝 Build artifacts ready:"
-find build/app/outputs -name "*.apk" -print || echo "⚠️ No APKs found in build/app/outputs"
-find build/app/outputs -name "*.aab" -print || echo "⚠️ No AABs found in build/app/outputs"
+
+if [ "$BUILD_MODE" = "release" ]; then
+  find build/app/outputs -name "*.aab" -print || echo "⚠️ No AABs found in build/app/outputs"
+else
+  find build/app/outputs -name "*.apk" -print || echo "⚠️ No APKs found in build/app/outputs"
+  find build/app/outputs -name "*.aab" -print || echo "⚠️ No AABs found in build/app/outputs"
+fi
+
 
 
 # -----------------------------------------------------------
