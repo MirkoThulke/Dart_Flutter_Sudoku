@@ -1508,11 +1508,7 @@ pipeline {
                     }
 
                     // ARTIFACTS_DIR_JENKINS_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
-                    def artifactsDir = env.ARTIFACTS_DIR_JENKINS_REL
-
-                    sh "echo Archiving from: ${artifactsDir} && ls -la ${artifactsDir}"
-
-                    archiveArtifacts artifacts: "${artifactsDir}/**",
+                    archiveArtifacts artifacts: 'jenkins_container_workspace/artifacts/**',
                         fingerprint: true,
                         allowEmptyArchive: false
 
