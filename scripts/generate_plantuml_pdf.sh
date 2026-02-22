@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
 # ======================================================
 # Cross-platform PlantUML PNG + PDF generator (Linux)
+# Uses system-installed plantuml + graphviz
 # ======================================================
 
-set -e
+set -Eeuo pipefail
 
 # -------------------------------
-# Validate PLANTUML_HOME
+# Check dependencies
 # -------------------------------
-if [ -z "$PLANTUML_HOME" ]; then
-  echo "ERROR: PLANTUML_HOME environment variable is not set."
+if ! command -v plantuml >/dev/null 2>&1; then
+  echo "ERROR: plantuml command not found."
   exit 1
 fi
 
-PLANTUML_JAR="$PLANTUML_HOME/plantuml-mit-1.2025.7.jar"
-
-if [ ! -f "$PLANTUML_JAR" ]; then
-  echo "ERROR: PlantUML JAR not found at: $PLANTUML_JAR"
+if ! command -v dot >/dev/null 2>&1; then
+  echo "ERROR: graphviz (dot) not found."
   exit 1
 fi
 
@@ -24,12 +23,11 @@ fi
 # Output folder
 # -------------------------------
 OUT_FOLDER="../doc/diagrams"
-OUT_FOLDER_FULL="$(realpath "$OUT_FOLDER")"
+OUT_FOLDER_FULL="$(realpath -m "$OUT_FOLDER")"
 
-if [ ! -d "$OUT_FOLDER_FULL" ]; then
-  echo "Creating output folder: $OUT_FOLDER_FULL"
-  mkdir -p "$OUT_FOLDER_FULL"
-fi
+mkdir -p "$OUT_FOLDER_FULL"
+
+echo "Output folder: $OUT_FOLDER_FULL"
 
 # -------------------------------
 # Find PUML files
@@ -44,32 +42,13 @@ fi
 echo "Found ${#PUML_FILES[@]} PUML files."
 
 # -------------------------------
-# Generate PNG + PDF per file
+# Generate PNG + PDF
 # -------------------------------
 for FILE in "${PUML_FILES[@]}"; do
   echo "Processing $FILE"
 
-  # Generate PNG
-  java -jar "$PLANTUML_JAR" -tpng "$FILE"
-
-  # Generate PDF
-  java -jar "$PLANTUML_JAR" -tpdf "$FILE"
-
-  DIR="$(dirname "$FILE")"
-  BASENAME="$(basename "$FILE" .puml)"
-
-  GENERATED_PNG="$DIR/$BASENAME.png"
-  GENERATED_PDF="$DIR/$BASENAME.pdf"
-
-  # Move PNG
-  if [ -f "$GENERATED_PNG" ]; then
-    mv -f "$GENERATED_PNG" "$OUT_FOLDER_FULL"
-  fi
-
-  # Move PDF
-  if [ -f "$GENERATED_PDF" ]; then
-    mv -f "$GENERATED_PDF" "$OUT_FOLDER_FULL"
-  fi
+  plantuml -tpng -o "$OUT_FOLDER_FULL" "$FILE"
+  plantuml -tpdf -o "$OUT_FOLDER_FULL" "$FILE"
 done
 
 echo "All diagrams generated in: $OUT_FOLDER_FULL"
