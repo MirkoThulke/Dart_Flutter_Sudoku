@@ -695,8 +695,7 @@ pipeline {
 
                     "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
                     "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
-                    "ARTIFACTS_DIR=${env.CONTAINER_WORKSPACE}/artifacts",
-                    "ARTIFACTS_DIR_JENKINS_REL=jenkins_container_workspace/artifacts",
+                    "ARTIFACTS_DIR=${env.HOST_WORKSPACE}/artifacts",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
@@ -1508,7 +1507,8 @@ pipeline {
                     }
 
                     // ARTIFACTS_DIR_JENKINS_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
-                    archiveArtifacts artifacts: 'jenkins_container_workspace/artifacts/**',
+                    sh 'ls -la artifacts'
+                    archiveArtifacts artifacts: 'artifacts/**',
                         fingerprint: true,
                         allowEmptyArchive: false
 
