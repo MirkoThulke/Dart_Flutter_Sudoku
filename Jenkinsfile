@@ -71,6 +71,7 @@
 //  RUN THE FLUTTER CONTAINER — DEBUGGING ONLY
 //  ------------------------------------------------------------
 // docker run -it --rm   -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
+// docker run -it  -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
 
 
 //  ------------------------------------------------------------
@@ -626,6 +627,9 @@ pipeline {
         GIT_REPO_URL        = 'https://github.com/MirkoThulke/Dart_Flutter_Sudoku.git'
         GIT_BRANCH          = 'iteration3'
 
+        // Flutter build targets
+        TARGET_PLATFORMS    = 'android-arm,android-arm64'
+
         // PATH definition (binaries only)
         PATH = "/opt/rust/cargo/bin:/opt/flutter/bin:/opt/android/sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin:/opt/android/sdk/cmdline-tools/latest/bin:/opt/android/sdk/platform-tools:$PATH"
     }
@@ -686,8 +690,11 @@ pipeline {
                     "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
                     "REPO_CHECKOUT_ANDROID_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/android",
                     "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/run_integration_test.sh",
-                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_PlantUML_PDF.ps1",
+                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_plantuml_pdf.sh",
                     "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
+
+                    "REPO_APK_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/build/app/outputs/flutter-apk",
+                    "REPO_ABB_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/build/app/outputs/bundle/release",
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
@@ -719,6 +726,8 @@ pipeline {
 
                     "GIT_REPO_URL=${env.GIT_REPO_URL}",
                     "GIT_BRANCH=${env.GIT_BRANCH}",
+
+                    "TARGET_PLATFORMS=${env.TARGET_PLATFORMS}",
 
                     "PATH=${env.PATH}"
                     ]
@@ -1315,7 +1324,7 @@ pipeline {
                             --debug \
                             --ci \
                             --no-shrink \
-                            --target-platform android-arm,android-arm64,android-x64
+                            --target-platform \$TARGET_PLATFORMS
 
 
                         # Verify AFTER build
@@ -1404,20 +1413,54 @@ pipeline {
 
                                 cd \${REPO_CHECKOUT_DIR}
 
+
                                 if [ "${gradleDebugOn}" = "true" ]; then
                                     export ORG_GRADLE_PROJECT_org_gradle_stacktrace=true
                                     export ORG_GRADLE_PROJECT_org_gradle_debug=true
-                                    flutter build apk --release --ci --no-shrink --verbose
-                                    flutter build appbundle --release --ci --no-shrink --verbose
+
+                                    flutter build apk \
+                                    --release \
+                                    --ci \
+                                    --no-shrink \
+                                    --verbose \
+                                    --target-platform \$TARGET_PLATFORMS
+
+                                    flutter build appbundle \
+                                    --release \
+                                    --ci \
+                                    --no-shrink \
+                                    --verbose \
+                                    --target-platform \$TARGET_PLATFORMS
+
                                 else
-                                    flutter build apk --release --ci --no-shrink
-                                    flutter build appbundle --release --ci --no-shrink
+                                    flutter build apk \
+                                        --release \
+                                        --ci \
+                                        --no-shrink \
+                                        --target-platform \$TARGET_PLATFORMS
+
+                                    flutter build appbundle \
+                                        --release \
+                                        --ci \
+                                        --no-shrink \
+                                        --target-platform \$TARGET_PLATFORMS
                                 fi
 
-
                                 mkdir -p build_outputs
-                                cp android/app/build/outputs/apk/release/*.apk build_outputs/ || true
-                                cp android/app/build/outputs/bundle/release/*.aab build_outputs/ || true
+
+                                cp "\${REPO_APK_SUBDIR}"/*.apk build_outputs/ || {
+                                    echo "Error: Failed to copy APKs from \${REPO_APK_SUBDIR} to build_outputs/"
+                                    exit 1
+                                 }
+
+                                cp "\${REPO_ABB_SUBDIR}"/*.aab build_outputs/ || {
+                                    echo "Error: Failed to copy AABs from \${REPO_ABB_SUBDIR} to build_outputs/"
+                                    exit 1
+                                 }
+
+                                 echo "✅ APKs copied to build_outputs/"
+                                 ls -la build_outputs/
+
                             """
                         } else {
                             sh """#!/usr/bin/env bash
@@ -1427,10 +1470,20 @@ pipeline {
 
                                 cd \${REPO_CHECKOUT_DIR}
 
-                                ls android/app/build/outputs/apk/debug/*.apk > /dev/null
+                                ls "\${REPO_APK_SUBDIR}/*.apk" > /dev/null 2>&1 || {
+                                    echo "Error: No APKs found in \${REPO_APK_SUBDIR}"
+                                    exit 1
+                                }
 
                                 mkdir -p build_outputs
-                                cp android/app/build/outputs/apk/debug/*.apk build_outputs/
+
+                                cp "\${REPO_APK_SUBDIR}"/*.apk build_outputs/ || {
+                                    echo "Error: Failed to copy APKs from \${REPO_APK_SUBDIR} to build_outputs/"
+                                    exit 1
+                                 }
+
+                                 echo "✅ APKs copied to build_outputs/"
+                                 ls -la build_outputs/
 
                             """
                         }
