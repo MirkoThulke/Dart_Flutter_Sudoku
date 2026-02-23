@@ -1522,10 +1522,13 @@ pipeline {
                         echo "WORKSPACE=$WORKSPACE"
                     """
 
+                    def artifactsDir = env.ARTIFACTS_DIR_REL
+                    sh "echo Archiving from: ${artifactsDir} && ls -la ${artifactsDir}"
+
                     // 2️⃣ Archive artifacts using expanded variable
-                    archiveArtifacts artifacts: "${ARTIFACTS_DIR_REL}/**",
-                                     fingerprint: true,
-                                     allowEmptyArchive: false
+                    archiveArtifacts artifacts: "${artifactsDir}/**",
+                        fingerprint: true,
+                        allowEmptyArchive: false
 
                 }
             }
