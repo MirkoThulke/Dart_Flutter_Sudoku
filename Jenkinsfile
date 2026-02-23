@@ -175,9 +175,9 @@
 //  ------------------------------------------------------------
 
 //  ------------------------------------------------------------
-//  Build artefacts:
+//  Build artifacts:
 //
-//    Jenkins archives artefacts from the workspace into:
+//    Jenkins archives artifacts from the workspace into:
 //
 //    /var/jenkins_home/jobs/<job-name>/builds/<build-id>/archive/
 //
@@ -702,7 +702,7 @@ pipeline {
                     "REPO_APK_SUBDIR_REL=${env.REPO_APK_SUBDIR_REL}",
                     "REPO_ABB_SUBDIR_REL=${env.REPO_ABB_SUBDIR_REL}",
 
-                    "CONTAINER_ARTIFACTS=${env.CONTAINER_WORKSPACE}/artefacts",
+                    "CONTAINER_ARTIFACTS=${env.CONTAINER_WORKSPACE}/artifacts",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
