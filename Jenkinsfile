@@ -1515,11 +1515,6 @@ pipeline {
                         echo "Container GID: \$(id -g)"
                         echo "ls -laR : "
                         ls -laR
-                        echo "ls -laR $ARTIFACTS_DIR_REL : "
-                        ls -laR $ARTIFACTS_DIR_REL || echo "No artifacts found at $ARTIFACTS_DIR_REL"
-                        echo "ls -laR $ARTIFACTS_DIR : "
-                        ls -laR $ARTIFACTS_DIR || echo "No artifacts found at $ARTIFACTS_DIR"
-                        echo "WORKSPACE=$WORKSPACE"
                     """
 
                     def artifactsDir = env.ARTIFACTS_DIR_REL
