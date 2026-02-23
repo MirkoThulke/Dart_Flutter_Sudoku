@@ -1513,15 +1513,20 @@ pipeline {
                     sh """
                         echo "Container UID: \$(id -u)"
                         echo "Container GID: \$(id -g)"
-                        ls -laR $HOST_WORKSPACE
-                        touch $HOST_WORKSPACE/test_write.txt
+                        echo "ls -laR : "
+                        ls -laR
+                        echo "ls -laR $ARTIFACTS_DIR_REL : "
+                        ls -laR $ARTIFACTS_DIR_REL || echo "No artifacts found at $ARTIFACTS_DIR_REL"
+                        echo "ls -laR $ARTIFACTS_DIR : "
+                        ls -laR $ARTIFACTS_DIR || echo "No artifacts found at $ARTIFACTS_DIR"
+                        echo "WORKSPACE=$WORKSPACE"
                     """
-                    
+
                     // 2️⃣ Archive artifacts using expanded variable
                     archiveArtifacts artifacts: "${ARTIFACTS_DIR_REL}/**",
                                      fingerprint: true,
                                      allowEmptyArchive: false
-                    
+
                 }
             }
         }
