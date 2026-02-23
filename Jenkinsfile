@@ -627,6 +627,8 @@ pipeline {
         GIT_REPO_URL        = 'https://github.com/MirkoThulke/Dart_Flutter_Sudoku.git'
         GIT_BRANCH          = 'iteration3'
 
+        ARTIFACTS_DIR_REL   = 'jenkins_container_workspace/artifacts'
+
         // Flutter build targets
         TARGET_PLATFORMS    = 'android-arm,android-arm64'
 
@@ -696,7 +698,7 @@ pipeline {
                     "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
                     "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
                     "ARTIFACTS_DIR=${env.CONTAINER_WORKSPACE}/artifacts",
-                    "ARTIFACTS_DIR_REL=jenkins_container_workspace/artifacts",
+                    "ARTIFACTS_DIR_REL=${env.ARTIFACTS_DIR_REL}",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
