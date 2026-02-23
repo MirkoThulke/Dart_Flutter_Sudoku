@@ -627,7 +627,11 @@ pipeline {
         GIT_REPO_URL        = 'https://github.com/MirkoThulke/Dart_Flutter_Sudoku.git'
         GIT_BRANCH          = 'iteration3'
 
-        ARTIFACTS_DIR_REL   = 'jenkins_container_workspace/artifacts'
+        REPO_APK_SUBDIR_REL    = 'build/app/outputs/flutter-apk'
+        REPO_ABB_SUBDIR_REL    = 'build/app/outputs/bundle/release'
+
+        // Host artefact directory must be an absolute path outside the container workspace, so we can archive it with Jenkins and it survives container restarts.
+        HOST_ARTIFACTS = '/home/mirko/jenkins_host_workspace/artifacts'
 
         // Flutter build targets
         TARGET_PLATFORMS    = 'android-arm,android-arm64'
@@ -695,10 +699,10 @@ pipeline {
                     "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_plantuml_pdf.sh",
                     "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
 
-                    "REPO_APK_SUBDIR_REL=build/app/outputs/flutter-apk",
-                    "REPO_ABB_SUBDIR_REL=build/app/outputs/bundle/release",
-                    "ARTIFACTS_DIR=${env.CONTAINER_WORKSPACE}/artifacts",
-                    "ARTIFACTS_DIR_REL=${env.ARTIFACTS_DIR_REL}",
+                    "REPO_APK_SUBDIR_REL=${env.REPO_APK_SUBDIR_REL}",
+                    "REPO_ABB_SUBDIR_REL=${env.REPO_ABB_SUBDIR_REL}",
+
+                    "HOST_ARTIFACTS=${env.HOST_ARTIFACTS}",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
@@ -1453,27 +1457,27 @@ pipeline {
                                         --target-platform \$TARGET_PLATFORMS
                                 fi
 
-                                mkdir -p "\$ARTIFACTS_DIR"
+                                mkdir -p "\$HOST_ARTIFACTS"
 
                                 # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$ARTIFACTS_DIR"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$HOST_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                 # Copy AABs
                                 if compgen -G "\$REPO_ABB_SUBDIR_REL/*.aab" > /dev/null; then
-                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$ARTIFACTS_DIR"/
+                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$HOST_ARTIFACTS"/
                                 else
                                     echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR_REL"
                                 fi
 
-                                 echo "✅ APKs and AABs copied to \$ARTIFACTS_DIR/"
-                                 ls -la "\$ARTIFACTS_DIR"
+                                 echo "✅ APKs and AABs copied to \$HOST_ARTIFACTS/"
+                                 ls -la "\$HOST_ARTIFACTS"
 
                             """
                         } else {
@@ -1490,26 +1494,26 @@ pipeline {
                                     --no-shrink \
                                     --target-platform \$TARGET_PLATFORMS
 
-                                mkdir -p "\$ARTIFACTS_DIR"
+                                mkdir -p "\$HOST_ARTIFACTS"
 
                                 # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$ARTIFACTS_DIR"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$HOST_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
-                                echo "✅ APKs and AABs copied to \$ARTIFACTS_DIR/"
-                                ls -la "\$ARTIFACTS_DIR"
+                                echo "✅ APKs and AABs copied to \$HOST_ARTIFACTS/"
+                                ls -la "\$HOST_ARTIFACTS"
 
                             """
                         }
                     }
 
-                    // ARTIFACTS_DIR_REL = ARTIFACTS_DIR but relative to the Jenkins workspace root, so we can archive it.
+                    // HOST_ARTIFACTS  = HOST_ARTIFACTS but relative to the Jenkins workspace root, so we can archive it.
 
                     // 1️⃣ Environment debug
                     sh """
@@ -1519,7 +1523,7 @@ pipeline {
                         ls -laR
                     """
 
-                    def artifactsDir = env.ARTIFACTS_DIR_REL
+                    def artifactsDir = env.HOST_ARTIFACTS 
                     sh "echo Archiving from: ${artifactsDir} && ls -la ${artifactsDir}"
 
                     // 2️⃣ Archive artifacts using expanded variable
