@@ -1535,7 +1535,7 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: "artifacts/**",
+                archiveArtifacts artifacts: "var/jenkins_home/artifacts/**",
                          fingerprint: true,
                          allowEmptyArchive: false
             }
