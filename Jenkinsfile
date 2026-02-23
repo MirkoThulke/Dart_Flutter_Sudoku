@@ -602,9 +602,11 @@ pipeline {
         FLUTTER_IMAGE       = 'mirkoth/flutter_rust_env:latest'
 
         // Host mount paths
-        HOST_CACHE         = '/home/mirko/jenkins_host_cache'
-        HOST_WORKSPACE     = '/home/mirko/jenkins_host_workspace'
+        HOST_CACHE          = '/home/mirko/jenkins_host_cache'
+        HOST_WORKSPACE      = '/home/mirko/jenkins_host_workspace'
 
+        // for information only !!
+        HOST_ARTIFACTS      = '/home/mirko/jenkins_host_workspace/artifacts'
 
         // Flutter / Rust toolchains inside container
         FLUTTER_ROOT       = '/opt/flutter'
@@ -630,8 +632,6 @@ pipeline {
         REPO_APK_SUBDIR_REL    = 'build/app/outputs/flutter-apk'
         REPO_ABB_SUBDIR_REL    = 'build/app/outputs/bundle/release'
 
-        // Host artefact directory must be an absolute path outside the container workspace, so we can archive it with Jenkins and it survives container restarts.
-        HOST_ARTIFACTS = '/home/mirko/jenkins_host_workspace/artifacts'
 
         // Flutter build targets
         TARGET_PLATFORMS    = 'android-arm,android-arm64'
@@ -702,7 +702,7 @@ pipeline {
                     "REPO_APK_SUBDIR_REL=${env.REPO_APK_SUBDIR_REL}",
                     "REPO_ABB_SUBDIR_REL=${env.REPO_ABB_SUBDIR_REL}",
 
-                    "HOST_ARTIFACTS=${env.HOST_ARTIFACTS}",
+                    "CONTAINER_ARTIFACTS=${env.CONTAINER_WORKSPACE}/artefacts",
 
 
                     "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
@@ -762,6 +762,7 @@ pipeline {
 
                             mkdir -p \
                                 "\$CONTAINER_WORKSPACE" \
+                                "\$CONTAINER_ARTIFACTS" \
                                 "\$CONTAINER_CACHE/.gradle/caches" \
                                 "\$CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
@@ -794,6 +795,9 @@ pipeline {
                             test -w "\$GRADLE_USER_HOME"
                             test -w "\$FLUTTER_CACHE_DIR"
                             test -w "\$FLUTTER_GRADLE_USER_HOME"
+                            test -w "\$CONTAINER_ARTIFACTS"
+
+
                         """
                     }
                 }
@@ -1457,27 +1461,33 @@ pipeline {
                                         --target-platform \$TARGET_PLATFORMS
                                 fi
 
-                                mkdir -p "\$HOST_ARTIFACTS"
+                                echo "Ensuring Host artifacts directory is writable from INSIDE of the container:"
+                                if touch "\$CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
+                                    echo "PASS: Host artifacts directory is writable!"
+                                else
+                                    echo "Write blocked (FAILED)"
+                                    exit 1
+                                fi
 
                                 # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$HOST_ARTIFACTS"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                 # Copy AABs
                                 if compgen -G "\$REPO_ABB_SUBDIR_REL/*.aab" > /dev/null; then
-                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$HOST_ARTIFACTS"/
+                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR_REL"
                                 fi
 
-                                 echo "✅ APKs and AABs copied to \$HOST_ARTIFACTS/"
-                                 ls -la "\$HOST_ARTIFACTS"
+                                 echo "✅ APKs and AABs copied to \$CONTAINER_ARTIFACTS/"
+                                 ls -la "\$CONTAINER_ARTIFACTS"
 
                             """
                         } else {
@@ -1494,46 +1504,43 @@ pipeline {
                                     --no-shrink \
                                     --target-platform \$TARGET_PLATFORMS
 
-                                mkdir -p "\$HOST_ARTIFACTS"
+                                echo "Ensuring Container artifacts directory is writable from INSIDE of the container:"
+                                if touch "\$CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
+                                    echo "PASS: Container artifacts directory is writable!"
+                                else
+                                    echo "Write blocked (FAILED)"
+                                    exit 1
+                                fi
 
                                 # Copy APKs
 
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$HOST_ARTIFACTS"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
-                                echo "✅ APKs and AABs copied to \$HOST_ARTIFACTS/"
-                                ls -la "\$HOST_ARTIFACTS"
+                                echo "✅ APKs and AABs copied to \$CONTAINER_ARTIFACTS/"
+                                ls -la "\$CONTAINER_ARTIFACTS"
 
                             """
                         }
                     }
-
-                    // HOST_ARTIFACTS  = HOST_ARTIFACTS but relative to the Jenkins workspace root, so we can archive it.
-
-                    // 1️⃣ Environment debug
-                    sh """
-                        echo "Container UID: \$(id -u)"
-                        echo "Container GID: \$(id -g)"
-                        echo "ls -laR : "
-                        ls -laR
-                    """
-
-                    def artifactsDir = env.HOST_ARTIFACTS 
-                    sh "echo Archiving from: ${artifactsDir} && ls -la ${artifactsDir}"
-
-                    // 2️⃣ Archive artifacts using expanded variable
-                    archiveArtifacts artifacts: "${artifactsDir}/**",
-                        fingerprint: true,
-                        allowEmptyArchive: false
-
                 }
             }
         }
+
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'jenkins_container_workspace/artifacts/**',
+                         fingerprint: true,
+                         allowEmptyArchive: false
+            }
+        }
+
 
         // Phase 7 – Validation & extras
 

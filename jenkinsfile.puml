@@ -22,12 +22,16 @@ cd ~
 sudo rm -rf /home/mirko/jenkins_host_*
 
 sudo mkdir -p /home/mirko/jenkins_host_workspace
+sudo mkdir -p /home/mirko/jenkins_host_workspace/artifacts
+
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
 sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+
 
 sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
 sudo mkdir -p /home/mirko/jenkins_host_cache/pub
 sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
+
 sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
 sudo chmod -R 770 /home/mirko/jenkins_host_cache
 end note

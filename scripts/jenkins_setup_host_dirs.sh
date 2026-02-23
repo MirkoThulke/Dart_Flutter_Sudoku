@@ -9,9 +9,12 @@ JENKINS_UID=2000
 JENKINS_GID=2000
 
 HOST_WORKSPACE="/home/mirko/jenkins_host_workspace"
+HOST_ARTIFACTS="/home/mirko/jenkins_host_workspace/artifacts"
 HOST_CACHE="/home/mirko/jenkins_host_cache"
 
+
 echo "HOST_WORKSPACE is: ${HOST_WORKSPACE}"
+echo "HOST_ARTIFACTS is: ${HOST_ARTIFACTS}"
 echo "HOST_CACHE is: ${HOST_CACHE}"
 
 # -------------------------
@@ -32,10 +35,10 @@ fi
 # Create directories
 # -------------------------
 echo "📁 Creating host mount directories"
-mkdir -p "${HOST_WORKSPACE}" "${HOST_CACHE}"
+mkdir -p "${HOST_WORKSPACE}" "${HOST_ARTIFACTS}" "${HOST_CACHE}"
 
 # Set ownership and permissions safely
-sudo chown -R ${JENKINS_UID}:${JENKINS_GID} "${HOST_WORKSPACE}" "${HOST_CACHE}" || true
-chmod -R 770 "${HOST_WORKSPACE}" "${HOST_CACHE}" 2>/dev/null || true
+sudo chown -R ${JENKINS_UID}:${JENKINS_GID} "${HOST_WORKSPACE}" "${HOST_ARTIFACTS}" "${HOST_CACHE}" || true
+chmod -R 770 "${HOST_WORKSPACE}" "${HOST_ARTIFACTS}" "${HOST_CACHE}" 2>/dev/null || true
 
 echo "✅ Host directories ready"
