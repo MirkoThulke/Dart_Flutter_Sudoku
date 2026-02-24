@@ -1535,9 +1535,23 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: "var/jenkins_home/artifacts/**",
-                         fingerprint: true,
-                         allowEmptyArchive: false
+
+                     script {
+                        // Make sure ephemeral workspace has a folder
+                        sh """
+                        mkdir -p ${WORKSPACE}/artifacts
+
+                        # Copy all build outputs from container workspace into ephemeral Jenkins workspace
+                        cp -r ${CONTAINER_WORKSPACE}/artifacts/* ${WORKSPACE}/artifacts/ || true
+
+                        echo "Artifacts copied into ephemeral Jenkins workspace:"
+                        ls -la ${WORKSPACE}/artifacts
+                        """
+                    }
+                    
+                    archiveArtifacts artifacts: "artifacts/**",
+                        fingerprint: true,
+                        allowEmptyArchive: false
             }
         }
 
