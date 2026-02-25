@@ -321,7 +321,7 @@
 //                  └── /home/jenkins/.cargo      ← persistent host cache
 //
 //  ------------------------------------------------------------
-// 
+// cd 
 // Container (Flutter)
 // ┌─────────────────────────────┐
 // │ ${FLUTTER_CONTAINER_WORKSPACE}       <- mounted from host /${JOB_NAME}
@@ -1557,7 +1557,7 @@ pipeline {
                 script {                
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
                         withEnv(["BUILD_MODE=${params.BUILD_MODE}"]) {
-                            sh """
+                            sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
                                 cd "${REPO_CHECKOUT_DIR}"
                                 ${INTEGRATION_TEST_SCRIPT}
