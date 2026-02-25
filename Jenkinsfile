@@ -4,9 +4,9 @@
 //
 //  Prepare HOST directories (persistent)
 //
-//  sudo mkdir -p /home/mirko/jenkins_host_workspace
-//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
-//  sudo chmod -R 770 /home/mirko/jenkins_host_workspace
+//  sudo mkdir -p /home/mirko/jenkins_host_home
+//  sudo chown -R 2000:2000 /home/mirko/jenkins_host_home
+//  sudo chmod -R 770 /home/mirko/jenkins_host_home
 //
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
 //  sudo mkdir -p /home/mirko/jenkins_host_cache/pub
@@ -70,8 +70,8 @@
 //  ------------------------------------------------------------
 //  RUN THE FLUTTER CONTAINER — DEBUGGING ONLY
 //  ------------------------------------------------------------
-// docker run -it --rm   -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
-// docker run -it  -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
+// docker run -it --rm   -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_home:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
+// docker run -it  -v /home/mirko/jenkins_host_cache:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_cache   -v /home/mirko/jenkins_host_home:/var/jenkins_home/workspace/Flutter_Docker_Pipeline/jenkins_container_workspace   mirkoth/flutter_rust_env:latest   /bin/bash
 
 
 //  ------------------------------------------------------------
@@ -105,7 +105,7 @@
 //
 //  This workspace is bind-mounted READ/WRITE into the build container:
 //
-//     -v $CONTAINER_WORKSPACE:/sudoku_app
+//     -v $FLUTTER_CONTAINER_WORKSPACE:/sudoku_app
 //
 //     +---------------------------+
 //     | Jenkins (Docker container)|
@@ -138,15 +138,15 @@
 //     |              └── generate_PlantUML_PDF.ps1
 //     |                           |
 //     |  /home/jenkins              ← host-mounted persistent caches
-//     |    ├── .gradle              ← mapped from HOST_CACHE/gradle
-//     |    ├── .pub-cache           ← mapped from HOST_CACHE/pub
-//     |    └── .cargo               ← mapped from HOST_CACHE/cargo
+//     |    ├── .gradle              ← mapped from JENKINS_HOST_CACHE/gradle
+//     |    ├── .pub-cache           ← mapped from JENKINS_HOST_CACHE/pub
+//     |    └── .cargo               ← mapped from JENKINS_HOST_CACHE/cargo
 //     +---------------------------+
 
 //  ────────────────────────────────────────────────────────────
 //  Host (WSL2 / Linux)
 //  ────────────────────────────────────────────────────────────
-//  ├── /home/mirko/jenkins_host_workspace  ← Jenkins workspace host mount (optional)
+//  ├── /home/mirko/jenkins_host_home  ← Jenkins workspace host mount (optional)
 //  ├── /home/mirko/jenkins_host_cache
 //  │     ├── gradle  → /home/jenkins/.gradle in container
 //  │     ├── pub     → /home/jenkins/.pub-cache
@@ -169,7 +169,7 @@
 //  - Workspace = ephemeral, lives under Jenkins container volume:
 //      $WORKSPACE/jenkins_container_workspace
 //  - Cache = persistent, lives under host mount:
-//      $HOST_CACHE → /home/jenkins
+//      $JENKINS_HOST_CACHE → /home/jenkins
 //  - Never store persistent caches under $WORKSPACE
 //  - Build containers are disposable; source code only lives in workspace
 //  ------------------------------------------------------------
@@ -212,7 +212,7 @@
 //  ------------------------------------------------------------
 //  Persist Jenkins data on the host machine:
 //
-//   -v /home/mirko/jenkins_host_workspace:/var/jenkins_home
+//   -v /home/mirko/jenkins_host_home:/var/jenkins_home
 //
 //  Persist build caches on the host machine (IMPORTANT):
 //
@@ -220,7 +220,7 @@
 //   -v /home/mirko/jenkins_host_cache/pub:/home/jenkins/.pub-cache
 //   -v /home/mirko/jenkins_host_cache/cargo:/home/jenkins/.cargo
 //
-//   🚨 CACHES MUST NOT BE MOUNTED UNDER $CONTAINER_WORKSPACE
+//   🚨 CACHES MUST NOT BE MOUNTED UNDER $FLUTTER_CONTAINER_WORKSPACE
 //
 //  ------------------------------------------------------------
 //  Docker bind mount syntax:
@@ -228,7 +228,7 @@
 //
 //  Example:
 //     docker run \
-//       -v $CONTAINER_WORKSPACE:/sudoku_app \
+//       -v $FLUTTER_CONTAINER_WORKSPACE:/sudoku_app \
 //       -v /home/mirko/jenkins_host_cache/gradle:/home/jenkins/.gradle \
 //       -v /home/mirko/jenkins_host_cache/pub:/home/jenkins/.pub-cache \
 //       -v /home/mirko/jenkins_host_cache/cargo:/home/jenkins/.cargo
@@ -244,7 +244,7 @@
 //    Workspace  = dynamic, disposable sandbox
 //    Home dir   = stable, persistent caches
 //
-//    NEVER store caches under $CONTAINER_WORKSPACE
+//    NEVER store caches under $FLUTTER_CONTAINER_WORKSPACE
 //
 //  ------------------------------------------------------------
 //  ┌──────────────────────────────┐
@@ -280,7 +280,7 @@
 //  -p 8080:8080	                                    Jenkins web UI
 //  -p 50000:50000	                                    Jenkins agents
 //  -v …:/var/jenkins_home	                            Persist Jenkins data
-//  -v …:/CONTAINER_WORKSPACE	                        Persist Jenkins build data
+//  -v …:/FLUTTER_CONTAINER_WORKSPACE	                        Persist Jenkins build data
 //  -v /var/run/docker.sock:/var/run/docker.sock	    Let Jenkins control Docker
 //   jenkins_container_sudoku:lts	                    Jenkins image
 //
@@ -306,7 +306,7 @@
 //  Host → Jenkins → Build Container Mapping
 //
 //  Host (WSL2 / Linux)
-//  ├── jenkins_host_workspace       ← Jenkins data (persistent)
+//  ├── jenkins_host_home       ← Jenkins data (persistent)
 //  ├── jenkins_host_cache           ← Gradle / Pub / Cargo caches
 //  │
 //  └── Docker daemon
@@ -321,13 +321,36 @@
 //                  └── /home/jenkins/.cargo      ← persistent host cache
 //
 //  ------------------------------------------------------------
+// 
+// Container (Flutter)
+// ┌─────────────────────────────┐
+// │ ${FLUTTER_CONTAINER_WORKSPACE}       <- mounted from host /${JOB_NAME}
+// │  ├── git_checkout/           <- cloned repo
+// │  ├── build/                 <- ephemeral Flutter build output
+// │  ├── android/build/         <- ephemeral Android build output
+// │  ├── .gradle/               <- ephemeral Gradle output (job local)
+// │  ├── .home/                 <- container HOME directory (ephemeral)
+// │  └── artifacts/             <- mounted to host artifacts/
+// │
+// │ ${FLUTTER_CONTAINER_CACHE}           <- mounted from host jenkins_host_cache
+// │  ├── .pub-cache             <- Dart/Flutter cache
+// │  ├── .gradle                <- Gradle cache
+// │  ├── flutter/               <- Flutter engine cache
+// │  └── rust/                  <- Rust build cache
+// │
+// │ ${FLUTTER_ROOT}              <- read-only Flutter SDK
+// │ ${RUSTUP_HOME}, ${CARGO_HOME} <- read-only Rust toolchain
+// │ ${ANDROID_SDK_ROOT}           <- read-only Android SDK/NDK
+// └─────────────────────────────┘
+//
 //  Key Rules
 //
-//  1) Workspace (CONTAINER_WORKSPACE) = ephemeral → safe to delete after build
-//  2) Cache (CONTAINER_CACHE / host-mounted) = persistent → survives builds
+//  1) Workspace (FLUTTER_CONTAINER_WORKSPACE) = ephemeral → safe to delete after build
+//  2) Cache (FLUTTER_CONTAINER_CACHE / host-mounted) = persistent → survives builds
 //  3) NEVER store caches under ephemeral workspace
 //  4) Source code is bind-mounted into build container → reproducible, isolated builds
 //  5) Toolchains are read-only inside container
+
 
 import groovy.transform.Field
 
@@ -335,15 +358,12 @@ import groovy.transform.Field
 List<String> containerEnv = []
 
 
-
-
 // Helper for default Jenkins user inside container
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
-def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) {
+def insideFlutterContainerJenkinsUser(flutterContainerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user jenkins " +
-        "-v ${env.HOST_CACHE}:${containerCache} " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
+        "-v ${env.JENKINS_HOST_CACHE}:${flutterContainerCache} "
     ) {
         withEnv(containerEnv) {
             body()
@@ -354,11 +374,10 @@ def insideFlutterContainerJenkinsUser(containerWorkspace, containerCache, body) 
 
 // Helper for root user
 // Do not pull image from docker hub. use local image which is manually downloaded from dockerhub once
-def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
+def insideFlutterContainerRootUser(flutterContainerCache, body) {
     docker.image(env.FLUTTER_IMAGE).inside(
         "--user root " +
-        "-v ${env.HOST_CACHE}:${containerCache} " +
-        "-v ${env.HOST_WORKSPACE}:${containerWorkspace}"
+        "-v ${env.JENKINS_HOST_CACHE}:${flutterContainerCache} "
     ) {
         withEnv(containerEnv) {
             body()
@@ -381,8 +400,7 @@ def insideFlutterContainerRootUser(containerWorkspace, containerCache, body) {
 
 def flutterCleanLight() {
     insideFlutterContainerJenkinsUser(
-        "${CONTAINER_WORKSPACE}",
-        "${CONTAINER_CACHE}"
+        "${FLUTTER_CONTAINER_CACHE}"
     ) {
         sh """#!/usr/bin/env bash
             set -Eeuo pipefail
@@ -398,7 +416,7 @@ def flutterCleanLight() {
                 exit 1
             fi
 
-            cd "\$CONTAINER_WORKSPACE"
+            cd "\$FLUTTER_CONTAINER_WORKSPACE"
 
             # ----------------------------------------
             # Ephemeral build outputs (SAFE)
@@ -437,8 +455,7 @@ def flutterCleanLight() {
 
 def flutterCleanDeep() {
     insideFlutterContainerJenkinsUser(
-        "${CONTAINER_WORKSPACE}",
-        "${CONTAINER_CACHE}"
+        "${FLUTTER_CONTAINER_CACHE}"
     ) {
         sh """#!/usr/bin/env bash
             set -Eeuo pipefail
@@ -454,7 +471,7 @@ def flutterCleanDeep() {
                 exit 1
             fi
 
-            cd "\$CONTAINER_WORKSPACE"
+            cd "\$FLUTTER_CONTAINER_WORKSPACE"
 
             # ----------------------------------------
             # Ephemeral outputs (same as LIGHT)
@@ -601,12 +618,14 @@ pipeline {
         FLUTTER_IMAGE_PULL  = 'mirkoth/flutter_rust_env:latest'
         FLUTTER_IMAGE       = 'mirkoth/flutter_rust_env:latest'
 
-        // Host mount paths
-        HOST_CACHE          = '/home/mirko/jenkins_host_cache'
-        HOST_WORKSPACE      = '/home/mirko/jenkins_host_workspace'
 
-        // for information only !!
-        HOST_ARTIFACTS      = '/home/mirko/jenkins_host_workspace/artifacts'
+        // Host mount paths
+        JENKINS_HOST_CACHE      = '/home/mirko/jenkins_host_cache'
+        JENKINS_HOST_HOME       = '/home/mirko/jenkins_host_home'
+
+        // Jenkins home path
+        JENKINS_CONTAINER_HOME  = '/var/jenkins_home'
+
 
         // Flutter / Rust toolchains inside container
         FLUTTER_ROOT       = '/opt/flutter'
@@ -657,14 +676,17 @@ pipeline {
                 script {
 
                     // now WORKSPACE exists
-                    env.CONTAINER_WORKSPACE = "${WORKSPACE}/jenkins_container_workspace"
-                    env.CONTAINER_CACHE     = "${WORKSPACE}/jenkins_container_cache"
-                
+
+                    env.FLUTTER_CONTAINER_WORKSPACE     = "${WORKSPACE}"
+                    env.FLUTTER_CONTAINER_CACHE         = "/jenkins_container_cache"
+
+
 
                     // Prepare ENV exports for child processes
                     /*
                         # workspace owned home directory
                         # Ephemeral workspace
+
                         # Persistent caches
                         # Flutter ephemeral build dirs
                         # Rust / Android FFI
@@ -675,37 +697,39 @@ pipeline {
 
                     containerEnv = [
 
-                    "HOME=${env.CONTAINER_WORKSPACE}/.home",
+
+                    "HOME=${env.FLUTTER_CONTAINER_WORKSPACE}/.home",
 
                     "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
                     "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
 
-                    "CONTAINER_WORKSPACE=${env.CONTAINER_WORKSPACE}",
-                    "CONTAINER_CACHE=${env.CONTAINER_CACHE}",
+
+                    "FLUTTER_CONTAINER_WORKSPACE=${env.FLUTTER_CONTAINER_WORKSPACE}",
+                    "FLUTTER_CONTAINER_CACHE=${env.FLUTTER_CONTAINER_CACHE}",
 
 
-                    "FLUTTER_BUILD_DIRS_1=${env.CONTAINER_WORKSPACE}/build",
-                    "FLUTTER_BUILD_DIRS_2=${env.CONTAINER_WORKSPACE}/android/build",
-                    "FLUTTER_BUILD_DIRS_3=${env.CONTAINER_WORKSPACE}/.gradle",
-                    "FLUTTER_BUILD_DIRS_4=${env.CONTAINER_WORKSPACE}/android/.gradle",
+                    "FLUTTER_BUILD_DIRS_1=${env.FLUTTER_CONTAINER_WORKSPACE}/build",
+                    "FLUTTER_BUILD_DIRS_2=${env.FLUTTER_CONTAINER_WORKSPACE}/android/build",
+                    "FLUTTER_BUILD_DIRS_3=${env.FLUTTER_CONTAINER_WORKSPACE}/.gradle",
+                    "FLUTTER_BUILD_DIRS_4=${env.FLUTTER_CONTAINER_WORKSPACE}/android/.gradle",
 
-                    "XDG_CONFIG_HOME=${env.CONTAINER_WORKSPACE}/.home/.config",
-                    "XDG_CACHE_HOME=${env.CONTAINER_CACHE}/.cache",
+                    "XDG_CONFIG_HOME=${env.FLUTTER_CONTAINER_WORKSPACE}/.home/.config",
+                    "XDG_CACHE_HOME=${env.FLUTTER_CONTAINER_CACHE}/.cache",
 
-                    "REPO_CHECKOUT_DIR=${env.CONTAINER_WORKSPACE}/git_checkout",
-                    "REPO_CHECKOUT_RUST_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
-                    "REPO_CHECKOUT_ANDROID_SUBDIR=${env.CONTAINER_WORKSPACE}/git_checkout/android",
-                    "INTEGRATION_TEST_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/run_integration_test.sh",
-                    "PLANTUML_SCRIPT=${env.CONTAINER_WORKSPACE}/git_checkout/scripts/generate_plantuml_pdf.sh",
-                    "SCRIPTS_DIR_CONTAINER=${env.CONTAINER_WORKSPACE}/git_checkout/scripts",
+                    "REPO_CHECKOUT_DIR=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout",
+                    "REPO_CHECKOUT_RUST_SUBDIR=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout/rust/rust_lib",
+                    "REPO_CHECKOUT_ANDROID_SUBDIR=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout/android",
+                    "INTEGRATION_TEST_SCRIPT=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout/scripts/run_integration_test.sh",
+                    "PLANTUML_SCRIPT=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout/scripts/generate_plantuml_pdf.sh",
+                    "SCRIPTS_DIR_CONTAINER=${env.FLUTTER_CONTAINER_WORKSPACE}/git_checkout/scripts",
 
                     "REPO_APK_SUBDIR_REL=${env.REPO_APK_SUBDIR_REL}",
                     "REPO_ABB_SUBDIR_REL=${env.REPO_ABB_SUBDIR_REL}",
 
-                    "CONTAINER_ARTIFACTS=${env.CONTAINER_WORKSPACE}/artifacts",
+                    "FLUTTER_CONTAINER_ARTIFACTS=${env.FLUTTER_CONTAINER_WORKSPACE}/artifacts",
 
 
-                    "ANDROID_JNI_LIBS_DIR=${env.CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
+                    "ANDROID_JNI_LIBS_DIR=${env.FLUTTER_CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
 
                     "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
                     "RUSTUP_HOME=${env.RUSTUP_HOME}",
@@ -724,10 +748,10 @@ pipeline {
                     // This is a problem because the Flutter SDK is read-only in our container, 
                     // so we point it to a writable location inside the container cache.
 
-                    "PUB_CACHE=${env.CONTAINER_CACHE}/.pub-cache",
-                    "GRADLE_USER_HOME=${env.CONTAINER_CACHE}/.gradle",
-                    "FLUTTER_GRADLE_USER_HOME=${env.CONTAINER_CACHE}/flutter-gradle",
-                    "FLUTTER_CACHE_DIR=${env.CONTAINER_CACHE}/flutter",
+                    "PUB_CACHE=${env.FLUTTER_CONTAINER_CACHE}/.pub-cache",
+                    "GRADLE_USER_HOME=${env.FLUTTER_CONTAINER_CACHE}/.gradle",
+                    "FLUTTER_GRADLE_USER_HOME=${env.FLUTTER_CONTAINER_CACHE}/flutter-gradle",
+                    "FLUTTER_CACHE_DIR=${env.FLUTTER_CONTAINER_CACHE}/flutter",
 
 
                     "GRADLE_OPTS=${env.GRADLE_OPTS}",
@@ -750,8 +774,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
@@ -761,10 +784,10 @@ pipeline {
                         cd \${WORKSPACE}
 
                             mkdir -p \
-                                "\$CONTAINER_WORKSPACE" \
-                                "\$CONTAINER_ARTIFACTS" \
-                                "\$CONTAINER_CACHE/.gradle/caches" \
-                                "\$CONTAINER_CACHE/.gradle/wrapper" \
+                                "\$FLUTTER_CONTAINER_WORKSPACE" \
+                                "\$FLUTTER_CONTAINER_ARTIFACTS" \
+                                "\$FLUTTER_CONTAINER_CACHE/.gradle/caches" \
+                                "\$FLUTTER_CONTAINER_CACHE/.gradle/wrapper" \
                                 "\$FLUTTER_CACHE_DIR" \
                                 "\$HOME" \
                                 "\$HOME/.android" \
@@ -780,8 +803,8 @@ pipeline {
 
                             # Optional: verify the directories
                             echo "inside container:"
-                            ls -la "\${CONTAINER_WORKSPACE}" || true
-                            ls -la "\${CONTAINER_CACHE}" || true
+                            ls -la "\${FLUTTER_CONTAINER_WORKSPACE}" || true
+                            ls -la "\${FLUTTER_CONTAINER_CACHE}" || true
                             ls -la "\$HOME/.config" || true
 
                             # Guard against misconfiguration: ensure HOME is not accidentally set to a host path
@@ -795,7 +818,7 @@ pipeline {
                             test -w "\$GRADLE_USER_HOME"
                             test -w "\$FLUTTER_CACHE_DIR"
                             test -w "\$FLUTTER_GRADLE_USER_HOME"
-                            test -w "\$CONTAINER_ARTIFACTS"
+                            test -w "\$FLUTTER_CONTAINER_ARTIFACTS"
 
 
                         """
@@ -810,8 +833,7 @@ pipeline {
                 echo "🧪 Running CI Self-Test (fail-fast)"
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                     sh """#!/usr/bin/env bash
 
@@ -846,8 +868,8 @@ pipeline {
                         require_env HOME
                         require_env FLUTTER_ROOT
                         require_env FLUTTER_CACHE_DIR
-                        require_env CONTAINER_WORKSPACE
-                        require_env CONTAINER_CACHE
+                        require_env FLUTTER_CONTAINER_WORKSPACE
+                        require_env FLUTTER_CONTAINER_CACHE
                         require_env GRADLE_USER_HOME
                         require_env FLUTTER_GRADLE_USER_HOME
                         require_env RUST_CARGO_DIR
@@ -860,10 +882,10 @@ pipeline {
 
 
                         section "Workspace & cache mounts"
-                        check test -d "\${CONTAINER_WORKSPACE}"
-                        check test -w "\${CONTAINER_WORKSPACE}"
-                        check test -d "\${CONTAINER_CACHE}"
-                        check test -w "\${CONTAINER_CACHE}"
+                        check test -d "\${FLUTTER_CONTAINER_WORKSPACE}"
+                        check test -w "\${FLUTTER_CONTAINER_WORKSPACE}"
+                        check test -d "\${FLUTTER_CONTAINER_CACHE}"
+                        check test -w "\${FLUTTER_CONTAINER_CACHE}"
                         echo "✅ Workspace & cache are mounted and writable"
 
                         section "Toolchain availability"
@@ -924,8 +946,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
 
@@ -933,8 +954,8 @@ pipeline {
 
                             cd \${WORKSPACE}
 
-                            echo "Container Cache: \${CONTAINER_CACHE}" && ls -la "\${CONTAINER_CACHE}" || echo "Cache empty"
-                            echo "Container Workspace: \${CONTAINER_WORKSPACE}" && ls -la "\${CONTAINER_WORKSPACE}" || echo "Cache empty"
+                            echo "Container Cache: \${FLUTTER_CONTAINER_CACHE}" && ls -la "\${FLUTTER_CONTAINER_CACHE}" || echo "Cache empty"
+                            echo "Container Workspace: \${FLUTTER_CONTAINER_WORKSPACE}" && ls -la "\${FLUTTER_CONTAINER_WORKSPACE}" || echo "Cache empty"
                         """
                     }
                 }
@@ -947,8 +968,7 @@ pipeline {
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                     sh """#!/usr/bin/env bash
 
@@ -965,7 +985,7 @@ pipeline {
                         ls -la
     
                         echo "== Cache =="
-                        ls -la \${CONTAINER_CACHE} || true
+                        ls -la \${FLUTTER_CONTAINER_CACHE} || true
     
                         echo "== Env =="
                         env | sort
@@ -982,13 +1002,12 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
 
-                            cd \${CONTAINER_WORKSPACE}
+                            cd \${FLUTTER_CONTAINER_WORKSPACE}
 
                             # Clone repo inside container
                             if [ ! -d "${REPO_CHECKOUT_DIR}/.git" ]; then
@@ -1014,8 +1033,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
@@ -1051,23 +1069,20 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) { 
 
                         sh """#!/usr/bin/env bash
                         set -Eeuo pipefail
                         
                         # Ensure we are in the workspace
-                        cd "\${CONTAINER_WORKSPACE}"
+                        cd "\${FLUTTER_CONTAINER_WORKSPACE}"
 
-                        echo "=== Root filesystem ==="
-                        ls -la /
 
                         echo "=== Container workspace ==="
-                        ls -la "\${CONTAINER_WORKSPACE}"
+                        ls -la "\${FLUTTER_CONTAINER_WORKSPACE}"
 
-                        echo "Container workspace: \${CONTAINER_WORKSPACE}"
+                        echo "Container workspace: \${FLUTTER_CONTAINER_WORKSPACE}"
 
                         if [ -d "\${REPO_CHECKOUT_RUST_SUBDIR}/src" ]; then
                             echo "=== Rust src directory ==="
@@ -1090,8 +1105,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         parallel(
                             "Flutter": {
@@ -1128,8 +1142,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         parallel(
                             "Android": {
@@ -1187,8 +1200,7 @@ pipeline {
                 // /var/jenkins_home/workspace/Flutter_Docker_Pipeline/rust/rust_lib: No such file or directory
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         echo "🦀 Building Rust backend for Android (FFI)"
                         sh """#!/usr/bin/env bash
@@ -1226,8 +1238,7 @@ pipeline {
             steps {
                script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
                         
@@ -1360,8 +1371,7 @@ pipeline {
           steps {
             script {
                 insideFlutterContainerJenkinsUser(
-                "${CONTAINER_WORKSPACE}",
-                "${CONTAINER_CACHE}"
+                "${FLUTTER_CONTAINER_CACHE}"
                 ) {
 
                 sh """#!/usr/bin/env bash
@@ -1369,10 +1379,7 @@ pipeline {
 
                     # read-only diagnostics !
 
-                    set -Eeuo pipefail
-
                     cd "\${REPO_CHECKOUT_DIR}"   # Project root containing pubspec.yaml
-
 
                     echo "Flutter environment diagnostics:"
                     flutter --version || true
@@ -1412,8 +1419,7 @@ pipeline {
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
+                    "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         
                         def gradleDebugOn = params.GRADLE_DEBUG as boolean
@@ -1462,7 +1468,7 @@ pipeline {
                                 fi
 
                                 echo "Ensuring Host artifacts directory is writable from INSIDE of the container:"
-                                if touch "\$CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
+                                if touch "\$FLUTTER_CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
                                     echo "PASS: Host artifacts directory is writable!"
                                 else
                                     echo "Write blocked (FAILED)"
@@ -1474,20 +1480,20 @@ pipeline {
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$CONTAINER_ARTIFACTS"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$FLUTTER_CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
                                 # Copy AABs
                                 if compgen -G "\$REPO_ABB_SUBDIR_REL/*.aab" > /dev/null; then
-                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$CONTAINER_ARTIFACTS"/
+                                    cp "\$REPO_ABB_SUBDIR_REL"/*.aab "\$FLUTTER_CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No AABs found in \$REPO_ABB_SUBDIR_REL"
                                 fi
 
-                                 echo "✅ APKs and AABs copied to \$CONTAINER_ARTIFACTS/"
-                                 ls -la "\$CONTAINER_ARTIFACTS"
+                                 echo "✅ APKs and AABs copied to \$FLUTTER_CONTAINER_ARTIFACTS/"
+                                 ls -la "\$FLUTTER_CONTAINER_ARTIFACTS"
 
                             """
                         } else {
@@ -1505,7 +1511,7 @@ pipeline {
                                     --target-platform \$TARGET_PLATFORMS
 
                                 echo "Ensuring Container artifacts directory is writable from INSIDE of the container:"
-                                if touch "\$CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
+                                if touch "\$FLUTTER_CONTAINER_ARTIFACTS/should_pass" 2>/dev/null; then
                                     echo "PASS: Container artifacts directory is writable!"
                                 else
                                     echo "Write blocked (FAILED)"
@@ -1517,13 +1523,13 @@ pipeline {
                                 cd \${REPO_CHECKOUT_DIR}
 
                                 if compgen -G "\$REPO_APK_SUBDIR_REL/*.apk" > /dev/null; then
-                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$CONTAINER_ARTIFACTS"/
+                                    cp "\$REPO_APK_SUBDIR_REL"/*.apk "\$FLUTTER_CONTAINER_ARTIFACTS"/
                                 else
                                     echo "⚠️ No APKs found in \$REPO_APK_SUBDIR_REL"
                                 fi
 
-                                echo "✅ APKs and AABs copied to \$CONTAINER_ARTIFACTS/"
-                                ls -la "\$CONTAINER_ARTIFACTS"
+                                echo "✅ APKs and AABs copied to \$FLUTTER_CONTAINER_ARTIFACTS/"
+                                ls -la "\$FLUTTER_CONTAINER_ARTIFACTS"
 
                             """
                         }
@@ -1536,22 +1542,10 @@ pipeline {
         stage('Archive Artifacts') {
             steps {
 
-                     script {
-                        // Make sure ephemeral workspace has a folder
-                        sh """
-                        mkdir -p ${WORKSPACE}/artifacts
-
-                        # Copy all build outputs from container workspace into ephemeral Jenkins workspace
-                        cp -r ${CONTAINER_WORKSPACE}/artifacts/* ${WORKSPACE}/artifacts/ || true
-
-                        echo "Artifacts copied into ephemeral Jenkins workspace:"
-                        ls -la ${WORKSPACE}/artifacts
-                        """
-                    }
-                    
                     archiveArtifacts artifacts: "artifacts/**",
                         fingerprint: true,
                         allowEmptyArchive: false
+
             }
         }
 
@@ -1561,32 +1555,26 @@ pipeline {
         stage('Run Integration Tests') {
             steps {
                 script {                
-                    insideFlutterContainerJenkinsUser(
-                    "${CONTAINER_WORKSPACE}",
-                    "${CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-
-                            cd \${REPO_CHECKOUT_DIR}
-                            
-                            withEnv(["BUILD_MODE=${params.BUILD_MODE}"]) {
-                                sh "\${INTEGRATION_TEST_SCRIPT}"
-                            }
-                            
-                        """
+                    insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
+                        withEnv(["BUILD_MODE=${params.BUILD_MODE}"]) {
+                            sh """
+                                set -Eeuo pipefail
+                                cd "${REPO_CHECKOUT_DIR}"
+                                ${INTEGRATION_TEST_SCRIPT}
+                            """
+                        }
                     }
                 }
             }
         }
+
 
         stage('Generate Diagrams & PDF') {
         
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
-                        "${CONTAINER_WORKSPACE}",
-                        "${CONTAINER_CACHE}"
+                        "${FLUTTER_CONTAINER_CACHE}"
                     ) {
                         sh """#!/usr/bin/env bash
 
