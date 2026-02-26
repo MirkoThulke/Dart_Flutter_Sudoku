@@ -1588,7 +1588,7 @@ pipeline {
 
                         set -Eeuo pipefail
 
-                        cd "${REPO_CHECKOUT_DIR}"
+                        cd \${REPO_CHECKOUT_DIR}
 
 
                         # --------------------------------------------------
@@ -1613,31 +1613,33 @@ pipeline {
                     
                         bundletool version
 
+                        if [ -z "\${REPO_ABB_SUBDIR_REL:-}" ]; then
+                            echo "❌ REPO_ABB_SUBDIR_REL not set"
+                            exit 1
+                        fi
 
-                        : "${REPO_ABB_SUBDIR_REL:?REPO_ABB_SUBDIR_REL not set}"
-
-                        AAB="${REPO_ABB_SUBDIR_REL}/app-release.aab"
+                        AAB="\${REPO_ABB_SUBDIR_REL}/app-release.aab"
 
                         echo "🔎 Checking AAB existence..."
-                        test -f "$AAB"
+                        test -f "\$AAB"
 
                         echo "🔐 Verifying signature..."
-                        jarsigner -verify -verbose -certs -strict "$AAB"
+                        jarsigner -verify -verbose -certs -strict "\$AAB"
 
                         echo "📦 Validating bundle structure..."
-                        bundletool validate --bundle="$AAB"
+                        bundletool validate --bundle="\$AAB"
 
                         echo "📄 Dumping manifest info..."
                         bundletool dump manifest \
-                          --bundle="$AAB" \
+                          --bundle="\$AAB" \
                           --xpath=/manifest/@android:versionCode
 
                         bundletool dump manifest \
-                          --bundle="$AAB" \
+                          --bundle="\$AAB" \
                           --xpath=/manifest/@android:versionName
 
                         echo "✅ AAB validation complete"
-                                                """
+                      """
                     }
                 }
             }
