@@ -329,10 +329,10 @@
 // │  ├── build/                 <- ephemeral Flutter build output
 // │  ├── android/build/         <- ephemeral Android build output
 // │  ├── .gradle/               <- ephemeral Gradle output (job local)
-// │  ├── .home/                 <- container HOME directory (ephemeral)
 // │  └── artifacts/             <- mounted to host artifacts/
 // │
 // │ ${FLUTTER_CONTAINER_CACHE}           <- mounted from host jenkins_host_cache
+// │  ├── .home/                 <- container HOME directory (ephemeral)
 // │  ├── .pub-cache             <- Dart/Flutter cache
 // │  ├── .gradle                <- Gradle cache
 // │  ├── flutter/               <- Flutter engine cache
@@ -697,8 +697,8 @@ pipeline {
 
                     containerEnv = [
 
-
-                    "HOME=${env.FLUTTER_CONTAINER_WORKSPACE}/.home",
+                    // .home should be located inside the container workspace, because some tools (e.g. Gradle) write to it during execution. We cannot point it to a host-mounted directory, because of permission issues. Instead, we create a .home directory inside the container workspace and point HOME to it. This way, tools can write to HOME without permission issues, and we still have separation between ephemeral workspace and persistent caches.
+                    "HOME=${env.FLUTTER_CONTAINER_CACHE}/.home",
 
                     "FLUTTER_DISABLE_ANALYTICS=${env.FLUTTER_DISABLE_ANALYTICS}",
                     "FLUTTER_SKIP_ANALYTICS=${env.FLUTTER_SKIP_ANALYTICS}",
