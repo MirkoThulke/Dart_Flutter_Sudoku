@@ -539,6 +539,12 @@ pipeline {
         booleanParam(name: 'RUN_FAST_STATIC', defaultValue: false, description: 'Run static code analysis for Flutter, Android, and Rust')
         booleanParam(name: 'RUN_HEAVY_STATIC', defaultValue: false, description: 'Run heavy static analysis for Android and Rust')
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
+        booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: false, description: 'Run integration tests')
+
+        booleanParam(name: 'RUN_MATERILIZATION_STAGE', defaultValue: true, description: 'Run materialization stage')
+        booleanParam(name: 'RUN_PLANTUML_DOCU_BUILD', defaultValue: false, description: 'Run PlantUML documentation build')
+        booleanParam(name: 'RUN_ABB_RELEASE_TEST', defaultValue: false, description: 'Run ABB artefact release test')
+
 
         choice(
         name: 'BUILD_MODE',
@@ -1235,6 +1241,7 @@ pipeline {
 
 
         stage('Flutter → Android Materialization') {
+            when { expression { params.RUN_MATERILIZATION_STAGE}}
             steps {
                script {
                     insideFlutterContainerJenkinsUser(
@@ -1553,6 +1560,7 @@ pipeline {
         // Phase 7 – Validation & extras
 
         stage('Run Integration Tests') {
+            when { expression { params.RUN_INTEGRATION_TESTS == true } }
             steps {
                 script {                
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
@@ -1569,8 +1577,75 @@ pipeline {
         }
 
 
+
+
+        stage('Validate Release AAB') {
+            when { expression { params.RUN_ABB_RELEASE_TEST == true } }
+            steps {
+                script {
+                    insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
+                        sh """#!/usr/bin/env bash
+
+                        set -Eeuo pipefail
+
+                        cd "${REPO_CHECKOUT_DIR}"
+
+
+                        # --------------------------------------------------
+                        # Install bundletool locally (if not already there)
+                        # --------------------------------------------------
+                        if ! command -v bundletool >/dev/null 2>&1; then
+                            echo "📥 Installing bundletool locally..."
+                    
+                            BUNDLETOOL_VERSION=1.15.6
+                            BUNDLE_DIR="\${FLUTTER_CONTAINER_CACHE}/tools"
+                            mkdir -p "\$BUNDLE_DIR"
+                    
+                            curl -L -o "\$BUNDLE_DIR/bundletool.jar" \
+                              "https://github.com/google/bundletool/releases/download/\${BUNDLETOOL_VERSION}/bundletool-all-\${BUNDLETOOL_VERSION}.jar"
+                    
+                            echo '#!/usr/bin/env bash' > "\$BUNDLE_DIR/bundletool"
+                            echo 'java -jar "'"\$BUNDLE_DIR"'/bundletool.jar" "\$@"' >> "\$BUNDLE_DIR/bundletool"
+                            chmod +x "\$BUNDLE_DIR/bundletool"
+                    
+                            export PATH="\$BUNDLE_DIR:\$PATH"
+                        fi
+                    
+                        bundletool version
+
+
+                        : "${REPO_ABB_SUBDIR_REL:?REPO_ABB_SUBDIR_REL not set}"
+
+                        AAB="${REPO_ABB_SUBDIR_REL}/app-release.aab"
+
+                        echo "🔎 Checking AAB existence..."
+                        test -f "$AAB"
+
+                        echo "🔐 Verifying signature..."
+                        jarsigner -verify -verbose -certs -strict "$AAB"
+
+                        echo "📦 Validating bundle structure..."
+                        bundletool validate --bundle="$AAB"
+
+                        echo "📄 Dumping manifest info..."
+                        bundletool dump manifest \
+                          --bundle="$AAB" \
+                          --xpath=/manifest/@android:versionCode
+
+                        bundletool dump manifest \
+                          --bundle="$AAB" \
+                          --xpath=/manifest/@android:versionName
+
+                        echo "✅ AAB validation complete"
+                                                """
+                    }
+                }
+            }
+        }
+
+
         stage('Generate Diagrams & PDF') {
-        
+            when { expression { params.RUN_PLANTUML_DOCU_BUILD == true } }
             steps {
                 script {
                     insideFlutterContainerJenkinsUser(
@@ -1590,6 +1665,8 @@ pipeline {
                 }
             }
         }
+
+
     }
 
     post {
