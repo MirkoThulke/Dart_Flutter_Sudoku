@@ -1631,7 +1631,7 @@ pipeline {
                         
                         echo '#!/usr/bin/env bash' > "\$BUNDLE_DIR/bundletool"
                         
-                        echo 'java -jar "'"\\$BUNDLE_DIR"'/bundletool.jar" "\\$@"' >> "\\$BUNDLE_DIR/bundletool"
+                        # echo 'java -jar "'"\$BUNDLE_DIR"'/bundletool.jar" "\$@"' >> "\$BUNDLE_DIR/bundletool"
                         
                         chmod +x "\$BUNDLE_DIR/bundletool"
                 
