@@ -1585,7 +1585,6 @@ pipeline {
 
 
 
-
         stage('Validate Release AAB') {
             when { expression { params.RUN_ABB_RELEASE_TEST == true } }
             steps {
@@ -1594,137 +1593,71 @@ pipeline {
                         sh """#!/usr/bin/env bash
                         
                         set -Eeuo pipefail
-                        
-                        set -x  # debug output
-                
-                
+                        set -x
+
                         cd "\${REPO_CHECKOUT_DIR}"
-                
-                
+
                         # --------------------------------------------------
-                        
-                        # Install bundletool locally (cached in FLUTTER_CONTAINER_CACHE)
-                        
+                        # Ensure AAB path variable exists
                         # --------------------------------------------------
-                        
-                        BUNDLETOOL_VERSION=1.15.6
-                        
-                        BUNDLE_DIR="\${FLUTTER_CONTAINER_CACHE}/tools"
-                        
-                        mkdir -p "\$BUNDLE_DIR"
-                
-                
-                        
-                        if [ ! -f "\$BUNDLE_DIR/bundletool.jar" ]; then
-                        
-                            echo "📥 Installing bundletool..."
-                        
-                            curl -L -o "\$BUNDLE_DIR/bundletool.jar" \\
-                        
-                                "https://github.com/google/bundletool/releases/download/\${BUNDLETOOL_VERSION}/bundletool-all-\${BUNDLETOOL_VERSION}.jar"
-                        
-                        fi
-                
-                
-                        
-                        # Wrapper script
-                        
-                        echo '#!/usr/bin/env bash' > "\$BUNDLE_DIR/bundletool"
-                        
-                        # echo 'java -jar "'"\$BUNDLE_DIR"'/bundletool.jar" "\$@"' >> "\$BUNDLE_DIR/bundletool"
-                        
-                        chmod +x "\$BUNDLE_DIR/bundletool"
-                
-                
-                        
-                        export PATH="\$BUNDLE_DIR:\$PATH"
-                        
-                        bundletool version
-                
-                
-                        
-                        # --------------------------------------------------
-                        
-                        # Validate environment variable
-                        
-                        # --------------------------------------------------
-                        
+
                         if [ -z "\${REPO_ABB_SUBDIR_REL:-}" ]; then
-                        
-                            echo "❌ REPO_ABB_SUBDIR_REL not set"
-                        
-                            exit 1
-                        
+                          echo "❌ REPO_ABB_SUBDIR_REL not set"
+                          exit 1
                         fi
-                
-                
-                        
+
                         AAB="\${REPO_ABB_SUBDIR_REL}/app-release.aab"
-                
-                
-                        
-                        # --------------------------------------------------
-                        
-                        # 1️⃣ Check AAB exists
-                        
-                        # --------------------------------------------------
-                        
+
                         echo "🔎 Checking AAB existence..."
-                        
                         test -f "\$AAB"
-                
-                
-                        
+
                         # --------------------------------------------------
-                        
-                        # 2️⃣ Verify signature
-                        
+                        # Install bundletool (cached)
                         # --------------------------------------------------
-                        
-                        echo "🔐 Verifying signature..."
-                        
-                        # Use apksigner if available, else fallback to jarsigner
-                        
-                        if command -v apksigner >/dev/null 2>&1; then
-                        
-                            apksigner verify --verbose "\$AAB"
-                        
-                        else
-                        
-                            jarsigner -verify -verbose -certs -strict "\$AAB"
-                        
+
+                        BUNDLETOOL_VERSION=1.15.6
+                        BUNDLE_DIR="\${FLUTTER_CONTAINER_CACHE}/tools"
+                        mkdir -p "\$BUNDLE_DIR"
+
+                        if [ ! -f "\$BUNDLE_DIR/bundletool.jar" ]; then
+                          echo "📥 Downloading bundletool \${BUNDLETOOL_VERSION}..."
+                          curl -L -o "\$BUNDLE_DIR/bundletool.jar" \
+                            "https://github.com/google/bundletool/releases/download/\${BUNDLETOOL_VERSION}/bundletool-all-\${BUNDLETOOL_VERSION}.jar"
                         fi
-                
-                
-                        
+
                         # --------------------------------------------------
-                        
-                        # 3️⃣ Validate bundle structure
-                        
+                        # Verify signature
                         # --------------------------------------------------
-                        
+
+                        echo "🔐 Verifying AAB signature..."
+
+                        if command -v apksigner >/dev/null 2>&1; then
+                          apksigner verify --verbose "\$AAB"
+                        else
+                          jarsigner -verify -verbose -certs -strict "\$AAB"
+                        fi
+
+                        # --------------------------------------------------
+                        # Validate bundle structure
+                        # --------------------------------------------------
+
                         echo "📦 Validating bundle structure..."
-                        
-                        bundletool validate --bundle="\$AAB"
-                
-                
-                        
+                        java -jar "\$BUNDLE_DIR/bundletool.jar" validate --bundle="\$AAB"
+
                         # --------------------------------------------------
-                        
-                        # 4️⃣ Dump manifest info
-                        
+                        # Dump version info (Play Store critical check)
                         # --------------------------------------------------
-                        
-                        echo "📄 Manifest info:"
-                        
-                        bundletool dump manifest --bundle="\$AAB" --xpath=/manifest/@android:versionCode
-                        
-                        bundletool dump manifest --bundle="\$AAB" --xpath=/manifest/@android:versionName
-                
-                
-                        
-                        echo "✅ AAB validation complete"
-                        
+
+                        echo "📄 Manifest version info:"
+                        java -jar "\$BUNDLE_DIR/bundletool.jar" dump manifest \
+                          --bundle="\$AAB" \
+                          --xpath=/manifest/@android:versionCode
+
+                        java -jar "\$BUNDLE_DIR/bundletool.jar" dump manifest \
+                          --bundle="\$AAB" \
+                          --xpath=/manifest/@android:versionName
+
+                        echo "✅ AAB validation successful"
                         """
                     }
                 }
