@@ -1025,6 +1025,13 @@ pipeline {
                                 git reset --hard ${GIT_BRANCH}
                             fi
 
+                            # Ensure Gradle wrapper is executable
+                            cd "\${REPO_CHECKOUT_ANDROID_SUBDIR}"
+                            chmod +x gradlew
+                            ./gradlew -v || true
+
+                            cd \${FLUTTER_CONTAINER_WORKSPACE}
+
                             # Verify files
                             ls -la "${REPO_CHECKOUT_DIR}"
                             ls -la "${REPO_CHECKOUT_RUST_SUBDIR}/src"
