@@ -536,10 +536,10 @@ pipeline {
 
     parameters {
         booleanParam(name: 'GRADLE_DEBUG', defaultValue: false, description: 'GRADLE_DEBUG for debugging Gradle issues')
-        booleanParam(name: 'RUN_FAST_STATIC', defaultValue: false, description: 'Run static code analysis for Flutter, Android, and Rust')
-        booleanParam(name: 'RUN_HEAVY_STATIC', defaultValue: false, description: 'Run heavy static analysis for Android and Rust')
+        booleanParam(name: 'RUN_FAST_STATIC', defaultValue: false, description: '[inWork] Run static code analysis for Flutter, Android, and Rust')
+        booleanParam(name: 'RUN_HEAVY_STATIC', defaultValue: false, description: '[inWork] Run heavy static analysis for Android and Rust')
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
-        booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: false, description: 'Run integration tests')
+        booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: false, description: '[inWork] Run integration tests')
 
         booleanParam(name: 'RUN_MATERILIZATION_STAGE', defaultValue: true, description: 'Run materialization stage')
         booleanParam(name: 'RUN_PLANTUML_DOCU_BUILD', defaultValue: false, description: 'Run PlantUML documentation build')
@@ -1592,61 +1592,140 @@ pipeline {
                 script {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
                         sh """#!/usr/bin/env bash
-
+                        
                         set -Eeuo pipefail
-
-                        cd \${REPO_CHECKOUT_DIR}
-
-
+                        
+                        set -x  # debug output
+                
+                
+                        cd "\${REPO_CHECKOUT_DIR}"
+                
+                
                         # --------------------------------------------------
-                        # Install bundletool locally (if not already there)
+                        
+                        # Install bundletool locally (cached in FLUTTER_CONTAINER_CACHE)
+                        
                         # --------------------------------------------------
-                        if ! command -v bundletool >/dev/null 2>&1; then
-                            echo "📥 Installing bundletool locally..."
-                    
-                            BUNDLETOOL_VERSION=1.15.6
-                            BUNDLE_DIR="\${FLUTTER_CONTAINER_CACHE}/tools"
-                            mkdir -p "\$BUNDLE_DIR"
-                    
-                            curl -L -o "\$BUNDLE_DIR/bundletool.jar" \
-                              "https://github.com/google/bundletool/releases/download/\${BUNDLETOOL_VERSION}/bundletool-all-\${BUNDLETOOL_VERSION}.jar"
-                    
-                            echo '#!/usr/bin/env bash' > "\$BUNDLE_DIR/bundletool"
-                            echo 'java -jar "'"\$BUNDLE_DIR"'/bundletool.jar" "\$@"' >> "\$BUNDLE_DIR/bundletool"
-                            chmod +x "\$BUNDLE_DIR/bundletool"
-                    
-                            export PATH="\$BUNDLE_DIR:\$PATH"
+                        
+                        BUNDLETOOL_VERSION=1.15.6
+                        
+                        BUNDLE_DIR="\${FLUTTER_CONTAINER_CACHE}/tools"
+                        
+                        mkdir -p "\$BUNDLE_DIR"
+                
+                
+                        
+                        if [ ! -f "\$BUNDLE_DIR/bundletool.jar" ]; then
+                        
+                            echo "📥 Installing bundletool..."
+                        
+                            curl -L -o "\$BUNDLE_DIR/bundletool.jar" \\
+                        
+                                "https://github.com/google/bundletool/releases/download/\${BUNDLETOOL_VERSION}/bundletool-all-\${BUNDLETOOL_VERSION}.jar"
+                        
                         fi
-                    
+                
+                
+                        
+                        # Wrapper script
+                        
+                        echo '#!/usr/bin/env bash' > "\$BUNDLE_DIR/bundletool"
+                        
+                        echo 'java -jar "'"$BUNDLE_DIR"'/bundletool.jar" "$@"' >> "\$BUNDLE_DIR/bundletool"
+                        
+                        chmod +x "\$BUNDLE_DIR/bundletool"
+                
+                
+                        
+                        export PATH="\$BUNDLE_DIR:\$PATH"
+                        
                         bundletool version
-
+                
+                
+                        
+                        # --------------------------------------------------
+                        
+                        # Validate environment variable
+                        
+                        # --------------------------------------------------
+                        
                         if [ -z "\${REPO_ABB_SUBDIR_REL:-}" ]; then
+                        
                             echo "❌ REPO_ABB_SUBDIR_REL not set"
+                        
                             exit 1
+                        
                         fi
-
+                
+                
+                        
                         AAB="\${REPO_ABB_SUBDIR_REL}/app-release.aab"
-
+                
+                
+                        
+                        # --------------------------------------------------
+                        
+                        # 1️⃣ Check AAB exists
+                        
+                        # --------------------------------------------------
+                        
                         echo "🔎 Checking AAB existence..."
+                        
                         test -f "\$AAB"
-
+                
+                
+                        
+                        # --------------------------------------------------
+                        
+                        # 2️⃣ Verify signature
+                        
+                        # --------------------------------------------------
+                        
                         echo "🔐 Verifying signature..."
-                        jarsigner -verify -verbose -certs -strict "\$AAB"
-
+                        
+                        # Use apksigner if available, else fallback to jarsigner
+                        
+                        if command -v apksigner >/dev/null 2>&1; then
+                        
+                            apksigner verify --verbose "\$AAB"
+                        
+                        else
+                        
+                            jarsigner -verify -verbose -certs -strict "\$AAB"
+                        
+                        fi
+                
+                
+                        
+                        # --------------------------------------------------
+                        
+                        # 3️⃣ Validate bundle structure
+                        
+                        # --------------------------------------------------
+                        
                         echo "📦 Validating bundle structure..."
+                        
                         bundletool validate --bundle="\$AAB"
-
-                        echo "📄 Dumping manifest info..."
-                        bundletool dump manifest \
-                          --bundle="\$AAB" \
-                          --xpath=/manifest/@android:versionCode
-
-                        bundletool dump manifest \
-                          --bundle="\$AAB" \
-                          --xpath=/manifest/@android:versionName
-
+                
+                
+                        
+                        # --------------------------------------------------
+                        
+                        # 4️⃣ Dump manifest info
+                        
+                        # --------------------------------------------------
+                        
+                        echo "📄 Manifest info:"
+                        
+                        bundletool dump manifest --bundle="\$AAB" --xpath=/manifest/@android:versionCode
+                        
+                        bundletool dump manifest --bundle="\$AAB" --xpath=/manifest/@android:versionName
+                
+                
+                        
                         echo "✅ AAB validation complete"
-                      """
+                        
+                        """
                     }
                 }
             }
