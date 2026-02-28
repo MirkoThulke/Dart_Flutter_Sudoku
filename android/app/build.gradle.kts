@@ -51,7 +51,7 @@ android {
             keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
             keyPassword = System.getenv("KEY_PASSWORD") ?: ""
             storeFile = file(System.getenv("KEYSTORE_FILE"))
-            storePassword = System.getenv("STORE_PASSWORD") ?: ""
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
         }
     }
 

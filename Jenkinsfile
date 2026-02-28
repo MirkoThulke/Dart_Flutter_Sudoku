@@ -1453,12 +1453,12 @@ pipeline {
         stage('Inject Android Signing') {
             when { expression { params.BUILD_MODE == 'release' } }
             steps {
-                withCredentials([
-                    file(credentialsId: 'android-upload-keystore', variable: 'KEYSTORE_FILE'),
-                    string(credentialsId: 'android-store-password', variable: 'STORE_PASSWORD'),
-                    string(credentialsId: 'android-key-password', variable: 'KEY_PASSWORD'),
-                    string(credentialsId: 'android-key-alias', variable: 'KEY_ALIAS')
-                ]) {
+                    withCredentials([
+                        file(credentialsId: 'KEYSTORE_FILE', variable: 'KEYSTORE_FILE'),
+                        string(credentialsId: 'KEYSTORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
+                        string(credentialsId: 'KEY_PASSWORD', variable: 'KEY_PASSWORD'),
+                        string(credentialsId: 'KEY_ALIAS', variable: 'KEY_ALIAS')
+                    ]) { {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
@@ -1473,7 +1473,7 @@ pipeline {
 
                             # Create key.properties
                             cat > key.properties <<EOF
-                            storePassword=$STORE_PASSWORD
+                            storePassword=$KEYSTORE_PASSWORD
                             keyPassword=$KEY_PASSWORD
                             keyAlias=$KEY_ALIAS
                             storeFile=keystore/upload-keystore.jks
