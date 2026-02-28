@@ -1458,7 +1458,7 @@ pipeline {
                         string(credentialsId: 'KEYSTORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
                         string(credentialsId: 'KEY_PASSWORD', variable: 'KEY_PASSWORD'),
                         string(credentialsId: 'KEY_ALIAS', variable: 'KEY_ALIAS')
-                    ]) { {
+                    ]) {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
