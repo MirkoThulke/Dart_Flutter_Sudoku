@@ -48,10 +48,10 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
-            storeFile = file(System.getenv("KEYSTORE_FILE"))
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
         }
     }
 
