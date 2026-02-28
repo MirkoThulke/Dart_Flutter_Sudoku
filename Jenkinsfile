@@ -1634,8 +1634,10 @@ pipeline {
                         if command -v apksigner >/dev/null 2>&1; then
                           apksigner verify --verbose "\$AAB"
                         else
-                          jarsigner -verify -verbose -certs -strict "\$AAB"
+                            jarsigner -verify -verbose -certs -strict "\$AAB" | tee verify.txt
+                            grep -q "jar verified" verify.txt || { echo "❌ AAB NOT SIGNED"; exit 1; }
                         fi
+
 
                         # --------------------------------------------------
                         # Validate bundle structure
