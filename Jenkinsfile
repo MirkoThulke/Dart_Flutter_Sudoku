@@ -564,15 +564,15 @@ pipeline {
         booleanParam(name: 'DEEP_CLEAN', defaultValue: false, description: 'DEEP CLEAN for release / deployement')
         booleanParam(name: 'RUN_INTEGRATION_TESTS', defaultValue: false, description: '[inWork] Run integration tests')
 
-        booleanParam(name: 'RUN_MATERILIZATION_STAGE', defaultValue: true, description: 'Run materialization stage')
+        booleanParam(name: 'RUN_MATERILIZATION_STAGE', defaultValue: false, description: 'Run materialization stage')
         booleanParam(name: 'RUN_PLANTUML_DOCU_BUILD', defaultValue: false, description: 'Run PlantUML documentation build')
-        booleanParam(name: 'RUN_ABB_RELEASE_TEST', defaultValue: false, description: 'Run ABB artefact release test')
+        booleanParam(name: 'RUN_ABB_RELEASE_TEST', defaultValue: true, description: 'Run ABB artefact release test')
 
 
         choice(
-        name: 'BUILD_MODE',
-        choices: ['debug', 'release'],
-        description: 'Choose build mode'
+            name: 'BUILD_MODE',
+            choices: ['release', 'debug'],
+            description: 'Choose build mode'
         )
 
     }
