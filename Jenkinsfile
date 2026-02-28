@@ -350,6 +350,29 @@
 //  3) NEVER store caches under ephemeral workspace
 //  4) Source code is bind-mounted into build container → reproducible, isolated builds
 //  5) Toolchains are read-only inside container
+//  
+//  
+//  ------------------------------------------------------------
+// 🔐 Store Secrets in Jenkins
+//     Go to:
+//     Manage Jenkins → Credentials → Global
+// 
+//     Create:
+// 
+//     1️⃣ Secret File
+//     Kind: Secret file
+//     ID: android-upload-keystore
+//     Upload your upload-keystore.jks
+// 
+//     2️⃣ Secret Text (3 entries)
+//     Create three Secret Text credentials:
+//     ID	Value
+//     android-store-password	your keystore password
+//     android-key-password	your key password
+//     android-key-alias	upload
+//  ------------------------------------------------------------
+
+
 
 
 import groovy.transform.Field
@@ -1427,6 +1450,43 @@ pipeline {
         }
 
 
+        stage('Inject Android Signing') {
+            when { expression { params.BUILD_MODE == 'release' } }
+            steps {
+                withCredentials([
+                    file(credentialsId: 'android-upload-keystore', variable: 'KEYSTORE_FILE'),
+                    string(credentialsId: 'android-store-password', variable: 'STORE_PASSWORD'),
+                    string(credentialsId: 'android-key-password', variable: 'KEY_PASSWORD'),
+                    string(credentialsId: 'android-key-alias', variable: 'KEY_ALIAS')
+                ]) {
+                    insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
+                        sh """#!/usr/bin/env bash
+                            set -Eeuo pipefail
+
+                            cd "${REPO_CHECKOUT_DIR}/android"
+
+                            echo "🔐 Injecting Android signing config..."
+
+                            # Create keystore directory
+                            mkdir -p keystore
+                            cp "$KEYSTORE_FILE" keystore/upload-keystore.jks
+
+                            # Create key.properties
+                            cat > key.properties <<EOF
+                            storePassword=$STORE_PASSWORD
+                            keyPassword=$KEY_PASSWORD
+                            keyAlias=$KEY_ALIAS
+                            storeFile=keystore/upload-keystore.jks
+                            EOF
+
+                            echo "✅ key.properties generated securely"
+                        """
+                    }
+                }
+            }
+        }
+
+
         // Phase 6 – Final artifacts
 
         stage('Build APK/AAB') {
@@ -1586,7 +1646,10 @@ pipeline {
 
 
         stage('Validate Release AAB') {
-            when { expression { params.RUN_ABB_RELEASE_TEST == true } }
+            allOf {
+                expression { params.RUN_ABB_RELEASE_TEST == true }
+                expression { params.BUILD_MODE == 'release' }
+            }
             steps {
                 script {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
@@ -1694,8 +1757,10 @@ pipeline {
 
     post {
         always {
-            // No Docker involved. No ambiguity.
-            echo "🧹 Cleaning workspace regardless of build result"
+            echo "🧹 Cleaning workspace"
+    
+            sh 'rm -f android/key.properties || true'
+    
             cleanWs(deleteDirs: true, disableDeferredWipeout: true)
         }
         success { echo "✅ Build succeeded" }

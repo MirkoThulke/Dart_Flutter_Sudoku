@@ -34,16 +34,22 @@ class FeedbackHelper {
   static Future<void> sendFeedback(BuildContext context) async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: 'info_net@gmx.com', // <-- replace with your email
-      query: 'subject=App Feedback&body=Describe your feedback here...',
+      path: 'info_net@gmx.com',
+      queryParameters: {
+        'subject': 'App Feedback',
+        'body': 'Describe your feedback here...',
+      },
     );
 
     if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
+      await launchUrl(
+        emailUri,
+        mode: LaunchMode.externalApplication,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: const Text('Could not open the email app.'),
+          content: Text('Could not open the email app.'),
         ),
       );
     }
