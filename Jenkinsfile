@@ -1463,7 +1463,7 @@ pipeline {
                         sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
 
-                            cd "${REPO_CHECKOUT_DIR}/android"
+                            cd "${REPO_CHECKOUT_DIR}/android/app"
 
                             echo "🔐 Injecting Android signing config..."
 
