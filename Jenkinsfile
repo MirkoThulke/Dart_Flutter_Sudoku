@@ -1460,27 +1460,26 @@ pipeline {
                         string(credentialsId: 'KEY_ALIAS', variable: 'KEY_ALIAS')
                     ]) {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
-                        sh """#!/usr/bin/env bash
-                            set -Eeuo pipefail
-
-                            cd "${REPO_CHECKOUT_DIR}/android/app"
-
-                            echo "🔐 Injecting Android signing config..."
-
-                            # Create keystore directory
-                            mkdir -p keystore
-                            cp "$KEYSTORE_FILE" keystore/upload-keystore.jks
-
-                            # Create key.properties
-                            cat > key.properties <<EOF
-                            storePassword=$KEYSTORE_PASSWORD
-                            keyPassword=$KEY_PASSWORD
-                            keyAlias=$KEY_ALIAS
-                            storeFile=keystore/upload-keystore.jks
-                            EOF
-
-                            echo "✅ key.properties generated securely"
-                        """
+                        sh '''
+                        #!/usr/bin/env bash
+                        set -Eeuo pipefail
+                        
+                        cd "${REPO_CHECKOUT_DIR}/android/app"
+                        
+                        echo "🔐 Injecting Android signing config..."
+                        
+                        mkdir -p keystore
+                        cp "$KEYSTORE_FILE" keystore/upload-keystore.jks
+                        
+                        cat > key.properties <<EOF
+                        storePassword=$STORE_PASSWORD
+                        keyPassword=$KEY_PASSWORD
+                        keyAlias=$KEY_ALIAS
+                        storeFile=keystore/upload-keystore.jks
+                        EOF
+                        
+                        echo "✅ key.properties generated securely"
+                        '''
                     }
                 }
             }
