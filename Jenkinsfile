@@ -361,15 +361,15 @@
 // 
 //     1️⃣ Secret File
 //     Kind: Secret file
-//     ID: android-upload-keystore
-//     Upload your upload-keystore.jks
+//      ID: KEYSTORE_FILE    Upload your upload-keystore.jks
 // 
 //     2️⃣ Secret Text (3 entries)
 //     Create three Secret Text credentials:
-//     ID	Value
-//     android-store-password	your keystore password
-//     android-key-password	your key password
-//     android-key-alias	upload
+//      ID	Value
+//      KEYSTORE_PASSWORD	your keystore password
+//      KEY_PASSWORD	    your key password
+//      KEY_ALIAS	        upload
+
 //  ------------------------------------------------------------
 
 
