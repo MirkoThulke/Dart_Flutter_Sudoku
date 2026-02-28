@@ -1646,9 +1646,11 @@ pipeline {
 
 
         stage('Validate Release AAB') {
-            allOf {
-                expression { params.RUN_ABB_RELEASE_TEST == true }
-                expression { params.BUILD_MODE == 'release' }
+            when {
+                allOf {
+                    expression { params.RUN_ABB_RELEASE_TEST == true }
+                    expression { params.BUILD_MODE == 'release' }
+                }
             }
             steps {
                 script {
