@@ -1463,7 +1463,7 @@ pipeline {
                         sh '''
                         set -eu
 
-                        cd "${REPO_CHECKOUT_DIR}/android/app"
+                        cd "${REPO_CHECKOUT_DIR}/android"
 
                         echo "🔐 Injecting Android signing config..."
 
