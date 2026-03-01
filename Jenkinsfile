@@ -1461,23 +1461,23 @@ pipeline {
                     ]) {
                     insideFlutterContainerJenkinsUser("${FLUTTER_CONTAINER_CACHE}") {
                         sh '''
-                        set -eu
-
-                        cd "${REPO_CHECKOUT_DIR}/android"
-
-                        echo "🔐 Injecting Android signing config..."
-
-                        mkdir -p keystore
-                        cp "$KEYSTORE_FILE" keystore/upload-keystore.jks
-
-                        cat > key.properties <<EOF
-                        storePassword=$KEYSTORE_PASSWORD
-                        keyPassword=$KEY_PASSWORD
-                        keyAlias=$KEY_ALIAS
-                        storeFile=keystore/upload-keystore.jks
-                        EOF
-
-                        echo "✅ key.properties generated securely"
+                            set -eu
+                            
+                            cd "${REPO_CHECKOUT_DIR}/android"
+                            
+                            echo "🔐 Injecting Android signing config..."
+                            
+                            mkdir -p app/keystore
+                            cp "$KEYSTORE_FILE" app/keystore/upload-keystore.jks
+                            
+                            cat > key.properties <<EOF
+                            storePassword=$KEYSTORE_PASSWORD
+                            keyPassword=$KEY_PASSWORD
+                            keyAlias=$KEY_ALIAS
+                            storeFile=app/keystore/upload-keystore.jks
+                            EOF
+                            
+                            echo "✅ key.properties generated securely"
                         '''
                     }
                 }
