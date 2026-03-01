@@ -1694,7 +1694,7 @@ pipeline {
                         echo "🔐 Verifying AAB signature..."
 
                         if command -v apksigner >/dev/null 2>&1; then
-                          apksigner verify --print-certs "$AAB"
+                          apksigner verify --print-certs "\$AAB"
                         else
                           echo "⚠️ apksigner not found, skipping signature verification"
                         fi
