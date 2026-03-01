@@ -15,15 +15,14 @@ Sudoku training app as a study project to gain skills in Android App development
 - README.md	Entry point (first impression)
 
 - GitHub Wiki	Detailed knowledge base
--- Home
---- System Overview
---- Toolchain Overview
---- Docker Architecture
---- Jenkins Pipeline
---- Android Build System
---- Release Process
---- Secrets & Signing
---- Troubleshooting
---- Architecture Decisions
---- PlantUML	Visual architecture & process explanation
--- PlantUml Architecture
+    - Home
+        - System Overview
+        - Toolchain Overview
+        - Docker Architecture
+        - Jenkins Pipeline
+        - Android Build System
+        - Release Process
+        - Secrets & Signing
+        - Troubleshooting
+        - Architecture Decisions
+    - PlantUML	Visual architecture & process explanation
