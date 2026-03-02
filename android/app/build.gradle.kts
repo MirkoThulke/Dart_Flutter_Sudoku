@@ -42,8 +42,10 @@ android {
         // Align version with dockerfile internal version !!!
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.1"
+
+        // Versionname and VersionCode is increment in pubspec.yaml
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
     }
 
     signingConfigs {
