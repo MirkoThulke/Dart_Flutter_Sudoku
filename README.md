@@ -6,10 +6,11 @@
 -- A docker container to coordinate the build via jenkins
 -- A second container to provide a clean and reproducable flutter build environment
 
-# App usecase : 
+# The app : 
 Sudoku training app as a study project to gain skills in Android App development tools with RUST backend.
 
-- Add Link to overview slide
+# Workflow : 
+![Flutter in Docker](docs/pictures/flutter-in-docker-2026-v02.png)
 
 # Project documentation : 
 - README.md	Entry point (first impression)
