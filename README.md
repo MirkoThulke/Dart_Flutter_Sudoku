@@ -10,7 +10,7 @@
 Sudoku training app as a study project to gain skills in Android App development tools with RUST backend.
 
 # Workflow : 
-![Flutter in Docker](docs/pictures/flutter-in-docker-2026-v02.png)
+![Flutter in Docker](doc/pictures/flutter-in-docker-2026-v02.png)
 
 # Project documentation : 
 - README.md	Entry point (first impression)
