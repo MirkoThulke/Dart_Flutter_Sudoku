@@ -1,4 +1,7 @@
 @startuml
+
+skinparam defaultFontName "DejaVu Sans"
+
 |Shell Script|
 start
 :Print "🧹 Cleaning Flutter & Gradle caches...";

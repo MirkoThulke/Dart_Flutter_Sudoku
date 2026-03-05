@@ -1,104 +1,76 @@
 @startuml
-|Build Script|
 
-note as DescriptionBlock
+start
+
+note
 
 AGP Version (Android Gradle Plugin) :
 Full name: Android Gradle Plugin
 What it is: A Gradle plugin developed by Google that allows Gradle to understand and build Android apps.
 Where it’s used: Declared in build.gradle (project-level or module-level) as:
 id 'com.android.application' version '8.9.0'
+
 Why it matters:
-Controls the Android-specific build logic (like generating APKs/AABs, resource merging, signing, etc.)
+Controls the Android-specific build logic (generating APKs/AABs, resource merging, signing)
 Must be compatible with Gradle version and Kotlin plugin version
 
 Gradle Version :
-What it is: The core build tool for Java, Kotlin, and Android.
-Where it’s used: Globally, or via the Gradle wrapper in your project.
-Why it matters:
-AGP requires a minimum Gradle version
-Too old → build fails
-Too new → might not be compatible with AGP
-Example: 8.2 (compatible with AGP 8.9)
+Core build tool for Java, Kotlin, and Android.
 
 Gradle Wrapper Version :
-What it is: A project-specific Gradle binary that ensures everyone building the project uses the same Gradle version.
-File: android/gradle/wrapper/gradle-wrapper.properties
-distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-all.zip
-Why it matters:
-Guarantees reproducible builds regardless of the Gradle installed on your machine
-Matches the AGP requirements
-
+Ensures everyone builds the project using the same Gradle version.
+android/gradle/wrapper/gradle-wrapper.properties
 
 Plugin Tools Version :
-Meaning: Versions of Gradle plugins your project uses, e.g.:
-com.android.application → AGP plugin
-org.jetbrains.kotlin.android → Kotlin plugin
-dev.flutter.flutter-gradle-plugin → Flutter plugin for Android
-Why it matters:
-Plugins interact with Gradle and Android SDK
-Versions must be compatible with Gradle and AGP
+Examples:
+com.android.application
+org.jetbrains.kotlin.android
+dev.flutter.flutter-gradle-plugin
 
 Kotlin Version :
-What it is: Version of Kotlin used to compile Kotlin code.
-Where it’s used: Usually declared in build.gradle or versions.gradle:
-ext.kotlin_version = '1.9.10'
-Why it matters:
-Kotlin plugin must be compatible with AGP
-Mismatched Kotlin → errors like KotlinAndroidTarget
+Declared in build.gradle or versions.gradle
 
-Kompatibility matrix : 
+Compatibility matrix :
 https://docs.gradle.org/8.14.3/userguide/compatibility.html
 
-Comment !! : 
-The AGP version dictates the Gradle version by allowing a minimum and maximum Gradle version range.
-The Gradle wrapper version defines the specific Gradle version, which must be inside this allowed range.
-
-Decision Workflow : 
+Decision Workflow :
 - Define Flutter Version
 - Check compatible AGP version
-- use AGP version to define Gradle wrapper version and hence the Gradle version .
-- Derive the Kotlin version from the AGP version
-- Derive the JAva JVM version from the Gradle minmum version requirement AND the AGP version
-- Define the SDK version based on the Flutter Version requirement and the AGP constraints
-- Define the NDK version based on the AGP version requirements
+- Use AGP version to define Gradle wrapper version
+- Derive Kotlin version from AGP
+- Derive JVM version from Gradle + AGP
+- Define SDK version based on Flutter + AGP
+- Define NDK version based on AGP
+
 end note
 
-[*] --> Define_Flutter_Version
 
-Define_Flutter_Version --> Check_Compatible_AGP : Determine AGP from Flutter
+:Define Flutter Version;
+:Check Compatible AGP Version;
+:Define Gradle Wrapper Version;
+:Derive Kotlin Version;
+:Derive JVM Version;
+:Define SDK Version;
+:Derive NDK Version;
 
-Check_Compatible_AGP --> Define_Gradle_Version : Use AGP to select Gradle wrapper
-Check_Compatible_AGP --> Derive_Kotlin_Version : Kotlin plugin depends on AGP
-Check_Compatible_AGP --> Derive_NDK_Version : NDK version depends on AGP
-
-Define_Gradle_Version --> Derive_JVM_Version : JVM depends on Gradle & AGP
-
-Define_Flutter_Version --> Define_SDK_Version : Flutter sets minimum SDK
-Check_Compatible_AGP --> Define_SDK_Version : AGP constraints on SDK
-
-Derive_Kotlin_Version --> [*]
-Derive_JVM_Version --> [*]
-Define_SDK_Version --> [*]
-Derive_NDK_Version --> [*]
-
-note as DescriptionBlock
-[ * ] represents start and end points.
-Arrows show dependency flow.
-Decisions like AGP → Gradle/Kotlin/NDK and Flutter → SDK are captured.
-This diagram is modular: each block could be expanded for CI/CD setup if needed.
+note
+AGP influences Gradle, Kotlin and NDK.
+Flutter influences SDK.
 end note
 
-start
+
 :Load DEVICE_IP from $HOME/.adb_device_ip;
+
 if (DEVICE_IP file exists?) then (yes)
     :DEVICE_IP=$(cat $DEVICE_IP_FILE);
-    :Print "📡 Loaded device IP";
+    :Print "Loaded device IP";
 else (no)
-    :Print "⚠️ No saved device IP found";
+    :Print "No saved device IP found";
 endif
 
+
 :Detect environment type;
+
 if (WSL detected?) then (yes)
     :ENV_TYPE="WSL";
 elseif (Windows detected?) then (yes)
@@ -106,94 +78,110 @@ elseif (Windows detected?) then (yes)
 else (Linux)
     :ENV_TYPE="LINUX";
 endif
-:Print "Detected environment: $ENV_TYPE";
+
+:Print "Detected environment";
+
 
 if (ENV_TYPE=="WSL") then (yes)
-    :WIN_IP=$(grep nameserver /etc/resolv.conf);
-    :export ADB_SERVER_SOCKET=tcp:$WIN_IP:5037;
-    :ADB_CMD="adb.exe -a -P 5037";
+    :WIN_IP from /etc/resolv.conf;
+    :export ADB_SERVER_SOCKET;
+    :ADB_CMD="adb.exe";
 else (no)
     :ADB_CMD="adb";
 endif
 
-:Parse arguments for FLUTTER_MODE and CLEAN_BUILD;
 
-:Resolve PROJECT_ROOT and cd into it;
+:Parse arguments for FLUTTER_MODE and CLEAN_BUILD;
+:Resolve PROJECT_ROOT;
 :Print current directory;
 
-' Regenerate local.properties
-:chmod +x ./scripts/generate_local_properties.sh;
-:./scripts/generate_local_properties.sh;
+:Run generate_local_properties.sh;
 
-' Docker NDK fix
+
 if (Running inside Docker?) then (yes)
-    :LOCAL_PROPS="$PROJECT_ROOT/android/local.properties";
-    :Remove previous sdk.dir and ndk.dir entries;
+
+    :Remove previous sdk.dir and ndk.dir;
     :Detect installed NDK version;
+
     if (NDK_VERSION found?) then (yes)
-        :Write sdk.dir and ndk.dir to local.properties;
+        :Write sdk.dir and ndk.dir;
     else (no)
-        :Print "❌ No NDK installation found";
+        :Print "No NDK installation found";
         stop
     endif
-    :Print "✅ Docker SDK + NDK paths configured";
+
+    :Docker SDK + NDK paths configured;
+
 endif
 
-' WSL CMake fix
+
 if (ENV_TYPE=="WSL") then (yes)
-    :Ensure cmake.dir=/usr/bin in local.properties;
+    :Ensure cmake.dir=/usr/bin;
 endif
 
-' Verify Flutter installation
+
 if (flutter command exists?) then (yes)
-    :Print "Flutter found";
+    :Flutter found;
 else (no)
-    :Print "❌ Flutter not found";
+    :Flutter not found;
     stop
 endif
 
+
 :Fetch Flutter dependencies (flutter pub get);
+
 
 if (CLEAN_BUILD==true) then (yes)
     :flutter clean;
 endif
 
-:Build APK (flutter build apk --$FLUTTER_MODE);
-:Locate APK at build path;
+
+:Build APK;
+:Locate APK;
+
+
 if (APK exists?) then (yes)
     :Print APK path;
 else (no)
-    :Print "❌ APK not found";
+    :APK not found;
     stop
 endif
 
-' USB / TCP-IP device detection
-:USB_DEVICE=$($ADB_CMD devices | awk ...);
-if (USB_DEVICE detected?) then (yes)
-    :Enable TCP/IP mode on USB device (port $PORT);
+
+:Detect USB device;
+
+if (USB device detected?) then (yes)
+    :Enable TCP/IP mode;
 endif
+
 
 if (No device connected?) then (yes)
-    :Attempt reconnect to DEVICE_IP:$PORT;
-    :sleep 2;
+    :Reconnect using saved IP;
 endif
 
-:Check connection mode;
+
 if (Connected via Wi-Fi?) then (yes)
-    :Print "🌐 Connected over Wi-Fi";
+    :Print Wi-Fi connection;
 else
-    :Print "🔌 Connected via USB";
+    :Print USB connection;
 endif
 
-' Install APK
+
 if (Device connected?) then (yes)
+
     :Install APK using adb;
+
     if (Install fails?) then (yes)
-        :Uninstall package and reinstall;
+        :Uninstall and reinstall;
     endif
+
 else (no)
-    :Print "❌ No device connected, skipping install";
+
+    :No device connected, skipping install;
+
 endif
+
 
 stop
+
 @enduml

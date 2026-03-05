@@ -1,3 +1,7 @@
+' ============================================================
+' A – Dart ↔ Rust FFI Architecture (Class Diagram)
+' ============================================================
+
 @startuml
 title Dart ↔ Rust FFI Architektur – Sudoku Solver
 
@@ -5,10 +9,6 @@ skinparam classAttributeIconSize 0
 skinparam monochrome false
 skinparam shadowing false
 skinparam dpi 150
-
-' ===========================
-' Dart Layer
-' ===========================
 
 package "Dart Layer" #LightBlue {
     
@@ -46,10 +46,6 @@ package "Dart Layer" #LightBlue {
     RustMatrix --> FfiBindings : uses via FFI
 }
 
-' ===========================
-' Rust Layer
-' ===========================
-
 package "Rust Layer" #LightGreen {
 
     class Matrix {
@@ -80,7 +76,15 @@ package "Rust Layer" #LightGreen {
     Matrix <.. FfiApi : exposed via FFI
 }
 
+@enduml
 
+
+
+' ============================================================
+' B – Pointer & Memory Lifecycle
+' ============================================================
+
+@startuml
 title C – Pointer & Memory Lifecycle (Dart ↔ Rust FFI)
 
 skinparam dpi 150
@@ -92,7 +96,6 @@ participant "FFI Bindings" as FFI
 participant "Rust FFI API" as RustAPI
 participant "Matrix Struct\n(Rust Heap)" as Matrix
 
-' Ownership
 Wrapper --> Matrix : owns pointer (*mut Matrix)
 
 == Allocation ==
@@ -124,7 +127,15 @@ RustAPI -> Matrix: drop()
 Dart -> Wrapper: GC runs finalizer
 Wrapper -> FFI: matrix_free(ptr)
 
+@enduml
 
+
+
+' ============================================================
+' C – Solve Sequence
+' ============================================================
+
+@startuml
 title D – Sequenzdiagramm Solve-Ablauf (Dart ↔ Rust)
 
 skinparam dpi 150
@@ -159,4 +170,3 @@ Grid -> UI: update grid cells
 UI -> User: display solved puzzle
 
 @enduml
-

@@ -113,6 +113,13 @@ Thumbs.db
 *.lock
 
 # =========================================
+# PDF files
+# =========================================
+*.pdf
+!doc/diagrams/all_diagrams.pdf
+!doc/diagrams/flutter-in-docker-2026-v02.pdf
+
+# =========================================
 # Custom project scripts
 # =========================================
 # ✅ Keep your automation scripts

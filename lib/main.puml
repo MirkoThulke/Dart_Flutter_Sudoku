@@ -1,3 +1,5 @@
+@startuml
+
 ' ----------------------------------------------------------
 ' main.dart – Application root
 ' ----------------------------------------------------------
@@ -22,3 +24,5 @@ MultiProvider --> MyApp : wraps
 
 ' MyApp is a widget
 MyApp --> StatelessWidget
+
+@enduml
