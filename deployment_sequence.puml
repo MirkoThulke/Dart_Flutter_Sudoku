@@ -1,0 +1,30 @@
+@startuml Deployment_Sequence
+title Deployment Sequence - Host → Jenkins → Flutter Container
+
+actor Developer
+participant "Host (WSL2/Linux)" as Host
+participant "Jenkins Container" as Jenkins
+participant "Flutter Build Container\n(flutter_rust_env)" as Build
+
+Developer -> Host : docker compose up
+Host -> Jenkins : Start Jenkins container
+
+Developer -> Jenkins : Trigger Pipeline Job
+Jenkins -> Jenkins : cleanWs()
+
+Jenkins -> Build : docker run flutter_rust_env\n(bind mount workspace + cache)
+
+Build -> Build : Setup Environment\nValidate mounts\nSelf-test
+
+Build -> Build : git clone into git_checkout/
+
+Build -> Build : cargo ndk build\n(Rust FFI → JNI .so)
+Build -> Build : flutter build apk/aab
+
+Build -> Jenkins : Copy artifacts → workspace/artifacts/
+
+Jenkins -> Jenkins : archiveArtifacts()
+
+Jenkins -> Developer : Build Result (Success/Failure)
+
+@enduml

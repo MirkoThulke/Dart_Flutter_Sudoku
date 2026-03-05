@@ -1,0 +1,49 @@
+@startuml Workspace_vs_Cache_Security
+title Workspace vs Cache Security Model
+
+rectangle "Ephemeral Workspace\n(FLUTTER_CONTAINER_WORKSPACE)" as WS {
+  component "git_checkout/"
+  component "build/"
+  component "android/build/"
+  component ".gradle (ephemeral)"
+  component "artifacts/"
+}
+
+rectangle "Persistent Cache\n(FLUTTER_CONTAINER_CACHE)" as CACHE {
+  component ".gradle"
+  component ".pub-cache"
+  component "flutter/"
+}
+
+rectangle "Read-Only Toolchains" as TOOLS {
+  component "/opt/flutter"
+  component "/opt/rust"
+  component "/opt/android/sdk"
+}
+
+note right of WS
+Writable
+Destroyed after build
+Safe to clean
+No persistent state
+end note
+
+note right of CACHE
+Writable
+Persists across builds
+Speeds up dependency resolution
+Must NOT contain source code
+end note
+
+note right of TOOLS
+Read-only
+Immutable SDK layer
+Protected from modification
+Ensures deterministic builds
+end note
+
+WS --> CACHE : Uses dependencies
+WS --> TOOLS : Uses SDKs
+CACHE -[#red]-> TOOLS : No writes allowed
+
+@enduml

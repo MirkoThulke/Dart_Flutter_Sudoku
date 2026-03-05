@@ -1,0 +1,39 @@
+@startuml Reproducibility_Model
+title Deterministic Build Model
+
+actor Developer
+participant "Git Repository\n(Versioned Source)" as Git
+participant "Pinned Docker Image\nflutter_rust_env:latest" as Image
+participant "CI Pipeline\n(Jenkinsfile)" as CI
+participant "Ephemeral Workspace" as WS
+participant "Persistent Cache" as Cache
+
+Developer -> Git : Push commit
+CI -> Git : Clone specific branch
+CI -> Image : Use pinned image version
+Image -> WS : Execute build
+WS -> Cache : Resolve dependencies
+
+note right of Image
+Toolchains are versioned:
+- Flutter X.Y.Z
+- Dart X.Y.Z
+- Rust X.Y.Z
+- Android SDK
+- Android NDK 28.2.13676358
+end note
+
+note right of WS
+Workspace recreated every build.
+No residual state.
+end note
+
+note right of Cache
+Only dependency cache.
+Can be cleaned (Deep Clean).
+Does not contain source.
+end note
+
+CI -> Developer : Deterministic APK/AAB output
+
+@enduml

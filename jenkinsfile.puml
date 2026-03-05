@@ -1,204 +1,194 @@
-@startuml
-title Jenkins + Docker + Flutter CI Architecture
+@startuml Jenkins_Pipeline_With_Architecture
+title Jenkins CI Pipeline - Flutter + Rust + Android
 
 start
 
-' ============================================================
-' HOST PREPARATION (WSL2)
-' ============================================================
-
-note
-Run once on WSL2 host:
-
-    sudo ./jenkins_setup_host_dirs.sh
-
-Or manually:
+:Workspace Sanity Clean;
+note right
+cleanWs()
+Ensures fully fresh ephemeral workspace.
 end note
 
-note
-Prepare persistent host directories:
-
-cd ~
-sudo rm -rf /home/mirko/jenkins_host_*
-
-sudo mkdir -p /home/mirko/jenkins_host_workspace
-sudo mkdir -p /home/mirko/jenkins_host_workspace/artifacts
-
-sudo chown -R 2000:2000 /home/mirko/jenkins_host_workspace
-sudo chmod -R 770 /home/mirko/jenkins_host_workspace
-
-
-sudo mkdir -p /home/mirko/jenkins_host_cache/gradle
-sudo mkdir -p /home/mirko/jenkins_host_cache/pub
-sudo mkdir -p /home/mirko/jenkins_host_cache/cargo
-
-sudo chown -R 2000:2000 /home/mirko/jenkins_host_cache
-sudo chmod -R 770 /home/mirko/jenkins_host_cache
+:Define Project Paths;
+note right
+Sets:
+FLUTTER_CONTAINER_WORKSPACE = $WORKSPACE
+FLUTTER_CONTAINER_CACHE = /jenkins_container_cache
+REPO_CHECKOUT_DIR = workspace/git_checkout
+Separates workspace vs persistent cache.
 end note
 
-note
-Restart infrastructure:
-
-docker compose down
-docker compose up -d --build
+:Setup Environment;
+note right
+Creates:
+- .gradle
+- .pub-cache
+- .home
+- artifacts/
+Validates:
+- Cache writable
+- SDK read-only
 end note
 
-
-' ============================================================
-' FLUTTER ANDROID BUILD STACK
-' ============================================================
-
-note
-Flutter Android build flow:
-
-• Flutter → compiles Dart
-• Gradle → builds Android APK/AAB
-• Kotlin → native Android layer
-• Maven → dependency resolution
+:CI Self-Test;
+note right
+Fail-fast validation:
+✔ Required ENV variables exist
+✔ Workspace & cache mounted
+✔ Toolchains available
+✔ Flutter SDK NOT writable
 end note
 
+partition "Source Control" {
 
-' ============================================================
-' DOCKER CLEANUP REFERENCE
-' ============================================================
+    :Checkout in Container;
+    note right
+    git clone → git_checkout/
+    git reset to branch
+    Gradle wrapper executable
+    end note
 
-note
-------------------------------------------------------------
-DOCKER CLEANUP REFERENCE
-------------------------------------------------------------
+    :Validate Repo Structure;
+    note right
+    Requires:
+    - pubspec.yaml
+    - android/
+    - scripts/
+    end note
+
+    :Verify Rust Source;
+    note right
+    Ensures rust/rust_lib exists.
+    end note
+}
+
+partition "Static Analysis (Optional)" {
+
+    if (RUN_FAST_STATIC?) then (yes)
+        :Flutter + Rust FAST;
+        note right
+        flutter analyze
+        dart format
+        cargo check
+        end note
+    endif
+
+    if (RUN_HEAVY_STATIC?) then (yes)
+        :Android + Rust HEAVY;
+        note right
+        ./gradlew lint
+        cargo clippy
+        cargo audit
+        end note
+    endif
+}
+
+partition "Cleaning Strategy" {
+
+    :Light Clean;
+    note right
+    Removes:
+    - build/
+    - android/build/
+    - .dart_tool
+    Keeps persistent caches intact.
+    end note
+
+    if (DEEP_CLEAN?) then (yes)
+        :Deep Clean;
+        note right
+        Also removes:
+        - Gradle module caches
+        - Pub hosted/git
+        - Rust artifacts
+        - JNI libs
+        end note
+    endif
+}
+
+partition "Build Graph" {
+
+    :Build Rust (FFI);
+    note right
+    cargo ndk build --release
+    Produces JNI .so libraries
+    into android/app/src/main/jniLibs
+    end note
+
+    if (RUN_MATERIALIZATION_STAGE?) then (yes)
+        :Flutter pub get;
+        :flutter build apk --debug;
+        note right
+        Validates Flutter ↔ Gradle
+        integration and engine artifacts.
+        end note
+    endif
+}
+
+partition "Release Build" {
+
+    if (BUILD_MODE == release?) then (yes)
+
+        :Inject Android Signing;
+        note right
+        Uses Jenkins credentials:
+        - KEYSTORE_FILE
+        - KEYSTORE_PASSWORD
+        - KEY_PASSWORD
+        - KEY_ALIAS
+        Generates key.properties
+        end note
+
+        :Build Release APK;
+        :Build Release AAB;
+
+        note right
+        flutter build apk --release
+        flutter build appbundle --release
+        Copies output to artifacts/
+        end note
+
+    else (debug)
+
+        :Build Debug APK;
+
+    endif
+}
+
+partition "Validation & Extras" {
+
+    if (RUN_INTEGRATION_TESTS?) then (yes)
+        :Run Integration Tests;
+    endif
+
+    if (RUN_ABB_RELEASE_TEST?) then (yes)
+        :Validate AAB;
+        note right
+        Uses bundletool:
+        ✔ Validate structure
+        ✔ Verify signature
+        ✔ Dump versionCode/versionName
+        end note
+    endif
+
+    if (RUN_PLANTUML_DOCU_BUILD?) then (yes)
+        :Generate Diagrams;
+    endif
+}
+
+:Archive Artifacts;
+note right
+archiveArtifacts artifacts/**
+Stored under:
+Jenkins build archive
 end note
 
-
-note
-docker builder prune
-
-Removes:
-• BuildKit layer cache
-• Intermediate build layers
-
-Keeps:
-• Images
-• Containers
-• Volumes
-• Networks
+:Post Section;
+note right
+✔ Remove key.properties
+✔ cleanWs(deleteDirs=true)
+✔ Print build result
 end note
-
-
-note
-docker builder prune --all -f
-
-Removes:
-• ALL build cache (all builders)
-
-Keeps:
-• Images
-• Containers
-• Volumes
-• Networks
-end note
-
-
-note
-docker image prune -f
-
-Removes:
-• Dangling (untagged) images
-
-Keeps:
-• Tagged images
-• Containers
-• Volumes
-end note
-
-
-note
-docker image prune -a -f
-
-Removes:
-• ALL unused images
-
-Keeps:
-• Images used by containers
-• Volumes
-end note
-
-
-note
-docker system prune -f
-
-Removes:
-• Stopped containers
-• Unused networks
-• Dangling images
-• Build cache
-
-Keeps:
-• Named volumes
-• Images used by containers
-end note
-
-
-note
-docker system prune -a -f
-
-Removes:
-• Stopped containers
-• ALL unused images
-• Unused networks
-• Build cache
-
-Keeps:
-• Named volumes
-end note
-
-
-note
-docker system prune -a --volumes -f
-
-⚠ DANGEROUS
-
-Removes:
-• Stopped containers
-• ALL unused images
-• Unused networks
-• ALL unused volumes
-• Build cache
-
-WARNING:
-Deletes persisted data in volumes
-end note
-
-
-note
-docker buildx prune --all --force
-
-Removes:
-• All buildx cache storage
-• Multi-platform builder cache
-
-Keeps:
-• Images
-• Containers
-• Volumes
-end note
-
-
-note
-FULL FACTORY RESET
-
-docker system prune -af --volumes
-
-Removes:
-• ALL stopped containers
-• ALL unused images
-• ALL unused networks
-• ALL unused volumes
-• ALL build cache
-
-Keeps:
-• Running containers only
-end note
-
 
 stop
 @enduml
