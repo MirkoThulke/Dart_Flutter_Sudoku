@@ -49,11 +49,11 @@ echo "Found ${#PUML_FILES[@]} PUML files."
 # -------------------------------
 # Generate PNG + PDF
 # -------------------------------
+echo "Generating diagrams..."
+
 for FILE in "${PUML_FILES[@]}"; do
   echo "Processing $FILE"
-
   plantuml -tpng -o "$OUT_FOLDER_FULL" "$FILE"
-  plantuml -tpdf -o "$OUT_FOLDER_FULL" "$FILE"
 done
 
 
