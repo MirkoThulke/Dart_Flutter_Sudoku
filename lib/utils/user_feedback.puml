@@ -1,0 +1,18 @@
+@startuml
+
+class FeedbackHelper {
+  +sendFeedback(BuildContext)
+}
+
+class Uri
+class url_launcher
+
+FeedbackHelper --> Uri
+FeedbackHelper --> url_launcher
+
+note right of FeedbackHelper
+Launches the email client
+to send user feedback.
+end note
+
+@enduml

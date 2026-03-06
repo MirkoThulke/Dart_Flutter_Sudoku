@@ -1,0 +1,20 @@
+@startuml
+title Rust + Flutter Build Pipeline
+
+start
+
+:Read CLI arguments;
+:FLUTTER_MODE = arg1 or "release";
+:CLEAN_BUILD = arg2 == "--clean";
+
+:Print build banner;
+
+:Run build_rust.sh;
+
+:Run build_flutter.sh (mode = FLUTTER_MODE);
+
+:Print "Build complete";
+
+stop
+
+@enduml

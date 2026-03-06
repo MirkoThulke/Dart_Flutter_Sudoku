@@ -1,44 +1,65 @@
-@startuml
-title SudokuGrid Class Diagram
+@startuml SudokuGrid_ClassDiagram
+title Flutter Widget Class Diagram - SudokuGrid
 
-' ----------------------------------------------------------
-' Flutter base classes
-' ----------------------------------------------------------
-class StatelessWidget
-class Widget
-class BuildContext
-class Scaffold
-class GridView
-class SudokuBlock {
-    +int block_id
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class SudokuGrid {
++SudokuGrid({Key? key})
++build(context: BuildContext) : Widget
 }
+
+class StatelessWidget
+SudokuGrid --|> StatelessWidget
+
+}
+
+package "State Management" {
 
 class SizeConfig {
-    +init(BuildContext) : void
++init(context: BuildContext)
++orientation
++screenWidth
 }
 
-' ----------------------------------------------------------
-' SudokuGrid widget
-' ----------------------------------------------------------
-class SudokuGrid {
-    --
-    +SudokuGrid({key})
-    +build(BuildContext) : Widget
 }
 
-' ----------------------------------------------------------
-' Inheritance
-' ----------------------------------------------------------
-SudokuGrid --> StatelessWidget
+package "Application Widgets" {
 
-' ----------------------------------------------------------
-' Internal widget relationships
-' ----------------------------------------------------------
-SudokuGrid --> GridView : creates
-SudokuGrid --> Scaffold : creates
-GridView --> SudokuBlock : contains 9 blocks
+class SudokuBlock {
++block_id : int
+}
 
-' Provider / Watch relationships
-SudokuGrid --> SizeConfig : watch<SizeConfig>()
+}
+
+package "Flutter UI Framework" {
+
+class Scaffold
+class GridView
+class EdgeInsets
+class Widget
+
+}
+
+package "Flutter Core Types" {
+
+class BuildContext
+class List
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+SudokuGrid --> SizeConfig : watch()
+
+SudokuGrid --> Scaffold
+SudokuGrid --> GridView
+SudokuGrid --> EdgeInsets
+
+SudokuGrid --> SudokuBlock : creates 9 blocks
 
 @enduml

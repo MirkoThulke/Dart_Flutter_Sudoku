@@ -1,57 +1,75 @@
-@startuml
-' Flutter framework package
-package "Flutter Framework" {
-    class StatelessWidget {
-        +build(BuildContext context)
-    }
+@startuml CustomAppBar_ClassDiagram
+title Flutter Widget Class Diagram - CustomAppBar
 
-    class PreferredSizeWidget {
-        +preferredSize: Size
-    }
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-    class Widget
-    class BuildContext
-    class Material
-    class SafeArea
-    class SizedBox
-    class Column
-    class SizedBox
-    class Colors
-    class Size
+package "Widget Layer" {
+
+class CustomAppBar {
++CustomAppBar({Key? key})
++build(context: BuildContext) : Widget
++preferredSize : Size
 }
 
-package "My App Widgets" {
-    class CustomAppBar {
-        +CustomAppBar({key})
-        +build(BuildContext context): Widget
-        +preferredSize: Size
-    }
+class StatelessWidget
+interface PreferredSizeWidget
 
-    class TopActionButtons
-    class AddRemoveToggle
+CustomAppBar --|> StatelessWidget
+CustomAppBar ..|> PreferredSizeWidget
+
 }
 
-package "My App Utils" {
-    class SizeConfig {
-        +safeBlockTopHMIGridVertical
-        +safeBlockTopHMIGridHorizontal
-        +init(BuildContext context)
-    }
+package "State Management" {
+
+class SizeConfig {
++init(context: BuildContext)
++safeBlockTopHMIGridVertical : double
++safeBlockTopHMIGridHorizontal : double
 }
 
-' Inheritance
-CustomAppBar -|> StatelessWidget
-CustomAppBar -|> PreferredSizeWidget
+}
 
-' Usage / composition relationships
-CustomAppBar --> SizeConfig
+package "Application Widgets" {
+
+class TopActionButtons
+class AddRemoveToggle
+
+}
+
+package "Flutter UI Framework" {
+
+class Material
+class SafeArea
+class SizedBox
+class Column
+class Colors
+
+}
+
+package "Flutter Core Types" {
+
+class BuildContext
+class Size {
++fromHeight(double)
+}
+
+}
+
+'---------------------------------
+' Relationships
+'---------------------------------
+
+CustomAppBar --> SizeConfig : watch()
+
+CustomAppBar --> TopActionButtons
+CustomAppBar --> AddRemoveToggle
+
 CustomAppBar --> Material
 CustomAppBar --> SafeArea
 CustomAppBar --> SizedBox
 CustomAppBar --> Column
-CustomAppBar --> TopActionButtons
-CustomAppBar --> AddRemoveToggle
 CustomAppBar --> Colors
-CustomAppBar --> Size
 
 @enduml
+

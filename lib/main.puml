@@ -1,28 +1,86 @@
-@startuml
+@startuml App_Bootstrap_Provider_ClassDiagram
+title Flutter App Bootstrap & Provider Architecture
 
-' ----------------------------------------------------------
-' main.dart – Application root
-' ----------------------------------------------------------
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-class MyApp {
-    +build(BuildContext) : Widget
+package "Application Entry" {
+
+class main {
++main() : void
 }
 
-class MultiProvider
-class ChangeNotifierProvider
-class runApp
+class runApp {
++runApp(widget)
+}
 
-' Providers
-DataProvider --> ChangeNotifierProvider
-SizeConfig --> ChangeNotifierProvider
+}
 
-' main() creates providers and MyApp
-runApp --> MultiProvider
-MultiProvider --> DataProvider : provides
-MultiProvider --> SizeConfig : provides
-MultiProvider --> MyApp : wraps
+package "Provider Framework" {
 
-' MyApp is a widget
-MyApp --> StatelessWidget
+class MultiProvider {
++providers : List<Provider>
++child : Widget
+}
+
+class ChangeNotifierProvider {
++create()
+}
+
+class ChangeNotifier
+
+}
+
+package "State Management" {
+
+class DataProvider {
++notifyListeners()
++gameState
+}
+
+class SizeConfig {
++init(context)
++orientation
++screenWidth
+}
+
+}
+
+package "Application Root Widget" {
+
+class MyApp {
++build(context)
+}
+
+class StatelessWidget
+MyApp --|> StatelessWidget
+
+}
+
+package "Flutter Core" {
+
+class Widget
+
+}
+
+'------------------------------------------------
+' Bootstrapping relationships
+'------------------------------------------------
+
+main --> runApp : calls
+
+runApp --> MultiProvider : root widget
+
+MultiProvider --> ChangeNotifierProvider : contains
+
+ChangeNotifierProvider --> DataProvider : provides
+ChangeNotifierProvider --> SizeConfig : provides
+
+MultiProvider --> MyApp : child
+
+DataProvider --|> ChangeNotifier
+SizeConfig --|> ChangeNotifier
+
+MyApp --> Widget
 
 @enduml

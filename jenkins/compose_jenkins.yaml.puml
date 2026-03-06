@@ -1,0 +1,95 @@
+@startuml Jenkins_Docker_Compose_Deployment
+title Jenkins Sudoku CI - Docker Compose Deployment
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+actor "Developer / DevOps" as dev
+
+node "Host Machine\nLinux" {
+
+```
+node "Docker Engine" {
+
+    node "Docker Compose" {
+
+        component "Service: jenkins" as jenkins_service
+
+    }
+
+    node "Container\njenkins_sudoku_container" {
+
+        component "Image\njenkins_sudoku_image:2.528.3" as image
+
+        component "Jenkins Server" as jenkins_app
+
+        component "User Runtime\nUID:2000\nGID:2000" as user_runtime
+
+        component "Environment Variables" as env {
+            TZ = Europe/Paris
+            JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+        }
+
+        component "Exposed Ports" as ports {
+            8080 → Jenkins Web UI
+            50000 → Jenkins Agent Port
+        }
+
+        component "Volumes" as volumes {
+            /home/mirko/jenkins_host_workspace
+            → /var/jenkins_home
+
+            /var/run/docker.sock
+            → /var/run/docker.sock
+        }
+
+        component "Docker Group Access\nGID:1001" as docker_group
+    }
+
+    node "Docker Network\njenkins_net (bridge)" as network
+}
+
+folder "Host Resources" {
+
+    component "Jenkins Workspace\n/home/mirko/jenkins_host_workspace" as workspace
+
+    component "Docker Socket\n/var/run/docker.sock" as socket
+
+}
+```
+
+}
+
+node "Docker Build System" {
+
+```
+component "Dockerfile\n(Current Directory)" as dockerfile
+
+component "Build Context\n." as context
+```
+
+}
+
+dev --> jenkins_service : docker compose up
+
+jenkins_service --> dockerfile : build image
+dockerfile --> context
+
+jenkins_service --> image
+
+image --> jenkins_app
+
+jenkins_app --> user_runtime
+jenkins_app --> env
+jenkins_app --> ports
+jenkins_app --> volumes
+jenkins_app --> docker_group
+
+volumes --> workspace
+volumes --> socket
+
+jenkins_service --> network
+jenkins_app --> network
+
+@enduml

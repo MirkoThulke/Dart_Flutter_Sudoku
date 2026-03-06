@@ -1,0 +1,16 @@
+@startuml
+
+class SudokuLogger {
+  +initLogger()
+}
+
+class Logger
+
+SudokuLogger --> Logger
+
+note right of SudokuLogger
+Initializes global logging
+for debugging and diagnostics.
+end note
+
+@enduml

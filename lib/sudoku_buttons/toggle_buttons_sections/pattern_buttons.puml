@@ -1,0 +1,88 @@
+@startuml PatternButtons_ClassDiagram
+title Flutter Widget Class Diagram - PatternButtons
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class PatternButtons {
+-isVertical : bool
+-selectedList : List<bool>
+-maxWidth : double
+-onUpdate : ValueChanged<List<bool>>
+------------------------------------
+
++PatternButtons({
+Key? key,
+bool isVertical,
+List<bool> selectedList,
+double maxWidth,
+ValueChanged<List<bool>> onUpdate
+})
++build(context: BuildContext) : Widget
+}
+
+class StatelessWidget
+
+PatternButtons --|> StatelessWidget
+
+}
+
+package "Flutter UI Framework" {
+
+class ToggleButtons
+class Tooltip
+class Axis
+class BorderRadius
+class Radius
+class Colors
+class BoxConstraints
+
+}
+
+package "Callbacks" {
+
+class ValueChanged<T> {
++call(T value)
+}
+
+}
+
+package "Application Resources" {
+
+class patternlistButtonList {
++List<Widget>
+}
+
+class sudokuTooltipsByIndex {
++Map<int,String>
+}
+
+}
+
+package "Core Types" {
+
+class BuildContext
+class Widget
+class List<bool>
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+PatternButtons --> ToggleButtons
+PatternButtons --> Tooltip
+PatternButtons --> Axis
+PatternButtons --> BorderRadius
+PatternButtons --> Radius
+PatternButtons --> Colors
+PatternButtons --> BoxConstraints
+
+PatternButtons --> ValueChanged : callback
+PatternButtons --> patternlistButtonList : children
+PatternButtons --> sudokuTooltipsByIndex : tooltip text
+
+@enduml

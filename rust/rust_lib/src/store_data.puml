@@ -1,87 +1,144 @@
 @startuml
+title Sudoku Data Persistence (store_data.rs)
 
-package ffi {
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-  ' FFI struct representing a matrix element
-  class DartToRustElementFFI {
-    +row: u8
-    +col: u8
-    +selectedNum: u8
-    +selectedCandList: [u8; 9]
-    +selectedPatternList: [u8; 5]
-    +requestedElementHighLightType: [u8; 5]
-    +requestedCandHighLightType: [u8; 9]
-    +cells: DartToRustElementFFI[]  ' nested elements for candidate checking
-  }
+' =========================================================
+' FFI DATA STRUCTURE
+' =========================================================
 
-  class Constants {
-    +MAX_UINT: u8 = 255
-    +CONST_MATRIX_SIZE: u8 = 9
-    +CONST_MATRIX_ELEMENTS: u8 = 81
-  }
+package "FFI Memory Model" {
 
-  class PatternList {
-    +HI_LIGHT_ON: u8 = 0
-    +PAIRS: u8 = 1
-    +SINGLES: u8 = 2
-  }
+class DartToRustElementFFI {
+  + row : u8
+  + col : u8
+  + selectedNum : u8
+  + selectedNumStateList[2]
+  + selectedCandList[9]
+  + selectedPatternList[4]
+  + requestedElementHighLightType[5]
+  + requestedCandHighLightType[9]
+}
 
-  class MatrixFunctions {
-    +create_matrix(rows: u8, cols: u8): *mut DartToRustElementFFI
-    +update_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
-    +free_matrix(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8): void
-  }
+note right of DartToRustElementFFI
+Raw struct used by Dart ↔ Rust FFI.
+
+Uses fixed-size arrays to ensure
+predictable memory layout.
+end note
 
 }
 
-package process_data {
+' =========================================================
+' SERIALIZABLE DATA MODEL
+' =========================================================
 
-  class ProcessDataFunctions {
-    +checkForElementPair(ptr: *mut DartToRustElementFFI, idx: usize): void
-    +save_data(ptr: *const DartToRustElementFFI, rows: u8, cols: u8, path: *const c_char): c_int
-    +load_data(ptr: *mut DartToRustElementFFI, rows: u8, cols: u8, path: *const c_char): c_int
-  }
+package "JSON Data Model" {
 
-  note right of ProcessDataFunctions::checkForElementPair
-    Unsafe extern "C" function.
-    - Checks if element has exactly two candidates selected.
-    - Resets requestedCandHighLightType highlights.
-    - Uses PatternList::PAIRS for marking.
-  end note
-
-  note right of ProcessDataFunctions::save_data
-    Unsafe extern "C" function.
-    - Converts DartToRustElementFFI → SerializableElement → JSON → file.
-    - Returns integer status codes for error handling.
-  end note
-
-  note right of ProcessDataFunctions::load_data
-    Unsafe extern "C" function.
-    - Reads JSON file → SerializableElement → DartToRustElementFFI.
-    - Returns integer status codes for error handling.
-  end note
-
-  ' JSON-friendly Rust structs
-  class SerializableElement {
-    +row: u8
-    +col: u8
-    +selectedNum: u8
-    +selectedCandList: Vec<u8>
-    +selectedPatternList: Vec<u8>
-    +requestedElementHighLightType: Vec<u8>
-    +requestedCandHighLightType: Vec<u8>
-  }
-
-  class AppData {
-    +rows: u8
-    +cols: u8
-    +elements: Vec<SerializableElement>
-  }
-
-  ' Relationships
-  ProcessDataFunctions --> DartToRustElementFFI : reads/writes
-  ProcessDataFunctions --> SerializableElement : converts
-  ProcessDataFunctions --> AppData : builds/parses JSON
+class SerializableElement {
+  + row : u8
+  + col : u8
+  + selectedNum : u8
+  + selectedNumStateList : Vec_u8
+  + selectedCandList : Vec_u8
+  + selectedPatternList : Vec_u8
+  + requestedElementHighLightType : Vec_u8
+  + requestedCandHighLightType : Vec_u8
 }
+
+class AppData {
+  + rows : u8
+  + cols : u8
+  + elements : Vec_SerializableElement
+}
+
+note right of SerializableElement
+JSON-friendly version of the Sudoku cell.
+
+Rust Vec<u8> arrays are used
+instead of fixed-size arrays.
+end note
+
+}
+
+SerializableElement --> DartToRustElementFFI : conversion
+DartToRustElementFFI --> SerializableElement : conversion
+
+AppData --> SerializableElement : contains
+
+
+' =========================================================
+' CONVERSION LAYER
+' =========================================================
+
+package "Conversion Layer" {
+
+class FromFFI {
+  + convert_from_ffi()
+}
+
+class ToFFI {
+  + convert_to_ffi()
+}
+
+}
+
+FromFFI --> SerializableElement
+FromFFI --> DartToRustElementFFI
+
+ToFFI --> SerializableElement
+ToFFI --> DartToRustElementFFI
+
+
+' =========================================================
+' FILE STORAGE API
+' =========================================================
+
+package "FFI Persistence API" {
+
+class save_data {
+  + save_data(ptr, rows, cols, path)
+}
+
+class load_data {
+  + load_data(ptr, rows, cols, path)
+}
+
+}
+
+save_data --> AppData
+load_data --> AppData
+
+save_data --> DartToRustElementFFI
+load_data --> DartToRustElementFFI
+
+
+' =========================================================
+' FILE SYSTEM
+' =========================================================
+
+package "File System / JSON" {
+
+class serde_json
+class filesystem
+
+}
+
+save_data --> serde_json : serialize
+save_data --> filesystem : write file
+
+load_data --> filesystem : read file
+load_data --> serde_json : deserialize
+
+
+' =========================================================
+' EXTERNAL CALLER
+' =========================================================
+
+'component "Flutter / Dart App" as Dart
+
+Dart --> save_data
+Dart --> load_data
 
 @enduml

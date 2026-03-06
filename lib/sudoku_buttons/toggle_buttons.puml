@@ -1,89 +1,104 @@
-@startuml
-title ToggleButtonsSample Class Diagram
+@startuml ToggleButtonsSample_ClassDiagram
+title Flutter Widget Class Diagram - ToggleButtonsSample
 
-' ----------------------------------------------------------
-' Flutter base classes
-' ----------------------------------------------------------
-class StatefulWidget
-class State
-class StatelessWidget
-class Widget
-class BuildContext
-class Scaffold
-class Column
-class SizedBox
-class Center
-class SingleChildScrollView
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-' ----------------------------------------------------------
-' External components from your project
-' ----------------------------------------------------------
-class SizeConfig {
-    +safeBlockBottomHMIGridVertical : double?
-    +safeBlockBottomHMIGridHorizontal : double?
-    +init(BuildContext) : void
-}
+package "Widget Layer" {
 
-class DataProvider {
-    +updateDataselectedSetResetList(list)
-    +updateDataNumberlist(list)
-    +updateDataselectedPatternList(list)
-}
-
-class SetResetButtons {
-    +bool isVertical
-    +List<bool> selectedList
-    +double maxWidth
-    +onUpdate(List<bool>) : void
-}
-
-class NumberButtons {
-    +bool isVertical
-    +List<bool> selectedList
-    +double maxWidth
-    +onUpdate(List<bool>) : void
-}
-
-class PatternButtons {
-    +bool isVertical
-    +List<bool> selectedList
-    +double maxWidth
-    +onUpdate(List<bool>) : void
-}
-
-' Simplified typedef-like lists
-class SelectedNumberList
-class SelectedSetResetList
-class SelectedPatternList
-
-' ----------------------------------------------------------
-' ToggleButtonsSample widget
-' ----------------------------------------------------------
 class ToggleButtonsSample {
-    +ToggleButtonsSample({key})
-    +createState() : _ToggleButtonsSampleState
++ToggleButtonsSample({Key? key})
++createState() : State<ToggleButtonsSample>
 }
+
+class StatefulWidget
+ToggleButtonsSample --|> StatefulWidget
+
+}
+
+package "Widget State" {
 
 class _ToggleButtonsSampleState {
-    -SelectedNumberList _selectedNumberList
-    -SelectedSetResetList _selectedSetResetList
-    -SelectedPatternList _selectedPatternList
-    -bool _vertical
-    --
-    +build(BuildContext) : Widget
+
+-_selectedNumberList : SelectedNumberList
+-_selectedSetResetList : SelectedSetResetList
+-_selectedPatternList : SelectedPatternList
+-_vertical : bool
+
++build(context: BuildContext) : Widget
+
 }
 
-' ----------------------------------------------------------
-' Relationships
-' ----------------------------------------------------------
-ToggleButtonsSample --> StatefulWidget
-ToggleButtonsSample "1" *-- "1" _ToggleButtonsSampleState
-_ToggleButtonsSampleState --> SizeConfig : watch()
-_ToggleButtonsSampleState --> DataProvider : via Provider.of
+class State<T>
+_ToggleButtonsSampleState --|> State
 
-' Buttons used in layout
+}
+
+package "State Management" {
+
+class DataProvider {
++updateDataselectedSetResetList(List<bool>)
++updateDataNumberlist(List<bool>)
++updateDataselectedPatternList(List<bool>)
+}
+
+class SizeConfig {
++init(context: BuildContext)
++safeBlockBottomHMIGridVertical : double
++safeBlockBottomHMIGridHorizontal : double
+}
+
+}
+
+package "Application Widgets" {
+
+class SetResetButtons
+class NumberButtons
+class PatternButtons
+
+}
+
+package "Flutter UI Framework" {
+
+class Scaffold
+class Center
+class Column
+class SizedBox
+class SingleChildScrollView
+
+}
+
+package "Dart Core" {
+
+class List<bool>
+class max()
+
+}
+
+package "Flutter Core Types" {
+
+class BuildContext
+class Widget
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+ToggleButtonsSample --> _ToggleButtonsSampleState : creates
+
+_ToggleButtonsSampleState --> SizeConfig : watch()
+_ToggleButtonsSampleState --> DataProvider
+
 _ToggleButtonsSampleState --> SetResetButtons
 _ToggleButtonsSampleState --> NumberButtons
 _ToggleButtonsSampleState --> PatternButtons
+
+_ToggleButtonsSampleState --> Scaffold
+_ToggleButtonsSampleState --> Center
+_ToggleButtonsSampleState --> Column
+_ToggleButtonsSampleState --> SizedBox
+_ToggleButtonsSampleState --> SingleChildScrollView
 
 @enduml

@@ -1,44 +1,54 @@
-@startuml
-' Define Dart/Flutter classes and relationships
+@startuml MyApp_ClassDiagram
+title Flutter Widget Class Diagram - MyApp
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Application Entry Widget" {
+
+class MyApp {
++MyApp({Key? key})
++build(context: BuildContext) : Widget
+}
+
+class StatelessWidget
+MyApp --|> StatelessWidget
+
+}
 
 package "Flutter Framework" {
-    class StatelessWidget {
-        +build(BuildContext context)
-    }
 
-    class MaterialApp {
-        +title: String
-        +theme: ThemeData
-        +home: Widget
-    }
-
-    class ThemeData {
-        +primarySwatch: Colors
-    }
-
-    class Colors {
-        +blue
-    }
-
-    class Widget
+class MaterialApp {
++title : String
++theme : ThemeData
++home : Widget
 }
 
-package "My App" {
-    class MyApp {
-        +MyApp({key})
-        +build(BuildContext context)
-    }
+class ThemeData
+class Colors
 
-    class MyHomePage {
-        +MyHomePage()
-    }
 }
 
+package "Application Screens" {
+
+class MyHomePage
+
+}
+
+package "Core Types" {
+
+class BuildContext
+class Widget
+
+}
+
+'-----------------------------------
 ' Relationships
-MyApp -|> StatelessWidget
-MyApp --> MaterialApp : returns
-MaterialApp --> ThemeData
-ThemeData --> Colors
-MaterialApp --> MyHomePage : home
+'-----------------------------------
+
+MyApp --> MaterialApp : creates
+MaterialApp --> ThemeData : uses
+ThemeData --> Colors : primarySwatch
+MaterialApp --> MyHomePage : home screen
 
 @enduml

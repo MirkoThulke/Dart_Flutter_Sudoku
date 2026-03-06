@@ -1,0 +1,89 @@
+@startuml NumberButtons_ClassDiagram
+title Flutter Widget Class Diagram - NumberButtons
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class NumberButtons {
+-isVertical : bool
+-selectedList : List<bool>
+-maxWidth : double
+-onUpdate : ValueChanged<List<bool>>
+------------------------------------
+
++NumberButtons({
+Key? key,
+bool isVertical,
+List<bool> selectedList,
+double maxWidth,
+ValueChanged<List<bool>> onUpdate
+})
++build(context: BuildContext) : Widget
+}
+
+class StatelessWidget
+NumberButtons --|> StatelessWidget
+
+}
+
+package "Flutter UI Framework" {
+
+class ToggleButtons
+class Axis
+class BorderRadius
+class Radius
+class Colors
+class BoxConstraints
+class FittedBox
+class Text
+class TextStyle
+class BoxFit
+
+}
+
+package "Callbacks" {
+
+class ValueChanged<T> {
++call(T value)
+}
+
+}
+
+package "Application Domain" {
+
+class SudokuNumber {
++display : String
+}
+
+}
+
+package "Core Types" {
+
+class BuildContext
+class Widget
+class List<bool>
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+NumberButtons --> ToggleButtons
+NumberButtons --> Axis
+NumberButtons --> BorderRadius
+NumberButtons --> Radius
+NumberButtons --> Colors
+NumberButtons --> BoxConstraints
+
+NumberButtons --> FittedBox
+NumberButtons --> Text
+NumberButtons --> TextStyle
+NumberButtons --> BoxFit
+
+NumberButtons --> ValueChanged : callback
+NumberButtons --> SudokuNumber : generates buttons
+
+@enduml

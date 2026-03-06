@@ -1,76 +1,97 @@
-@startuml
-' Flutter framework package
-package "Flutter Framework" {
-    class StatelessWidget {
-        +build(BuildContext context)
-    }
+@startuml TopActionButtons_ClassDiagram
+title Flutter Widget Class Diagram - TopActionButtons
 
-    class Widget
-    class BuildContext
-    class Row
-    class Center
-    class ConstrainedBox
-    class IconButton
-    class ElevatedButton
-    class Icon
-    class Text
-    class SizedBox
-    class MaterialPageRoute
-    class Navigator
-    class Colors
-    class Duration
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class TopActionButtons {
++TopActionButtons({Key? key})
++build(context: BuildContext) Widget
 }
 
-package "My App Utils" {
-    class SizeConfig {
-        +init(BuildContext context)
-    }
+class StatelessWidget
 
-    class DataProvider {
-        +shutdown(): Future<void>
-    }
+TopActionButtons --|> StatelessWidget
 
-    class FeedbackHelper {
-        +sendFeedback(BuildContext context)
-    }
-
-    class HelpPage
 }
 
-package "My App Widgets" {
-    class TopActionButtons {
-        +TopActionButtons({key})
-        +build(BuildContext context): Widget
-    }
+package "State Management" {
 
-    note right of TopActionButtons
-        shutdownApp(BuildContext context)
-        is a separate helper function
-    end note
+class SizeConfig {
++init(context: BuildContext)
 }
 
-' Inheritance
-TopActionButtons -|> StatelessWidget
+class DataProvider {
++shutdown() Future<void>
+}
 
-' Composition / usage relationships
-TopActionButtons --> Row
-TopActionButtons --> Center
-TopActionButtons --> ConstrainedBox
-TopActionButtons --> IconButton
-TopActionButtons --> ElevatedButton
-TopActionButtons --> Icon
-TopActionButtons --> Text
-TopActionButtons --> SizedBox
-TopActionButtons --> Navigator
-TopActionButtons --> MaterialPageRoute
-TopActionButtons --> Colors
-TopActionButtons --> SizeConfig
+}
+
+package "Utility / Functions" {
+
+class ShutdownService {
++shutdownApp(context: BuildContext) Future<void>
+}
+
+}
+
+package "Navigation" {
+
+class HelpPage
+class Navigator {
++push()
+}
+
+}
+
+package "Helpers" {
+
+class FeedbackHelper {
++sendFeedback(context: BuildContext)
+}
+
+}
+
+package "System APIs" {
+
+class Platform {
++isAndroid
+}
+
+class SystemNavigator {
++pop()
+}
+
+class Process {
++exit(code:int)
+}
+
+}
+
+package "Constants" {
+
+class LicenseText {
++licenseText : String
+}
+
+}
+
+'---------------------------
+' Relationships
+'---------------------------
+
+TopActionButtons --> SizeConfig : watch()
+TopActionButtons --> Navigator : navigate
 TopActionButtons --> HelpPage
 TopActionButtons --> FeedbackHelper
-TopActionButtons --> shutdownApp
+TopActionButtons --> ShutdownService
+TopActionButtons --> LicenseText
 
-shutdownApp --> DataProvider
-shutdownApp --> BuildContext
-shutdownApp --> Duration
+ShutdownService --> DataProvider : shutdown()
+ShutdownService --> Platform
+ShutdownService --> SystemNavigator
+ShutdownService --> Process
 
 @enduml

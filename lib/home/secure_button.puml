@@ -1,52 +1,78 @@
-@startuml
-' Flutter framework package
-package "Flutter Framework" {
-    class StatefulWidget {
-        +createState(): State
-    }
+@startuml SecureButton_ClassDiagram
+title Flutter Widget Class Diagram - SecureButton
 
-    class State<T extends StatefulWidget> {
-        +build(BuildContext context): Widget
-        +setState(VoidCallback fn)
-        +mounted: bool
-        +context: BuildContext
-    }
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-    class Widget
-    class BuildContext
-    class ElevatedButton
-    class Text
-    class ScaffoldMessenger
-    class SnackBar
-    class DateTime
-    class Duration
+package "Flutter Widget Layer" {
+
+class SecureButton {
+-onConfirmed : VoidCallback
++SecureButton({Key? key, required VoidCallback onConfirmed})
++createState() : State<SecureButton>
 }
 
-package "My App Widgets" {
-    class SecureButton {
-        +SecureButton({key, required onConfirmed})
-        +createState(): _SecureButtonState
-        +onConfirmed: VoidCallback
-    }
+class StatefulWidget
+SecureButton --|> StatefulWidget
 
-    class _SecureButtonState {
-        -DateTime? _lastPressed
-        +_handlePress(): void
-        +build(BuildContext context): Widget
-    }
 }
 
-' Inheritance
-SecureButton -|> StatefulWidget
-_SecureButtonState -|> State
+package "Widget State" {
 
-' Composition / usage relationships
-_SecureButtonState --> ElevatedButton
-_SecureButtonState --> Text
-_SecureButtonState --> ScaffoldMessenger
-_SecureButtonState --> SnackBar
+class _SecureButtonState {
+-_lastPressed : DateTime?
++_handlePress() : void
++build(context: BuildContext) : Widget
+}
+
+class State<T>
+
+_SecureButtonState --|> State
+
+}
+
+package "Flutter UI Components" {
+
+class ElevatedButton
+class ScaffoldMessenger
+class SnackBar
+class Text
+
+}
+
+package "Dart Core" {
+
+class DateTime {
++now()
++difference(DateTime)
+}
+
+class Duration
+
+}
+
+package "Callbacks" {
+
+class VoidCallback {
++call()
+}
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+SecureButton --> VoidCallback : onConfirmed
+SecureButton --> _SecureButtonState : creates
+
+_SecureButtonState --> SecureButton : widget
 _SecureButtonState --> DateTime
 _SecureButtonState --> Duration
-_SecureButtonState --> SecureButton : widget
+
+_SecureButtonState --> ElevatedButton
+_SecureButtonState --> ScaffoldMessenger
+_SecureButtonState --> SnackBar
+_SecureButtonState --> Text
 
 @enduml

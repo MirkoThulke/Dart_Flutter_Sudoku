@@ -1,77 +1,129 @@
-@startuml
-' Package for Flutter framework basics
-package "Flutter Framework" {
-    class StatefulWidget {
-        +createState(): State
-    }
+@startuml AddRemoveToggle_ClassDiagram
+title Flutter Widget Class Diagram - AddRemoveToggle
 
-    class State<T extends StatefulWidget> {
-        +build(BuildContext context): Widget
-        +setState(VoidCallback fn)
-        +mounted: bool
-        +context: BuildContext
-    }
+skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-    class Widget
-    class BuildContext
-    class Padding
-    class Column
-    class Row
-    class Expanded
-    class SizedBox
-    class ElevatedButton
-    class FittedBox
-    class Icon
-    class Text
-    class ScaffoldMessenger
-    class SnackBar
-    class Color
+package "Widget Layer" {
+
+class AddRemoveToggle {
++AddRemoveToggle({Key? key})
++createState() : State<AddRemoveToggle>
 }
 
-package "My App Widgets" {
-    class AddRemoveToggle {
-        +AddRemoveToggle({key})
-        +createState(): _AddRemoveToggleState
-    }
+class StatefulWidget
+AddRemoveToggle --|> StatefulWidget
 
-    class _AddRemoveToggleState {
-        -List<bool> _selected
-        -DateTime? _lastPressed
-        -DateTime? _eraseAllConfirmedAt
-        -bool _eraseAllJustConfirmed
-        -DateTime? _savedGivensConfirmedAt
-        -bool _savedGivensJustConfirmed
-        -DateTime? _isResetToGivensConfirmedAt
-        -bool _isResetToGivensJustConfirmed
-        -DateTime? _isSelectAllCandConfirmedAt
-        -bool _isSelectAllCandJustConfirmed
-        -Color _iconColor
-
-        +build(BuildContext context): Widget
-        +buildElevatedToggle(int index): Widget
-        +_handleEraseAll(bool isDoubleTap): Future<void>
-        +_handleSaveGivens(bool isDoubleTap): Future<void>
-        +_handleResetToGivens(bool isDoubleTap): Future<void>
-        +_handleSelectAllCand(bool isDoubleTap): Future<void>
-    }
 }
 
-' Inheritance
-AddRemoveToggle -|> StatefulWidget
-_AddRemoveToggleState -|> State
+package "Widget State" {
 
-' Composition/Usage relationships
+class _AddRemoveToggleState {
+-_selected : List<bool>
+-_lastPressed : DateTime?
+-_eraseAllConfirmedAt : DateTime?
+-_eraseAllJustConfirmed : bool
+-_savedGivensConfirmedAt : DateTime?
+-_savedGivensJustConfirmed : bool
+-_isResetToGivensConfirmedAt : DateTime?
+-_isResetToGivensJustConfirmed : bool
+-_isSelectAllCandConfirmedAt : DateTime?
+-_isSelectAllCandJustConfirmed : bool
+-_iconColor : Color
+
++build(context: BuildContext) : Widget
++buildElevatedToggle(index:int) : Widget
+
+-_handleEraseAll(isDoubleTap:bool) : Future<void>
+-_handleSaveGivens(isDoubleTap:bool) : Future<void>
+-_handleResetToGivens(isDoubleTap:bool) : Future<void>
+-_handleSelectAllCand(isDoubleTap:bool) : Future<void>
+}
+
+class State<T>
+_AddRemoveToggleState --|> State
+
+}
+
+package "State Management" {
+
+class DataProvider {
++updateDataselectedEraseAll(List<bool>)
++updateDataselectedwriteGivensToRust(List<bool>)
++updateDataselectedResetToGivens(List<bool>)
++updateDataselectedSetAllCandidates(List<bool>)
+}
+
+class SizeConfig {
++init(context)
+}
+
+}
+
+package "Flutter UI Framework" {
+
+class ElevatedButton
+class Padding
+class Column
+class Row
+class Expanded
+class Icon
+class Text
+class FittedBox
+class SnackBar
+class ScaffoldMessenger
+class Color
+class Icons
+
+}
+
+package "Dart Core" {
+
+class DateTime {
++now()
++difference(DateTime)
+}
+
+class Duration
+class List<T>
+
+}
+
+package "Constants / Enums" {
+
+class addRemoveListIndex
+class addRemoveLabels
+
+}
+
+'---------------------------------------
+' Relationships
+'---------------------------------------
+
+AddRemoveToggle --> _AddRemoveToggleState : creates
+
+_AddRemoveToggleState --> DataProvider
+_AddRemoveToggleState --> SizeConfig
+
+_AddRemoveToggleState --> DateTime
+_AddRemoveToggleState --> Duration
+_AddRemoveToggleState --> List
+
+_AddRemoveToggleState --> ElevatedButton
 _AddRemoveToggleState --> Padding
 _AddRemoveToggleState --> Column
 _AddRemoveToggleState --> Row
 _AddRemoveToggleState --> Expanded
-_AddRemoveToggleState --> SizedBox
-_AddRemoveToggleState --> ElevatedButton
-_AddRemoveToggleState --> FittedBox
 _AddRemoveToggleState --> Icon
 _AddRemoveToggleState --> Text
-_AddRemoveToggleState --> ScaffoldMessenger
+_AddRemoveToggleState --> FittedBox
 _AddRemoveToggleState --> SnackBar
+_AddRemoveToggleState --> ScaffoldMessenger
 _AddRemoveToggleState --> Color
+_AddRemoveToggleState --> Icons
+
+_AddRemoveToggleState --> addRemoveListIndex
+_AddRemoveToggleState --> addRemoveLabels
 
 @enduml
+

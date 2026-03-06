@@ -1,0 +1,22 @@
+@startuml
+
+class HelpPage {
+  +build(BuildContext context) : Widget
+  -markdownData : String
+}
+
+class MarkdownWidget
+class MarkdownConfig
+class PConfig
+class H1Config
+class H2Config
+class H3Config
+
+HelpPage --> MarkdownWidget
+HelpPage --> MarkdownConfig
+MarkdownConfig --> PConfig
+MarkdownConfig --> H1Config
+MarkdownConfig --> H2Config
+MarkdownConfig --> H3Config
+
+@enduml

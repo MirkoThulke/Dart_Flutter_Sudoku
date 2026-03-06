@@ -1,43 +1,56 @@
 @startuml
+title Flutter & Gradle Cache Reset Script
 
-skinparam defaultFontName "DejaVu Sans"
-
-|Shell Script|
 start
-:Print "🧹 Cleaning Flutter & Gradle caches...";
 
-:Detect script directory;
-:Determine PROJECT_ROOT;
-:cd "$PROJECT_ROOT" or exit;
+:Print cleaning banner;
+
+:Resolve PROJECT_ROOT;
+:Resolve GRADLE_USER_HOME;
+:Resolve PUB_CACHE;
+:Resolve FLUTTER_HOME;
+
+:Print environment variables;
+
+if (Running in Docker?) then (yes)
+:Set IS_DOCKER = true;
+:Print "Running inside Docker";
+else (no)
+:Print "Running on Host (WSL/Linux)";
+endif
+
+:Print HOME directory;
 
 if (android/gradlew exists?) then (yes)
-    :Print "Stopping Gradle daemons...";
-    :bash android/gradlew --stop;
+:Stop Gradle daemons;
 else (no)
-    :Print "⚠️ gradlew not found, skipping daemon stop.";
+:Skip daemon stop;
 endif
 
-:Print "Removing global Gradle caches...";
-:GRADLE_HOME="$HOME/.gradle/caches";
+:Remove global Gradle cache;
+rm -rf GRADLE_USER_HOME
 
-if (GRADLE_HOME exists?) then (yes)
-    :rm -rf "$GRADLE_HOME/transforms-4";
-    :rm -rf "$GRADLE_HOME/modules-2";
-    :rm -rf "$GRADLE_HOME/jars-9";
-    :rm -rf "$GRADLE_HOME/daemon";
+:Remove project build directories;
+rm -rf .gradle / build / android/build
+
+if (FLUTTER_HOME detected?) then (yes)
+:Remove Flutter bin/cache;
+:Remove flutter_tools .dart_tool cache;
 else (no)
-    :Print "⚠️ No global Gradle caches found at $GRADLE_HOME";
+:Skip Flutter cache clean;
 endif
 
-:Print "Removing local project build folders...";
-:rm -rf "$PROJECT_ROOT/.gradle" "$PROJECT_ROOT/build" "$PROJECT_ROOT/android/build";
+:Remove Dart pub cache;
 
-:Print "Running flutter clean...";
-:flutter clean;
+if (flutter command exists?) then (yes)
+:Run flutter clean;
+:Run flutter pub get --no-precompile;
+else (no)
+:Print error "flutter not found";
+stop
+endif
 
-:Print "Fetching Flutter dependencies...";
-:flutter pub get;
+:Print reset complete;
 
-:Print "✅ Flutter & Gradle caches fully reset.";
 stop
 @enduml

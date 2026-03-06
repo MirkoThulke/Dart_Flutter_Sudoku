@@ -1,23 +1,88 @@
 @startuml
+title Rust Sudoku Solver – Crate Module Structure
 
-package rust_lib_rs {
-  component Lib_rs
-  component StoreData_rs
-  component Ffi_rs
-  component ProcessData_rs
-}
+skinparam shadowing false
+skinparam componentStyle rectangle
 
-' Arrows (all references must match element names)
-Lib_rs --> Ffi_rs : uses & re-exports
-Lib_rs --> ProcessData_rs : uses
-Lib_rs --> StoreData_rs : uses
-ProcessData_rs ..> Ffi_rs : uses
+' =========================================================
+' CRATE ROOT
+' =========================================================
 
-note right of Lib_rs
-  This module contains the FFI bindings
-  and is re-exported by lib.rs
+package "crate root (lib.rs)" {
+
+component "lib.rs" as ROOT
+
+note right of ROOT
+Entry point of the Rust crate.
+
+Defines internal modules:
+- ffi
+- process_data
+- store_data
+
+Re-exports the public API:
+pub use ffi::*;
 end note
 
+}
+
+' =========================================================
+' MODULES
+' =========================================================
+
+package "Internal Modules" {
+
+component "ffi.rs\n(FFI interface)" as FFI
+
+component "process_data.rs\n(Sudoku solver logic)" as PROCESS
+
+component "store_data.rs\n(JSON persistence)" as STORE
+
+}
+
+' =========================================================
+' RELATIONSHIPS
+' =========================================================
+
+ROOT --> FFI : mod
+ROOT --> PROCESS : mod
+ROOT --> STORE : mod
+
+FFI --> PROCESS : uses
+FFI --> STORE : uses
+
+note right of FFI
+Provides C-compatible API
+for Dart/Flutter via FFI.
+
+Functions:
+- create_matrix
+- update_cell
+- update_matrix
+- erase_matrix
+- set_all_candidates
+- free_matrix
+end note
+
+note right of PROCESS
+Sudoku solving logic:
+- check_one_element()
+- check_all_elements()
+end note
+
+note right of STORE
+Handles persistence:
+- load matrix
+- save matrix
+- JSON serialization
+end note
+
+' =========================================================
+' EXTERNAL BOUNDARY
+' =========================================================
+
+actor "Dart / Flutter App" as DART
+
+DART --> FFI : FFI calls
 
 @enduml
-

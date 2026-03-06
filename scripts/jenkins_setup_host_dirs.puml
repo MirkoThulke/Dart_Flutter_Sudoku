@@ -1,0 +1,35 @@
+@startuml
+title Jenkins Host Directory Setup Script
+
+start
+
+:Define variables;
+:JENKINS_UID = 2000;
+:JENKINS_GID = 2000;
+:HOST_HOME = /home/mirko/jenkins_host_workspace;
+:HOST_CACHE = /home/mirko/jenkins_host_cache;
+
+:Print paths;
+
+:Prompt user
+"Delete existing host directories?";
+
+if (User enters 'y'?) then (yes)
+:Delete /home/mirko/jenkins_host_*;
+else (no)
+:Skip deletion;
+endif
+
+:Create directories;
+mkdir -p HOST_HOME HOST_CACHE;
+
+:Set ownership;
+chown JENKINS_UID:JENKINS_GID;
+
+:Set permissions;
+chmod 770;
+
+:Print "Host directories ready";
+
+stop
+@enduml

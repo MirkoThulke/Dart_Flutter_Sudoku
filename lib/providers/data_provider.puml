@@ -1,122 +1,164 @@
 @startuml
-title DataProvider Class Diagram
+title Flutter DataProvider – State Management & Rust FFI Bridge
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-' External classes
-class ChangeNotifier
-class WidgetsBindingObserver
-class RustMatrix
-class DartToRustElement
+' =========================================================
+' FLUTTER UI
+' =========================================================
 
-' Enum-like external types (shown as stubs)
-class DataStatus
-class SelectedNumberList
-class SelectedNumStateList
-class SelectedSetResetList
-class SelectedPatternList
-class SelectedUndoIconList
-class SelectedAddRemoveList
-class RequestedCandHighLightType
-class RequestedElementHighLightType
+actor FlutterUI
 
-' -----------------------------
-' Main class
-' -----------------------------
-class DataProvider {
-    - DataStatus _status
-    - String? _errorMessage
-
-    ' HMI lists
-    - SelectedNumberList _selectedNumberList
-    - SelectedNumStateList _selectedNumStateList
-    - SelectedSetResetList _selectedSetResetList
-    - SelectedPatternList _selectedPatternList
-    - SelectedUndoIconList _selectedUndoIconList
-    - SelectedAddRemoveList _selectedAddRemoveList
-
-    ' Backend matrices
-    - RustMatrix rustMatrix
-    - List<List<DartToRustElement>> dartMatrix
-
-    - String appJsonPath
-
-    - RequestedCandHighLightType _requestedCandHighLightType
-    - RequestedElementHighLightType _requestedElementHighLightType
-
-    --
-    + DataStatus get status()
-    + String? get errorMessage()
-    + SelectedNumberList get selectedNumberList()
-    + SelectedNumStateList get selectedNumStateList()
-    + SelectedSetResetList get selectedSetResetList()
-    + SelectedPatternList get selectedPatternList()
-    + SelectedUndoIconList get selectedUndoIconList()
-    + SelectedAddRemoveList get selectedAddRemoveList()
-    + RequestedCandHighLightType get requestedCandHighLightType()
-
-    --
-    + DataProvider()
-    - Future<void> _initAsync()
-    + Future<bool> initJsonFile()
-
-    --
-    ' UI update methods
-    + void updateDataNumberlist(...)
-    + void updateDataselectedSetResetList(...)
-    + void updateDataselectedUndoIconList(...)
-    + Future<void> updateDataselectedEraseAll(...)
-    + Future<void> updateDataselectedResetToGivens(...)
-    + Future<void> updateDataselectedSetAllCandidates(...)
-    + Future<void> updateDataselectedwriteGivensToRust(...)
-    + void updateDataselectedPatternList(...)
-    + void updateRequestedCandHighLightType(...)
-    + void updateRequestedElementHighLightType(...)
-
-    --
-    ' Dart -> Rust
-    + void writeCellToRust(...)
-    + void writeFullMatrixToRust()
-    + void writeGivensToRust()
-
-    ' Rust -> Dart
-    + void readCellFromRust(...)
-    + Future<void> readMatrixFromRust()
-    + int readRequestedCandHighLightTypeFromRust(...)
-
-    --
-    ' Rust commands
-    + void callRustUpdate()
-    + Future<void> callRustEraseAll()
-    + Future<void> callRustResetToGivens()
-    + Future<void> callRustSetAllCandidates()
-    + void callRustCellUpdate(...)
-
-    --
-    + Future<void> shutdown()
-    + void dispose()
-    + void didChangeAppLifecycleState(...)
+package "Flutter Widgets" {
+  class SudokuGrid
+  class NumberButtons
+  class PatternButtons
+  class ActionButtons
 }
 
-' -----------------------------
-' Inheritance
-' -----------------------------
-DataProvider --|> ChangeNotifier
-DataProvider --|> WidgetsBindingObserver
+FlutterUI --> SudokuGrid
+FlutterUI --> NumberButtons
+FlutterUI --> PatternButtons
+FlutterUI --> ActionButtons
 
-' -----------------------------
-' Associations
-' -----------------------------
-DataProvider --> RustMatrix : "uses"
-DataProvider --> DartToRustElement : "matrix element"
-DataProvider --> DataStatus
-DataProvider --> SelectedNumberList
-DataProvider --> SelectedNumStateList
-DataProvider --> SelectedSetResetList
-DataProvider --> SelectedPatternList
-DataProvider --> SelectedUndoIconList
-DataProvider --> SelectedAddRemoveList
-DataProvider --> RequestedCandHighLightType
-DataProvider --> RequestedElementHighLightType
+
+' =========================================================
+' STATE MANAGEMENT
+' =========================================================
+
+package "State Management" {
+
+class DataProvider {
+  + status : DataStatus
+  + errorMessage : String
+
+  + selectedNumberList
+  + selectedNumStateList
+  + selectedSetResetList
+  + selectedPatternList
+  + selectedUndoIconList
+  + selectedAddRemoveList
+
+  + dartMatrix
+  + rustMatrix
+
+  --
+  + updateDataNumberlist()
+  + updateDataselectedPatternList()
+  + updateDataselectedEraseAll()
+  + updateDataselectedResetToGivens()
+  + updateDataselectedSetAllCandidates()
+  + updateDataselectedwriteGivensToRust()
+
+  --
+  + callRustUpdate()
+  + readMatrixFromRust()
+  + writeCellToRust()
+  + writeFullMatrixToRust()
+
+  --
+  + shutdown()
+}
+
+}
+
+SudokuGrid --> DataProvider
+NumberButtons --> DataProvider
+PatternButtons --> DataProvider
+ActionButtons --> DataProvider
+
+
+' =========================================================
+' MATRIX DATA MODEL
+' =========================================================
+
+package "Matrix Data" {
+
+class DartToRustElement
+class DartMatrix
+
+}
+
+DartMatrix --> DartToRustElement
+DataProvider --> DartMatrix
+
+
+' =========================================================
+' RUST FFI LAYER
+' =========================================================
+
+package "Rust FFI Bridge" {
+
+class RustMatrix {
+  + update()
+  + erase()
+  + setAllCandidates()
+  + updateCell()
+  + readMatrixFromRust()
+  + writeMatrixToRust()
+  + saveToJSON()
+  + loadFromJSON()
+  + dispose()
+}
+
+}
+
+DataProvider --> RustMatrix
+
+
+' =========================================================
+' RUST BACKEND
+' =========================================================
+
+package "Rust Solver Engine" {
+
+class SolverMatrix
+class PatternDetection
+class PersistenceJSON
+
+}
+
+RustMatrix --> SolverMatrix
+SolverMatrix --> PatternDetection
+SolverMatrix --> PersistenceJSON
+
+
+' =========================================================
+' LOCAL STORAGE
+' =========================================================
+
+package "Local Storage" {
+  class JSONFile
+}
+
+PersistenceJSON --> JSONFile
+
+
+' =========================================================
+' APP LIFECYCLE
+' =========================================================
+
+package "Flutter Lifecycle" {
+
+class WidgetsBindingObserver
+
+}
+
+DataProvider --> WidgetsBindingObserver
+
+WidgetsBindingObserver --> DataProvider : paused / detached
+
+
+note right of DataProvider
+Main responsibilities:
+
+• Store UI state
+• Handle button interactions
+• Synchronize Dart matrix with Rust
+• Call Rust solver
+• Notify Flutter widgets
+• Persist data on shutdown
+end note
 
 @enduml

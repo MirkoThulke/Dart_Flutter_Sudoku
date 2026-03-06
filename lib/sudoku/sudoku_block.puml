@@ -1,18 +1,74 @@
-@startuml
-title SudokuBlock Widget
+@startuml SudokuBlock_ClassDiagram
+title Flutter Widget Class Diagram - SudokuBlock
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 
-class StatelessWidget
+package "Widget Layer" {
 
 class SudokuBlock {
-    - int block_id
-    --
-    + SudokuBlock({required int block_id})
-    + Widget build(BuildContext context)
+-block_id : int
++SudokuBlock({Key? key, required int block_id})
++build(context: BuildContext) : Widget
 }
 
+class StatelessWidget
 SudokuBlock --|> StatelessWidget
-SudokuBlock --> SudokuElement : "creates 9 elements"
+
+}
+
+package "Application Widgets" {
+
+class SudokuElement {
++element_id : int
+}
+
+}
+
+package "Sudoku Constants" {
+
+class constSudokuNumRow {
++value : int
+}
+
+}
+
+package "Flutter UI Framework" {
+
+class Scaffold
+class Container
+class GridView
+class BoxDecoration
+class Border
+class Colors
+class NeverScrollableScrollPhysics
+class EdgeInsets
+
+}
+
+package "Flutter Core Types" {
+
+class BuildContext
+class Widget
+class List
+
+}
+
+'---------------------------------
+' Relationships
+'---------------------------------
+
+SudokuBlock --> SudokuElement : creates (9 elements)
+
+SudokuBlock --> constSudokuNumRow : index calculation
+
+SudokuBlock --> Scaffold
+SudokuBlock --> Container
+SudokuBlock --> GridView
+SudokuBlock --> BoxDecoration
+SudokuBlock --> Border
+SudokuBlock --> Colors
+SudokuBlock --> NeverScrollableScrollPhysics
+SudokuBlock --> EdgeInsets
 
 @enduml

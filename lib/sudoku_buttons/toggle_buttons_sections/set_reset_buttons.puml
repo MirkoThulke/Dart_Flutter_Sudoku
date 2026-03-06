@@ -1,0 +1,81 @@
+@startuml SetResetButtons_ClassDiagram
+title Flutter Widget Class Diagram - SetResetButtons
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class SetResetButtons {
+-isVertical : bool
+-selectedList : List<bool>
+-maxWidth : double
+-onUpdate : ValueChanged<List<bool>>
+------------------------------------
+
++SetResetButtons({
+Key? key,
+bool isVertical,
+List<bool> selectedList,
+double maxWidth,
+ValueChanged<List<bool>> onUpdate
+})
++build(context: BuildContext) : Widget
+}
+
+class StatelessWidget
+
+SetResetButtons --|> StatelessWidget
+
+}
+
+package "Flutter UI Framework" {
+
+class ToggleButtons
+class Axis
+class BorderRadius
+class Radius
+class Colors
+class BoxConstraints
+
+}
+
+package "Callbacks" {
+
+class ValueChanged<T> {
++call(T value)
+}
+
+}
+
+package "Application Resources" {
+
+class setresetlist {
++List<Widget>
+}
+
+}
+
+package "Core Types" {
+
+class BuildContext
+class Widget
+class List<bool>
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+SetResetButtons --> ToggleButtons
+SetResetButtons --> Axis
+SetResetButtons --> BorderRadius
+SetResetButtons --> Radius
+SetResetButtons --> Colors
+SetResetButtons --> BoxConstraints
+
+SetResetButtons --> ValueChanged : callback
+SetResetButtons --> setresetlist : children
+
+@enduml

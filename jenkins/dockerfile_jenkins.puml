@@ -1,0 +1,17 @@
+Developer
+   ↓
+Dockerfile
+   ↓
+Base Jenkins Image
+   ↓
+System Configuration
+   ↓
+Dependencies Installation
+   ↓
+Plugin Installation
+   ↓
+PlantUML + Graphviz
+   ↓
+Docker Permissions
+   ↓
+Final Jenkins CI Image

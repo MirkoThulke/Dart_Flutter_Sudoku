@@ -1,0 +1,78 @@
+@startuml UndoIconButtons_ClassDiagram
+title Flutter Widget Class Diagram - UndoIconButtons
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Widget Layer" {
+
+class UndoIconButtons {
+-isVertical : bool
+-selectedList : List<bool>
+-onUpdate : ValueChanged<List<bool>>
+
++UndoIconButtons({
+Key? key,
+bool isVertical,
+List<bool> selectedList,
+ValueChanged<List<bool>> onUpdate
+})
+
++build(context: BuildContext) : Widget
+}
+
+class StatelessWidget
+UndoIconButtons --|> StatelessWidget
+
+}
+
+package "Flutter UI Framework" {
+
+class ToggleButtons
+class Axis
+class BorderRadius
+class Radius
+class Colors
+class BoxConstraints
+
+}
+
+package "Callbacks" {
+
+class ValueChanged<T> {
++call(T value)
+}
+
+}
+
+package "Application Resources" {
+
+class undoiconlist {
++List<Widget>
+}
+
+}
+
+package "Core Types" {
+
+class BuildContext
+class Widget
+class List<bool>
+
+}
+
+'-----------------------------------
+' Relationships
+'-----------------------------------
+
+UndoIconButtons --> ToggleButtons
+UndoIconButtons --> Axis
+UndoIconButtons --> BorderRadius
+UndoIconButtons --> Radius
+UndoIconButtons --> Colors
+UndoIconButtons --> BoxConstraints
+
+UndoIconButtons --> ValueChanged : callback
+UndoIconButtons --> undoiconlist : children
+
+@enduml

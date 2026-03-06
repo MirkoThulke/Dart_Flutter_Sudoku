@@ -1,0 +1,33 @@
+@startuml
+title Rust Android Build Pipeline
+
+start
+
+:Resolve script directory;
+:Set RUST_LIB_DIR;
+:Set JNI_LIBS_PATH;
+
+:Change directory to Rust library;
+
+:Clean previous build;
+cargo clean
+
+:Build Rust backend for Android;
+cargo ndk build --release
+
+note right
+Targets:
+
+* armeabi-v7a
+* arm64-v8a
+* x86
+* x86_64
+  end note
+
+:Output shared libraries (.so)
+to Flutter jniLibs folder;
+
+:List resulting files;
+
+stop
+@enduml
