@@ -37,18 +37,19 @@ import 'package:provider/provider.dart'; // data excahnge between classes
 
 ////////////////////////////////////////////////////////////
 // Main classe  -> root
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DataProvider()), // your app logic
-        ChangeNotifierProvider(create: (_) => SizeConfig()),   // layout + orientation
+        ChangeNotifierProvider(
+            create: (_) => SizeConfig()), // layout + orientation
       ],
       child: MyApp(),
     ),
   );
-
-
 }
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
