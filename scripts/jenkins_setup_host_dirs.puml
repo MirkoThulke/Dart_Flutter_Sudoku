@@ -15,19 +15,19 @@ start
 "Delete existing host directories?";
 
 if (User enters 'y'?) then (yes)
-:Delete /home/mirko/jenkins_host_*;
+  :Delete /home/mirko/jenkins_host_*;
 else (no)
-:Skip deletion;
+  :Skip deletion;
 endif
 
-:Create directories;
-mkdir -p HOST_HOME HOST_CACHE;
+:Create directories
+(mkdir -p HOST_HOME HOST_CACHE);
 
-:Set ownership;
-chown JENKINS_UID:JENKINS_GID;
+:Set ownership
+(chown JENKINS_UID:JENKINS_GID);
 
-:Set permissions;
-chmod 770;
+:Set permissions
+(chmod 770);
 
 :Print "Host directories ready";
 

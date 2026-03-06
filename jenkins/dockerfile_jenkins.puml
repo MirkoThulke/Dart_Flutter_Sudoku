@@ -1,17 +1,125 @@
-Developer
-   ↓
-Dockerfile
-   ↓
-Base Jenkins Image
-   ↓
-System Configuration
-   ↓
-Dependencies Installation
-   ↓
-Plugin Installation
-   ↓
-PlantUML + Graphviz
-   ↓
-Docker Permissions
-   ↓
-Final Jenkins CI Image
+@startuml Jenkins_Sudoku_Dockerfile
+title Jenkins Sudoku CI – Docker Image Build
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+left to right direction
+
+actor "Developer / CI Pipeline" as dev
+
+node "Docker Build Process" {
+
+    component "Dockerfile\n(Current Directory)" as dockerfile
+
+    component "Build Command" as build_cmd
+    note right of build_cmd
+    docker build -t jenkins_sudoku_image:2.528.3 .
+    docker build --no-cache -t jenkins_sudoku_image:2.528.3 .
+    end note
+
+}
+
+node "Base Image Layer" {
+
+    component "jenkins/jenkins\n2.528.3-lts-jdk21" as base_image
+
+}
+
+node "System Configuration Layer" {
+
+    component "User Configuration" as user_cfg
+    note right of user_cfg
+    USER root
+    usermod -u 2000 jenkins
+    groupmod -g 2000 jenkins
+    end note
+
+    component "Git Configuration" as git_cfg
+    note right of git_cfg
+    git config --system
+    safe.directory /opt/flutter
+    end note
+
+    component "Jenkins Setup Configuration" as setup_cfg
+    note right of setup_cfg
+    JAVA_OPTS=
+    -Djenkins.install.runSetupWizard=false
+    end note
+
+}
+
+node "Package Installation Layer" {
+
+    component "APT Dependencies" as apt_deps
+    note right of apt_deps
+    docker-cli
+    ca-certificates
+    curl
+    git
+    end note
+
+}
+
+node "Jenkins Plugin Layer" {
+
+    component "Jenkins Plugins" as plugins
+    note right of plugins
+    git
+    workflow-aggregator
+    github
+    github-branch-source
+    pipeline-stage-view
+    docker-workflow
+    ws-cleanup
+    end note
+
+}
+
+node "Diagram Tooling Layer" {
+
+    component "Documentation Tools" as docs_tools
+    note right of docs_tools
+    plantuml
+    graphviz
+    end note
+
+}
+
+node "Docker Integration Layer" {
+
+    component "Docker Group Configuration" as docker_group
+    note right of docker_group
+    groupadd -g 1001 docker
+    usermod -aG docker jenkins
+    end note
+
+}
+
+node "Final Runtime Image" {
+
+    component "jenkins_sudoku_image:2.528.3" as final_image
+
+    component "Runtime User\njenkins (UID:2000)" as runtime_user
+
+}
+
+dev --> build_cmd
+build_cmd --> dockerfile
+
+dockerfile --> base_image
+
+base_image --> user_cfg
+user_cfg --> git_cfg
+git_cfg --> setup_cfg
+
+setup_cfg --> apt_deps
+apt_deps --> plugins
+plugins --> docs_tools
+docs_tools --> docker_group
+
+docker_group --> final_image
+final_image --> runtime_user
+
+@enduml

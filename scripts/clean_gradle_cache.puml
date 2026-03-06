@@ -13,41 +13,41 @@ start
 :Print environment variables;
 
 if (Running in Docker?) then (yes)
-:Set IS_DOCKER = true;
-:Print "Running inside Docker";
+  :Set IS_DOCKER = true;
+  :Print "Running inside Docker";
 else (no)
-:Print "Running on Host (WSL/Linux)";
+  :Print "Running on Host (WSL/Linux)";
 endif
 
 :Print HOME directory;
 
 if (android/gradlew exists?) then (yes)
-:Stop Gradle daemons;
+  :Stop Gradle daemons;
 else (no)
-:Skip daemon stop;
+  :Skip daemon stop;
 endif
 
-:Remove global Gradle cache;
-rm -rf GRADLE_USER_HOME
+:Remove global Gradle cache
+(rm -rf GRADLE_USER_HOME);
 
-:Remove project build directories;
-rm -rf .gradle / build / android/build
+:Remove project build directories
+(rm -rf .gradle build android/build);
 
 if (FLUTTER_HOME detected?) then (yes)
-:Remove Flutter bin/cache;
-:Remove flutter_tools .dart_tool cache;
+  :Remove Flutter bin/cache;
+  :Remove flutter_tools .dart_tool cache;
 else (no)
-:Skip Flutter cache clean;
+  :Skip Flutter cache clean;
 endif
 
 :Remove Dart pub cache;
 
 if (flutter command exists?) then (yes)
-:Run flutter clean;
-:Run flutter pub get --no-precompile;
+  :Run flutter clean;
+  :Run flutter pub get --no-precompile;
 else (no)
-:Print error "flutter not found";
-stop
+  :Print error "flutter not found";
+  stop
 endif
 
 :Print reset complete;

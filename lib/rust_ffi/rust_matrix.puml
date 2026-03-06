@@ -180,7 +180,7 @@ loadFromJSON --> JSONFile
 ' FLUTTER APP
 ' =========================================================
 
-actor FlutterApp
+class FlutterApp <<actor>>
 
 FlutterApp --> RustMatrix : create / update
 FlutterApp --> DartMatrix

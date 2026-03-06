@@ -4,23 +4,28 @@ title Flutter + Rust Build & Deploy Script
 start
 
 :Detect runtime environment;
+
 if (Docker?) then (yes)
-:ENV_TYPE = DOCKER;
-elseif (WSL?)
-:ENV_TYPE = WSL;
-elseif (Windows?)
-:ENV_TYPE = WINDOWS;
-else
-:ENV_TYPE = LINUX;
+  :ENV_TYPE = DOCKER;
+else (no)
+  if (WSL?) then (yes)
+    :ENV_TYPE = WSL;
+  else (no)
+    if (Windows?) then (yes)
+      :ENV_TYPE = WINDOWS;
+    else (no)
+      :ENV_TYPE = LINUX;
+    endif
+  endif
 endif
 
 :Load device IP from ~/.adb_device_ip;
 
 if (Running in WSL?) then (yes)
-:Configure ADB_SERVER_SOCKET;
-:ADB_CMD = adb.exe;
-else
-:ADB_CMD = adb;
+  :Configure ADB_SERVER_SOCKET;
+  :ADB_CMD = adb.exe;
+else (no)
+  :ADB_CMD = adb;
 endif
 
 :Parse CLI arguments;
@@ -28,65 +33,68 @@ endif
 :Set CLEAN_BUILD flag;
 
 :Resolve project root;
-cd project root;
+:Change directory to project root;
 
 :Generate android/local.properties;
 
 if (WSL host?) then (yes)
-:Check CMake installed;
-if (Missing CMake) then (yes)
-:Exit with error;
-stop
-endif
+  :Check CMake installed;
+  if (Missing CMake?) then (yes)
+    :Exit with error;
+    stop
+  endif
 endif
 
 :Verify Flutter installed;
-if (Flutter missing) then (yes)
-:Exit with error;
-stop
+
+if (Flutter missing?) then (yes)
+  :Exit with error;
+  stop
 endif
 
 :Run flutter pub get;
 
 if (Release mode OR clean requested?) then (yes)
-:Run clean_flutter.sh;
+  :Run clean_flutter.sh;
 endif
 
 :Build Flutter APK;
 
 if (Debug mode?) then (yes)
-:flutter build apk --debug;
-else
-:flutter build apk --release;
+  :Run flutter build apk --debug;
+else (no)
+  :Run flutter build apk --release;
 endif
 
 :Locate APK;
 
 if (APK missing?) then (yes)
-:Exit with error;
-stop
+  :Exit with error;
+  stop
 endif
 
 :Check connected device;
 
 if (USB device found?) then (yes)
-:Enable TCP/IP ADB mode;
+  :Enable TCP/IP ADB mode;
 endif
 
 if (No active device?) then (yes)
-:Reconnect using saved IP;
+  :Reconnect using saved IP;
 endif
 
 :Detect connection type;
 
 if (Device connected?) then (yes)
-:Install APK;
-if (Install failed?) then (yes)
-:Uninstall old version;
-:Reinstall APK;
-endif
-else
-:Skip install;
+  :Install APK;
+
+  if (Install failed?) then (yes)
+    :Uninstall old version;
+    :Reinstall APK;
+  endif
+
+else (no)
+  :Skip install;
 endif
 
 stop

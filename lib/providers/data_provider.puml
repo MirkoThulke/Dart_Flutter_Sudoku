@@ -1,5 +1,7 @@
 @startuml
+
 title Flutter DataProvider – State Management & Rust FFI Bridge
+left to right direction
 
 skinparam classAttributeIconSize 0
 skinparam shadowing false
@@ -8,7 +10,7 @@ skinparam shadowing false
 ' FLUTTER UI
 ' =========================================================
 
-actor FlutterUI
+class FlutterUI <<actor>>
 
 package "Flutter Widgets" {
   class SudokuGrid

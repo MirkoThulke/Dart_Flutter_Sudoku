@@ -5,44 +5,41 @@ skinparam componentStyle rectangle
 skinparam shadowing false
 skinparam packageStyle rectangle
 
+left to right direction
+
 actor "Developer / DevOps" as dev
 
 node "Host Machine\nLinux" {
 
-```
 node "Docker Engine" {
 
     node "Docker Compose" {
-
         component "Service: jenkins" as jenkins_service
-
     }
 
     node "Container\njenkins_sudoku_container" {
 
         component "Image\njenkins_sudoku_image:2.528.3" as image
-
         component "Jenkins Server" as jenkins_app
-
         component "User Runtime\nUID:2000\nGID:2000" as user_runtime
 
-        component "Environment Variables" as env {
-            TZ = Europe/Paris
-            JAVA_OPTS=-Djenkins.install.runSetupWizard=false
-        }
+        component "Environment Variables" as env
+        note right of env
+        TZ = Europe/Paris
+        JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+        end note
 
-        component "Exposed Ports" as ports {
-            8080 → Jenkins Web UI
-            50000 → Jenkins Agent Port
-        }
+        component "Exposed Ports" as ports
+        note right of ports
+        8080 -> Jenkins Web UI
+        50000 -> Jenkins Agent Port
+        end note
 
-        component "Volumes" as volumes {
-            /home/mirko/jenkins_host_workspace
-            → /var/jenkins_home
-
-            /var/run/docker.sock
-            → /var/run/docker.sock
-        }
+        component "Volumes" as volumes
+        note right of volumes
+        /home/mirko/jenkins_host_workspace -> /var/jenkins_home
+        /var/run/docker.sock -> /var/run/docker.sock
+        end note
 
         component "Docker Group Access\nGID:1001" as docker_group
     }
@@ -53,22 +50,15 @@ node "Docker Engine" {
 folder "Host Resources" {
 
     component "Jenkins Workspace\n/home/mirko/jenkins_host_workspace" as workspace
-
     component "Docker Socket\n/var/run/docker.sock" as socket
 
 }
-```
 
 }
 
 node "Docker Build System" {
-
-```
-component "Dockerfile\n(Current Directory)" as dockerfile
-
-component "Build Context\n." as context
-```
-
+    component "Dockerfile\n(Current Directory)" as dockerfile
+    component "Build Context\n." as context
 }
 
 dev --> jenkins_service : docker compose up

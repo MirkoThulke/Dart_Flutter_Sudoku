@@ -5,14 +5,14 @@ start
 
 :Resolve script directory;
 :Set PROJECT_ROOT;
-cd PROJECT_ROOT;
+:Change directory to PROJECT_ROOT;
 
 :Print project root;
 
 if (Running inside Docker?) then (yes)
-:Set GRADLE_USER_HOME to PROJECT_ROOT/.gradle;
+  :Set GRADLE_USER_HOME to PROJECT_ROOT/.gradle;
 else (no)
-:Set GRADLE_USER_HOME to HOME/.gradle;
+  :Set GRADLE_USER_HOME to HOME/.gradle;
 endif
 
 :Print Gradle cache location;
@@ -23,14 +23,16 @@ endif
 :Check pubspec.yaml for integration_test;
 
 if (integration_test present?) then (yes)
-:Print "integration_test already present";
+  :Print "integration_test already present";
 else (no)
-if (dev_dependencies exists?) then (yes)
-:Insert integration_test into dev_dependencies;
-else (no)
-:Append dev_dependencies section;
-:Add integration_test;
-endif
+
+  if (dev_dependencies exists?) then (yes)
+    :Insert integration_test into dev_dependencies;
+  else (no)
+    :Append dev_dependencies section;
+    :Add integration_test;
+  endif
+
 endif
 
 :Run flutter clean;

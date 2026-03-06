@@ -6,18 +6,18 @@ start
 :Detect Windows host IP from /etc/resolv.conf;
 
 if (Host IP detected?) then (yes)
-:Set WIN_IP;
-else
-:Print error;
-stop
+  :Set WIN_IP;
+else (no)
+  :Print error;
+  stop
 endif
 
 :Configure ADB_SERVER_SOCKET;
 
 if (Running in WSL?) then (yes)
-:Use Windows adb.exe;
-else
-:Use native adb;
+  :Use Windows adb.exe;
+else (no)
+  :Use native adb;
 endif
 
 :Persist ADB_SERVER_SOCKET in ~/.bashrc;
@@ -25,26 +25,29 @@ endif
 :Verify adb command exists;
 
 if (adb installed?) then (yes)
-else
-:Print install instructions;
-stop
+else (no)
+  :Print install instructions;
+  stop
 endif
 
 :Check if Windows adb.exe process running;
 
 if (adb.exe running?) then (yes)
-:Continue;
-else
-:Start adb.exe via PowerShell;
+  :Continue;
+else (no)
+  :Start adb.exe via PowerShell;
 endif
 
 :Check ADB port binding (5037);
 
 if (Bound to 127.0.0.1?) then (ok)
-elseif (Bound to 0.0.0.0?) then
-:Restart adb.exe with correct binding;
-else
-:Warn user;
+  :Binding OK;
+else (no)
+  if (Bound to 0.0.0.0?) then (yes)
+    :Restart adb.exe with correct binding;
+  else (no)
+    :Warn user;
+  endif
 endif
 
 :Verify connectivity to Windows ADB server;
@@ -56,16 +59,17 @@ endif
 :Detect USB device;
 
 if (USB device found?) then (yes)
-:Enable TCP/IP mode;
+  :Enable TCP/IP mode;
+else (no)
 endif
 
 :Determine device IP;
 
 if (Saved IP exists?) then (yes)
-:Load IP from file;
-else
-:Detect IP from device;
-:Save IP to file;
+  :Load IP from file;
+else (no)
+  :Detect IP from device;
+  :Save IP to file;
 endif
 
 :Ping device for connectivity;
@@ -73,14 +77,14 @@ endif
 :Attempt TCP/IP connection loop;
 
 repeat
-:adb connect DEVICE_IP:5555;
-:Check adb devices list;
+  :adb connect DEVICE_IP:5555;
+  :Check adb devices list;
 repeat while (device not connected)
 
 if (Connected?) then (yes)
-:TCP/IP ADB ready;
-else
-:Print troubleshooting instructions;
+  :TCP/IP ADB ready;
+else (no)
+  :Print troubleshooting instructions;
 endif
 
 :Display device list;
@@ -90,11 +94,11 @@ endif
 :Detect WSL CMake;
 
 if (CMake installed?) then (yes)
-:Export ANDROID_CMAKE;
-:Persist in ~/.bashrc;
-:Configure Gradle CMake path;
-else
-:Print install instructions;
+  :Export ANDROID_CMAKE;
+  :Persist in ~/.bashrc;
+  :Configure Gradle CMake path;
+else (no)
+  :Print install instructions;
 endif
 
 :Persist DEVICE_IP in ~/.bashrc;

@@ -9,11 +9,11 @@ start
 
 :Change directory to Rust library;
 
-:Clean previous build;
-cargo clean
+:Clean previous build
+(cargo clean);
 
-:Build Rust backend for Android;
-cargo ndk build --release
+:Build Rust backend for Android
+(cargo ndk build --release);
 
 note right
 Targets:
@@ -22,7 +22,7 @@ Targets:
 * arm64-v8a
 * x86
 * x86_64
-  end note
+end note
 
 :Output shared libraries (.so)
 to Flutter jniLibs folder;
