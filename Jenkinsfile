@@ -1397,7 +1397,7 @@ pipeline {
         
                             echo "Running PlantUML generator..."
         
-                            ./scripts/generate_plantuml_pdf.sh
+                            bash scripts/generate_plantuml_pdf.sh
                         """
                     }
                 }
