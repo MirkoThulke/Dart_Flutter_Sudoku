@@ -272,7 +272,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
       dataProvider.callRustCellUpdate(
           _pos.row, _pos.col, constSudokuNumRow, constSudokuNumCol);
     } else {
-      debugPrint('Skipped reset: cell is a given number.');
+      log.warning('Skipped reset: cell is a given number.');
     }
   }
 
@@ -514,8 +514,7 @@ setState() forces the widget to rebuild with the newly loaded JSON data.
         _resetNumber(candNumber);
         // Case 4 : ELSE: error
       } else {
-        Logger.root.level = Level.ALL;
-        log.shout('if actionlist[] entered unintended ELSE statement');
+        log.warning('if actionlist[] entered unintended ELSE statement');
       }
     });
   }
