@@ -1385,15 +1385,15 @@ pipeline {
         stage('Generate Diagrams & PDF') {
             when { expression { params.RUN_PLANTUML_DOCU_BUILD == true } }
             steps {
-                sh """#!/usr/bin/env bash
+                    sh """#!/usr/bin/env bash
                     set -Eeuo pipefail
 
-                    cd "\${REPO_CHECKOUT_DIR}"
+                    cd "${WORKSPACE}"
 
                     echo "Running PlantUML generator..."
 
                     bash scripts/generate_plantuml_pdf.sh
-                """
+                    """
             }
         }
 
