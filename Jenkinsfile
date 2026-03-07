@@ -412,7 +412,7 @@ pipeline {
                     "FLUTTER_CONTAINER_ARTIFACTS=${env.FLUTTER_CONTAINER_WORKSPACE}/artifacts",
 
 
-                    "ANDROID_JNI_LIBS_DIR=${env.FLUTTER_CONTAINER_WORKSPACE}/android/app/src/main/jniLibs",
+                    "ANDROID_JNI_LIBS_DIR=${FLUTTER_CONTAINER_WORKSPACE}/git_checkout/android/app/src/main/jniLibs,
 
                     "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
                     "RUSTUP_HOME=${env.RUSTUP_HOME}",
@@ -915,7 +915,8 @@ pipeline {
                           -o "\${ANDROID_JNI_LIBS_DIR}" \
                               build --release
         
-                            echo "📦 Produced JNI libraries:"
+                        echo "📦 Produced JNI libraries:"
+                        find "\${REPO_CHECKOUT_DIR}/android/app/src/main/jniLibs" -name "*.so"
                         find "\${ANDROID_JNI_LIBS_DIR}" -name "*.so"
                         """
                     }

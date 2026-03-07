@@ -12,11 +12,11 @@ import org.gradle.api.GradleException
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 
-if (!keystorePropertiesFile.exists()) {
-    throw GradleException("❌ key.properties not found! Release signing cannot continue.")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+} else {
+    println("⚠ key.properties not found. Release signing disabled.")
 }
-
-keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.mtulli.sudoku"
@@ -50,13 +50,15 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
-
+    
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
