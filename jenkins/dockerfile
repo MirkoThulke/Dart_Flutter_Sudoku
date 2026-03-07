@@ -48,7 +48,11 @@ RUN jenkins-plugin-cli --plugins \
 
 # Install plugins for PlantUML and Graphviz
 RUN apt-get update && \
-    apt-get install -y plantuml graphviz
+    apt-get install -y \
+        plantuml \
+        graphviz \
+        imagemagick \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Add Jenkins user to Docker group matching host socket GID

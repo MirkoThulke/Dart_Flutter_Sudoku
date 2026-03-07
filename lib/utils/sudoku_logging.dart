@@ -27,20 +27,18 @@ Contact: MIRKO THULKE (for permission requests)
 ##############################################################################
 */
 
-import 'package:logging/logging.dart'; // logging
-
-////////////////////////////////////////////////////////////
-// Debug Logging class
+import 'package:logging/logging.dart';
+import 'package:flutter/foundation.dart';
 
 final Logger log = Logger('SudokuLogger');
 
 void initLogger() {
-  Logger.root.level = Level.ALL;
+  Logger.root.level = kDebugMode ? Level.ALL : Level.SEVERE;
+
   Logger.root.onRecord.listen((record) {
-    // print('${record.level.name}: ${record.time}: ${record.message}');
+    debugPrint('${record.level.name}: ${record.message}');
   });
 }
-
 
 // Copyright (c) 2025, MIRKO THULKE. All rights reserved.
 // See LICENSE file in the project root for details.

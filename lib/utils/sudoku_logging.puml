@@ -4,13 +4,58 @@ class SudokuLogger {
   +initLogger()
 }
 
-class Logger
+class Logger {
+  +root
+  +level
+  +onRecord
+}
 
-SudokuLogger --> Logger
+class FlutterFoundation {
+  +kDebugMode
+}
+
+SudokuLogger --> Logger : configures
+SudokuLogger --> FlutterFoundation : reads
 
 note right of SudokuLogger
 Initializes global logging
 for debugging and diagnostics.
+
+Debug build:
+  Logger.root.level = Level.ALL
+
+Release build:
+  Logger.root.level = Level.SEVERE
+
+Example usage:
+  log.info("Matrix loaded")
+  log.warning("Unexpected state")
+  log.severe("Rust call failed")
+
+Other options : 
+FINEST
+FINER
+FINE
+CONFIG
+INFO
+WARNING
+SEVERE
+SHOUT
+
+Log visibility:
+
+  info    -> Debug: shown,   Release: hidden
+  warning -> Debug: shown,   Release: hidden
+  severe  -> Debug: shown,   Release: shown
+
+end note
+
+note right of FlutterFoundation
+Provided by Flutter.
+
+kDebugMode determines
+whether the application
+runs in debug or release mode.
 end note
 
 @enduml

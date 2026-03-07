@@ -39,6 +39,7 @@ import 'package:provider/provider.dart'; // data excahnge between classes
 // Main classe  -> root
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initLogger(); // <-- initialize logging here
 
   runApp(
     MultiProvider(

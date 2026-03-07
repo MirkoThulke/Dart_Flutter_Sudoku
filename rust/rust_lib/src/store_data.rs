@@ -191,7 +191,6 @@ pub unsafe extern "C" fn load_data(
 
                 for (dst, src) in slice.iter_mut().zip(data.elements.iter()) {
                     *dst = DartToRustElementFFI::from(src);
-                    print!("RUST : Loading JSON from file.");
                 }
 
                 0
