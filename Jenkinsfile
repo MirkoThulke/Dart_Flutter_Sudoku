@@ -1385,22 +1385,15 @@ pipeline {
         stage('Generate Diagrams & PDF') {
             when { expression { params.RUN_PLANTUML_DOCU_BUILD == true } }
             steps {
-                script {
-                    insideFlutterContainerJenkinsUser(
-                        "${FLUTTER_CONTAINER_CACHE}"
-                    ) {
-                        sh """#!/usr/bin/env bash
+                sh """#!/usr/bin/env bash
+                    set -Eeuo pipefail
 
-                            set -Eeuo pipefail
-        
-                            cd "\${REPO_CHECKOUT_DIR}"
-        
-                            echo "Running PlantUML generator..."
-        
-                            bash scripts/generate_plantuml_pdf.sh
-                        """
-                    }
-                }
+                    cd "\${REPO_CHECKOUT_DIR}"
+
+                    echo "Running PlantUML generator..."
+
+                    bash scripts/generate_plantuml_pdf.sh
+                """
             }
         }
 
@@ -1410,12 +1403,14 @@ pipeline {
     post {
         always {
             echo "🧹 Cleaning workspace"
+
+            archiveArtifacts artifacts: 'doc/diagrams/**/*', fingerprint: true, allowEmptyArchive: true
     
             sh 'rm -f android/key.properties || true'
     
             cleanWs(deleteDirs: true, disableDeferredWipeout: true)
         }
-        success { echo "✅ Build succeeded" }
+        success {  echo "✅ Build succeeded" }
         failure { echo "❌ Build failed" }
     }
 
