@@ -411,8 +411,7 @@ pipeline {
 
                     "FLUTTER_CONTAINER_ARTIFACTS=${env.FLUTTER_CONTAINER_WORKSPACE}/artifacts",
 
-
-                    "ANDROID_JNI_LIBS_DIR=${FLUTTER_CONTAINER_WORKSPACE}/git_checkout/android/app/src/main/jniLibs,
+                    "ANDROID_JNI_LIBS_DIR=${FLUTTER_CONTAINER_WORKSPACE}/git_checkout/android/app/src/main/jniLibs",
 
                     "FLUTTER_ROOT=${env.FLUTTER_ROOT}",
                     "RUSTUP_HOME=${env.RUSTUP_HOME}",
