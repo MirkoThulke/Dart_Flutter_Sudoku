@@ -46,6 +46,7 @@ fi
 
 echo "Found ${#PUML_FILES[@]} PUML files."
 
+
 # -------------------------------
 # Generate PNG + PDF
 # -------------------------------
