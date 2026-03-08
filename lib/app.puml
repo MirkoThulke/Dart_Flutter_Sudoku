@@ -1,4 +1,4 @@
-@startuml MyApp_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - MyApp
 
 skinparam classAttributeIconSize 0

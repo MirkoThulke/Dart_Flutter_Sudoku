@@ -1,4 +1,4 @@
-@startuml SudokuElement_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - SudokuElement
 
 skinparam classAttributeIconSize 0

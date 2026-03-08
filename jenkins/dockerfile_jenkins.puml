@@ -1,4 +1,4 @@
-@startuml Jenkins_Sudoku_Dockerfile
+@startuml
 title Jenkins Sudoku CI – Docker Image Build
 
 skinparam componentStyle rectangle

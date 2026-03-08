@@ -1,4 +1,4 @@
-@startuml AddRemoveToggle_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - AddRemoveToggle
 
 skinparam classAttributeIconSize 0

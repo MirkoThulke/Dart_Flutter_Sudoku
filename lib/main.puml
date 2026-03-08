@@ -1,4 +1,4 @@
-@startuml App_Bootstrap_Provider_ClassDiagram
+@startuml
 title Flutter App Bootstrap & Provider Architecture
 
 skinparam classAttributeIconSize 0

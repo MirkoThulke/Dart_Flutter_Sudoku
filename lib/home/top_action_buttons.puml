@@ -1,4 +1,4 @@
-@startuml TopActionButtons_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - TopActionButtons
 
 skinparam classAttributeIconSize 0

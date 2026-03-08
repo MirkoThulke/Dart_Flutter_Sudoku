@@ -1,4 +1,4 @@
-@startuml Reproducibility_Model
+@startuml
 title Deterministic Build Model
 
 actor Developer

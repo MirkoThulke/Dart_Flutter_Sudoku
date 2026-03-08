@@ -1,4 +1,4 @@
-@startuml SetResetButtons_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - SetResetButtons
 
 skinparam classAttributeIconSize 0

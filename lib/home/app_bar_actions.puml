@@ -1,4 +1,4 @@
-@startuml CustomAppBar_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - CustomAppBar
 
 skinparam classAttributeIconSize 0

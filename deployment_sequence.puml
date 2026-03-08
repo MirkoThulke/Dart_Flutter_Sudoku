@@ -1,4 +1,4 @@
-@startuml Deployment_Sequence
+@startuml
 title Deployment Sequence - Host → Jenkins → Flutter Container
 
 actor Developer

@@ -1,4 +1,4 @@
-@startuml PatternButtons_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - PatternButtons
 
 skinparam classAttributeIconSize 0

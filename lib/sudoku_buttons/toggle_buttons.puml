@@ -1,4 +1,4 @@
-@startuml ToggleButtonsSample_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - ToggleButtonsSample
 
 skinparam classAttributeIconSize 0

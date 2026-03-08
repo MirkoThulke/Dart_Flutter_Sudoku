@@ -1,4 +1,4 @@
-@startuml UndoIconButtons_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - UndoIconButtons
 
 skinparam classAttributeIconSize 0

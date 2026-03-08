@@ -1,4 +1,4 @@
-@startuml SecureButton_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - SecureButton
 
 skinparam classAttributeIconSize 0

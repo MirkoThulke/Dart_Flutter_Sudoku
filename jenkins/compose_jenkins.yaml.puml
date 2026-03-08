@@ -1,4 +1,4 @@
-@startuml Jenkins_Docker_Compose_Deployment
+@startuml
 title Jenkins Sudoku CI - Docker Compose Deployment
 
 skinparam componentStyle rectangle

@@ -1,4 +1,4 @@
-@startuml Workspace_vs_Cache_Security
+@startuml
 title Workspace vs Cache Security Model
 
 rectangle "Ephemeral Workspace\n(FLUTTER_CONTAINER_WORKSPACE)" as WS {

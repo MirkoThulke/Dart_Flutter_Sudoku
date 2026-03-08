@@ -1,4 +1,4 @@
-@startuml NumberButtons_ClassDiagram
+@startuml
 title Flutter Widget Class Diagram - NumberButtons
 
 skinparam classAttributeIconSize 0

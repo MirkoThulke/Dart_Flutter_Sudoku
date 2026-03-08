@@ -1,4 +1,4 @@
-@startuml Jenkins_Pipeline_With_Architecture
+@startuml
 title Jenkins CI Pipeline - Flutter + Rust + Android
 
 start
