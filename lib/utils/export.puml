@@ -1,6 +1,11 @@
 @startuml
 title Dart Export Module
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 package utils {
   class shared_types
   class help_page

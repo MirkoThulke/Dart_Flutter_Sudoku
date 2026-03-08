@@ -1,6 +1,11 @@
 @startuml
 title Flutter Widget Class Diagram - UndoIconButtons
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 

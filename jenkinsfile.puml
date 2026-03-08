@@ -1,6 +1,11 @@
 @startuml
 title Jenkins CI Pipeline - Flutter + Rust + Android
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 start
 
 :Workspace Sanity Clean;

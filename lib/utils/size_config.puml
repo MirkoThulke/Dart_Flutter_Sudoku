@@ -1,6 +1,11 @@
 @startuml
 title SizeConfig Class Diagram
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 class SizeConfig {
   -- Fields --
   - MediaQueryData _mediaQueryData

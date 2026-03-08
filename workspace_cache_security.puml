@@ -1,6 +1,11 @@
 @startuml
 title Workspace vs Cache Security Model
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 rectangle "Ephemeral Workspace\n(FLUTTER_CONTAINER_WORKSPACE)" as WS {
   component "git_checkout/"
   component "build/"

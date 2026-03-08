@@ -1,6 +1,11 @@
 @startuml
 title Deterministic Build Model
 
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
+
 actor Developer
 participant "Git Repository\n(Versioned Source)" as Git
 participant "Pinned Docker Image\nflutter_rust_env:latest" as Image
