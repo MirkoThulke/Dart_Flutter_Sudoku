@@ -6,10 +6,6 @@ footer
 See LICENSE file in the project root for details.
 end footer
 
-footer
-© 2026 Mirko THULKE — All rights reserved
-See LICENSE file in the project root for details.
-end footer
 
 actor Developer
 participant "Host (WSL2/Linux)" as Host

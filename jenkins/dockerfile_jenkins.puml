@@ -1,16 +1,17 @@
 @startuml
 title Jenkins Sudoku CI – Docker Image Build
 
-footer
-© 2026 Mirko THULKE — All rights reserved
-See LICENSE file in the project root for details.
-end footer
 
 skinparam componentStyle rectangle
 skinparam shadowing false
 skinparam packageStyle rectangle
 
 left to right direction
+
+footer
+© 2026 Mirko THULKE — All rights reserved
+See LICENSE file in the project root for details.
+end footer
 
 actor "Developer / CI Pipeline" as dev
 
